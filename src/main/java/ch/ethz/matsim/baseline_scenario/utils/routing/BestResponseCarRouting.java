@@ -20,6 +20,7 @@ import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.LeastCostPathCalculator;
 import org.matsim.core.router.util.LeastCostPathCalculator.Path;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
+import org.matsim.core.utils.misc.Counter;
 
 import ch.ethz.matsim.mode_choice.utils.QueueBasedThreadSafeDijkstra;
 
@@ -37,6 +38,7 @@ public class BestResponseCarRouting {
 				new OnlyTimeDependentTravelDisutility(new FreeSpeedTravelTime()), new FreeSpeedTravelTime());
 
 		ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
+		final Counter counter = new Counter("", " legs routed");
 
 		for (Person person : population.getPersons().values()) {
 			for (Plan plan : person.getPlans()) {
@@ -48,6 +50,10 @@ public class BestResponseCarRouting {
 								route(router, trip.getLegsOnly().get(0), trip.getOriginActivity().getLinkId(),
 										trip.getDestinationActivity().getLinkId(),
 										trip.getOriginActivity().getEndTime());
+								
+								synchronized(counter) {
+									counter.incCounter();
+								}
 							}
 						});
 					}

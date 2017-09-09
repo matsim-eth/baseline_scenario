@@ -1,9 +1,12 @@
 package ch.ethz.matsim.baseline_scenario;
 
 import java.util.Random;
+import java.util.Set;
 
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.algorithms.NetworkCleaner;
 import org.matsim.core.network.io.MatsimNetworkReader;
@@ -16,6 +19,7 @@ import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
+import ch.ethz.ivt.matsim.playgrounds.sebhoerl.locations.RunParallelSampler;
 import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.ShiftTimes;
 import ch.ethz.matsim.baseline_scenario.utils.FixFacilityActivityTypes;
 import ch.ethz.matsim.baseline_scenario.utils.FixShopActivities;
@@ -72,10 +76,9 @@ public class MakeScenario {
 
 		// LOCATION CHOICE
 
-		// Set<Id<Person>> failedIds = RunParallelSampler.run(numberOfThreads,
-		// "microcensus.csv", scenario.getPopulation(),
-		// scenario.getActivityFacilities());
-		// failedIds.forEach(id -> scenario.getPopulation().getPersons().remove(id));
+		Set<Id<Person>> failedIds = RunParallelSampler.run(numberOfThreads, "microcensus.csv", scenario.getPopulation(),
+				scenario.getActivityFacilities());
+		failedIds.forEach(id -> scenario.getPopulation().getPersons().remove(id));
 
 		// SCORING
 
@@ -85,7 +88,7 @@ public class MakeScenario {
 		// PREPARE FOR RUNNING
 
 		// Do best response routing with free-flow travel times
-		new BestResponseCarRouting(numberOfThreads, scenario.getNetwork());
+		new BestResponseCarRouting(numberOfThreads, scenario.getNetwork()).run(scenario.getPopulation());
 
 		// OUTPUT
 
