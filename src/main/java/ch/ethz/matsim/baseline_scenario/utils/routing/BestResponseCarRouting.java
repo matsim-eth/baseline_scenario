@@ -2,6 +2,7 @@ package ch.ethz.matsim.baseline_scenario.utils.routing;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
@@ -33,7 +34,7 @@ public class BestResponseCarRouting {
 		this.numberOfThreads = numberOfThreads;
 	}
 
-	public void run(Population population) {
+	public void run(Population population) throws InterruptedException {
 		QueueBasedThreadSafeDijkstra router = new QueueBasedThreadSafeDijkstra(numberOfThreads, network,
 				new OnlyTimeDependentTravelDisutility(new FreeSpeedTravelTime()), new FreeSpeedTravelTime());
 
@@ -60,8 +61,10 @@ public class BestResponseCarRouting {
 				}
 			}
 		}
-
+		
 		executor.shutdown();
+		executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+		
 		router.close();
 	}
 

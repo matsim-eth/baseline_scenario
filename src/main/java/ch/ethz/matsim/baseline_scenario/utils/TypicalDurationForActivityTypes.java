@@ -11,6 +11,8 @@ import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ActivityParams;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.ActivityOption;
