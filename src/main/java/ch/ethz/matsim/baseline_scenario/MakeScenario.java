@@ -88,7 +88,7 @@ public class MakeScenario {
 		// PREPARE FOR RUNNING
 
 		// Do best response routing with free-flow travel times
-		new BestResponseCarRouting(numberOfThreads, scenario.getNetwork()).run(scenario.getPopulation());
+		//new BestResponseCarRouting(numberOfThreads, scenario.getNetwork()).run(scenario.getPopulation());
 
 		// OUTPUT
 
