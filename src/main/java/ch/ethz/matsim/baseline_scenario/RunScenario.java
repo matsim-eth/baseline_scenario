@@ -19,12 +19,7 @@ public class RunScenario {
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 		Controler controler = new Controler(scenario);
 		
-		controler.addOverridingModule(new AbstractModule() {
-			@Override
-			public void install() {
-				bindScoringFunctionFactory().to(BaselineScoringFunctionFactory.class).asEagerSingleton();
-			}
-		});
+		controler.addOverridingModule(new BaselineModule());
 		
 		controler.run();
 	}
