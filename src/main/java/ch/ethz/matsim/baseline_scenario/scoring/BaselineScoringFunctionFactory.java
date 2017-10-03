@@ -58,6 +58,7 @@ public class BaselineScoringFunctionFactory implements ScoringFunctionFactory {
 					} else {
 						// Do NOT score interaction activities
 						activityBuilder.setScoreAtAll(false);
+						activityBuilder.setZeroUtilityComputation(new ActivityUtilityParameters.SameAbsoluteScore());
 					}
 					
 					scoringBuilder.setActivityParameters(activity.getType(), activityBuilder);
