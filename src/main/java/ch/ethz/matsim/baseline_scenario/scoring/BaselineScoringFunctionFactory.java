@@ -48,11 +48,17 @@ public class BaselineScoringFunctionFactory implements ScoringFunctionFactory {
 					Activity activity = (Activity) element;
 					
 					ActivityUtilityParameters.Builder activityBuilder = new ActivityUtilityParameters.Builder();
-					activityBuilder.setTypicalDuration_s((Double) population.getPersonAttributes().getAttribute(person.getId().toString(), "typicalDuration_" + activity.getType()));
-					activityBuilder.setMinimalDuration((Double) population.getPersonAttributes().getAttribute(person.getId().toString(), "minimalDuration_" + activity.getType()));
-					activityBuilder.setEarliestEndTime((Double) population.getPersonAttributes().getAttribute(person.getId().toString(), "earliestEndTime_" + activity.getType()));
-					activityBuilder.setLatestStartTime((Double) population.getPersonAttributes().getAttribute(person.getId().toString(), "latestStartTime_" + activity.getType()));
-					activityBuilder.setZeroUtilityComputation(new ActivityUtilityParameters.SameAbsoluteScore());					
+					
+					if (!activity.getType().contains("interaction")) {					
+						activityBuilder.setTypicalDuration_s((Double) population.getPersonAttributes().getAttribute(person.getId().toString(), "typicalDuration_" + activity.getType()));
+						activityBuilder.setMinimalDuration((Double) population.getPersonAttributes().getAttribute(person.getId().toString(), "minimalDuration_" + activity.getType()));
+						activityBuilder.setEarliestEndTime((Double) population.getPersonAttributes().getAttribute(person.getId().toString(), "earliestEndTime_" + activity.getType()));
+						activityBuilder.setLatestStartTime((Double) population.getPersonAttributes().getAttribute(person.getId().toString(), "latestStartTime_" + activity.getType()));
+						activityBuilder.setZeroUtilityComputation(new ActivityUtilityParameters.SameAbsoluteScore());					
+					} else {
+						// Do NOT score interaction activities
+						activityBuilder.setScoreAtAll(false);
+					}
 					
 					scoringBuilder.setActivityParameters(activity.getType(), activityBuilder);
 				}
