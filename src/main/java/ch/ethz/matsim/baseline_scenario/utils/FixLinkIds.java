@@ -1,5 +1,6 @@
 package ch.ethz.matsim.baseline_scenario.utils;
 
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.facilities.ActivityFacilityImpl;
@@ -21,7 +22,9 @@ public class FixLinkIds {
 	
 	public void run(ActivityFacilities facilities, Population population) {
 		for (ActivityFacility facility : facilities.getFacilities().values()) {
-			((ActivityFacilityImpl) facility).setLinkId(NetworkUtils.getNearestLink(network, facility.getCoord()).getId());
+			Link nearestLink = NetworkUtils.getNearestLink(network, facility.getCoord());
+			((ActivityFacilityImpl) facility).setLinkId(nearestLink.getId());
+			((ActivityFacilityImpl) facility).setCoord(nearestLink.getCoord());
 		}
 		
 		for (Person person : population.getPersons().values()) {
@@ -32,6 +35,10 @@ public class FixLinkIds {
 						
 						if (activity.getFacilityId() != null) {
 							activity.setLinkId(facilities.getFacilities().get(activity.getFacilityId()).getLinkId());
+							
+							Link link = network.getLinks().get(facilities.getFacilities().get(activity.getFacilityId()).getLinkId());
+							activity.setLinkId(link.getId());
+							activity.setCoord(link.getCoord());
 						}
 					}
 				}

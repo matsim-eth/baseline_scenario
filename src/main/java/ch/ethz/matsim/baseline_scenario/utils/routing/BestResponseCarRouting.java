@@ -1,5 +1,6 @@
 package ch.ethz.matsim.baseline_scenario.utils.routing;
 
+import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -33,15 +34,19 @@ public class BestResponseCarRouting {
 		this.network = network;
 		this.numberOfThreads = numberOfThreads;
 	}
-
+	
 	public void run(Population population) throws InterruptedException {
+		run(population.getPersons().values());
+	}
+
+	public void run(Collection<? extends Person> persons) throws InterruptedException {
 		QueueBasedThreadSafeDijkstra router = new QueueBasedThreadSafeDijkstra(numberOfThreads, network,
 				new OnlyTimeDependentTravelDisutility(new FreeSpeedTravelTime()), new FreeSpeedTravelTime());
 
 		ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
 		final Counter counter = new Counter("", " legs routed");
 
-		for (Person person : population.getPersons().values()) {
+		for (Person person : persons) {
 			for (Plan plan : person.getPlans()) {
 				for (TripStructureUtils.Trip trip : TripStructureUtils.getTrips(plan, new StageActivityTypesImpl())) {
 					if (trip.getLegsOnly().get(0).getMode().equals(TransportMode.car)) {
@@ -67,7 +72,7 @@ public class BestResponseCarRouting {
 		
 		router.close();
 	}
-
+	
 	private void route(LeastCostPathCalculator router, Leg leg, Id<Link> originId, Id<Link> destinationId,
 			double departureTime) {
 		Path path = router.calcLeastCostPath(network.getLinks().get(originId).getToNode(),
