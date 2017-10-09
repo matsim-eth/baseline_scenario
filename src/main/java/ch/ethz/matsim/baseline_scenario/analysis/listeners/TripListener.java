@@ -42,6 +42,7 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 	final private Collection<TripItem> trips = new LinkedList<>();
 	final private Map<Id<Person>, TripListenerItem> ongoing = new HashMap<>();
 	final private Map<Id<Vehicle>, Id<Person>> passengers = new HashMap<>();
+	final private Map<Id<Person>, Integer> tripIndex = new HashMap<>();
 	
 	public TripListener(Network network, StageActivityTypes stageActivityTypes,
 			HomeActivityTypes homeActivityTypes, MainModeIdentifier mainModeIdentifier) {
@@ -61,13 +62,24 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 		trips.clear();
 		ongoing.clear();
 		passengers.clear();
+		tripIndex.clear();
 	}
 
 	@Override
 	public void handleEvent(ActivityEndEvent event) {
 		if (!stageActivityTypes.isStageActivity(event.getActType())) {
-			ongoing.put(event.getPersonId(), new TripListenerItem(network.getLinks().get(event.getLinkId()).getCoord(),
+			Integer personTripIndex = tripIndex.get(event.getPersonId());
+			
+			ongoing.put(event.getPersonId(), new TripListenerItem(event.getPersonId(), personTripIndex == null ? 0 : personTripIndex.intValue(), network.getLinks().get(event.getLinkId()).getCoord(),
 					event.getTime(), event.getActType()));
+			
+			if (personTripIndex == null) {
+				personTripIndex = 0;
+			} else {
+				personTripIndex = personTripIndex + 1;
+			}
+			
+			tripIndex.put(event.getPersonId(), personTripIndex);
 		}
 	}
 
@@ -92,7 +104,7 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 				trip.destination = network.getLinks().get(event.getLinkId()).getCoord();
 				trip.networkDistance = getNetworkDistance(trip);
 
-				trips.add(new TripItem(trip.origin, trip.destination, trip.startTime, trip.travelTime,
+				trips.add(new TripItem(trip.personId, trip.personTripId, trip.origin, trip.destination, trip.startTime, trip.travelTime,
 						trip.networkDistance, trip.mode, trip.purpose, trip.returning));
 			}
 		}

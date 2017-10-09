@@ -49,16 +49,20 @@ public class PopulationTripReader {
 		for (Person person : population.getPersons().values()) {
 			List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(person.getSelectedPlan(),
 					stageActivityTypes);
+			
+			int personTripIndex = 0;
 
 			for (TripStructureUtils.Trip trip : trips) {
 				boolean isHomeTrip = homeActivityTypes.isHomeActivity(trip.getDestinationActivity().getType());
 
-				tripItems.add(new TripItem(trip.getOriginActivity().getCoord(),
+				tripItems.add(new TripItem(person.getId(), personTripIndex, trip.getOriginActivity().getCoord(),
 						trip.getDestinationActivity().getCoord(), trip.getOriginActivity().getEndTime(),
 						trip.getDestinationActivity().getStartTime() - trip.getOriginActivity().getEndTime(),
 						getNetworkDistance(trip), mainModeIdentifier.identifyMainMode(trip.getTripElements()),
 						isHomeTrip ? trip.getOriginActivity().getType() : trip.getDestinationActivity().getType(),
 						isHomeTrip));
+				
+				personTripIndex++;
 			}
 		}
 

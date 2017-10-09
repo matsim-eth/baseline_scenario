@@ -1,8 +1,12 @@
 package ch.ethz.matsim.baseline_scenario.analysis;
 
 import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.population.Person;
 
 public class TripItem {
+	public Id<Person> personId;
+	public int personTripId;
 	public Coord origin;
 	public Coord destination;
 	public double startTime;
@@ -13,7 +17,9 @@ public class TripItem {
 	public boolean returning;
 
 	
-	public TripItem(Coord origin, Coord destination, double startTime, double travelTime, double networkDistance, String mode, String purpose, boolean returning) {
+	public TripItem(Id<Person> personId, int personTripId, Coord origin, Coord destination, double startTime, double travelTime, double networkDistance, String mode, String purpose, boolean returning) {
+		this.personId = personId;
+		this.personTripId = personTripId;
 		this.origin = origin;
 		this.destination = destination;
 		this.startTime = startTime;

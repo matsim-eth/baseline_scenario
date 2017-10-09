@@ -22,6 +22,9 @@ public class CSVTripWriter {
 	public void write(String outputPath) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath)));
 
+		writer.write(formatHeader() + "\n");
+		writer.flush();
+		
 		for (TripItem trip : trips) {
 			writer.write(formatTrip(trip) + "\n");
 			writer.flush();
@@ -35,9 +38,16 @@ public class CSVTripWriter {
 		return activityType.replaceAll("_[0-9]+$", "");
 	}
 
+	private String formatHeader() {
+		return String.join(delimiter,
+				new String[] { "person_id", "person_trip_id", "origin_x", "origin_y", "destination_x", "destination_y",
+						"start_time", "travel_time", "network_distance", "mode", "purpose", "returning" });
+	}
+
 	private String formatTrip(TripItem trip) {
 		return String.join(delimiter,
-				new String[] { String.valueOf(trip.origin.getX()), String.valueOf(trip.origin.getY()),
+				new String[] { trip.personId.toString(), String.valueOf(trip.personTripId),
+						String.valueOf(trip.origin.getX()), String.valueOf(trip.origin.getY()),
 						String.valueOf(trip.destination.getX()), String.valueOf(trip.destination.getY()),
 						String.valueOf(trip.startTime), String.valueOf(trip.travelTime),
 						String.valueOf(trip.networkDistance), String.valueOf(trip.mode),
