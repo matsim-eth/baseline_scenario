@@ -28,7 +28,7 @@ public class TypicalDurationForActivityTypes {
 		attributes.putAttribute(personId.toString(), "earliestEndTime_" + activityType, 0.0 * 3600.0);
 		attributes.putAttribute(personId.toString(), "latestStartTime_" + activityType, 24.0 * 3600.0);
 	}
-
+	
 	public void run(Population population, ActivityFacilities facilities) {
 		Map<String, Integer> maximumCounts = new HashMap<>();
 
@@ -39,6 +39,8 @@ public class TypicalDurationForActivityTypes {
 			Plan plan = person.getSelectedPlan();
 			List<Activity> activities = plan.getPlanElements().stream().filter(Activity.class::isInstance)
 					.map(Activity.class::cast).collect(Collectors.toList());
+			
+			activities.forEach(activity -> activity.setType(activity.getType().replaceAll("_[0-9]+$", "")));
 
 			Map<String, AtomicInteger> typeCounts = new HashMap<>();
 			boolean firstAndLastIsSameType = activities.get(0).getType()
@@ -122,12 +124,14 @@ public class TypicalDurationForActivityTypes {
 				ActivityOption original = facility.getActivityOptions().get(entry.getKey());
 				
 				for (int i = 1; i <= entry.getValue(); i++) {
-					ActivityOption option = new ActivityOptionImpl(entry.getKey() + "_" + i);
+					String optionType = entry.getKey() + "_" + i;
 					
-					option.setCapacity(original.getCapacity());
-					original.getOpeningTimes().forEach(o -> option.addOpeningTime(o));
-					
-					facility.addActivityOption(option);
+					if (!facility.getActivityOptions().containsKey(optionType)) {
+						ActivityOption option = new ActivityOptionImpl(optionType);
+						option.setCapacity(original.getCapacity());
+						original.getOpeningTimes().forEach(o -> option.addOpeningTime(o));
+						facility.addActivityOption(option);
+					}
 				}
 			}
 		}
