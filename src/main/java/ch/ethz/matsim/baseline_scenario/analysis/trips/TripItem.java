@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.analysis;
+package ch.ethz.matsim.baseline_scenario.analysis.trips;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;

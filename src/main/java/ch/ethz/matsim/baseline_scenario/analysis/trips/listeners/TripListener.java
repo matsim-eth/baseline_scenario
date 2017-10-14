@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.analysis.listeners;
+package ch.ethz.matsim.baseline_scenario.analysis.trips.listeners;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,8 +28,8 @@ import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.vehicles.Vehicle;
 
-import ch.ethz.matsim.baseline_scenario.analysis.TripItem;
-import ch.ethz.matsim.baseline_scenario.analysis.utils.HomeActivityTypes;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.TripItem;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.utils.HomeActivityTypes;
 
 public class TripListener implements ActivityStartEventHandler, ActivityEndEventHandler, PersonDepartureEventHandler,
 		PersonEntersVehicleEventHandler, PersonLeavesVehicleEventHandler, LinkEnterEventHandler {
@@ -69,6 +69,11 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 	public void handleEvent(ActivityEndEvent event) {
 		if (!stageActivityTypes.isStageActivity(event.getActType())) {
 			Integer personTripIndex = tripIndex.get(event.getPersonId());
+			
+			System.out.println(event.getLinkId());
+			
+			network.getLinks().get(event.getLinkId()).getCoord();
+			
 			
 			ongoing.put(event.getPersonId(), new TripListenerItem(event.getPersonId(), personTripIndex == null ? 0 : personTripIndex.intValue(), network.getLinks().get(event.getLinkId()).getCoord(),
 					event.getTime(), event.getActType()));

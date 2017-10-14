@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.analysis;
+package ch.ethz.matsim.baseline_scenario.analysis.trips;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;

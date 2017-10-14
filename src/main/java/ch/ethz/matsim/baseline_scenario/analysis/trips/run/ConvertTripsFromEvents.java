@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.analysis.run;
+package ch.ethz.matsim.baseline_scenario.analysis.trips.run;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -12,25 +12,25 @@ import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.StageActivityTypesImpl;
 import org.matsim.pt.PtConstants;
 
-import ch.ethz.matsim.baseline_scenario.analysis.CSVTripWriter;
-import ch.ethz.matsim.baseline_scenario.analysis.TripItem;
-import ch.ethz.matsim.baseline_scenario.analysis.readers.PopulationTripReader;
-import ch.ethz.matsim.baseline_scenario.analysis.utils.BaselineHomeActivityTypes;
-import ch.ethz.matsim.baseline_scenario.analysis.utils.HomeActivityTypes;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.CSVTripWriter;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.TripItem;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.listeners.TripListener;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.readers.EventsTripReader;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.utils.BaselineHomeActivityTypes;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.utils.HomeActivityTypes;
 
-public class ConvertTripsFromPopulation {
+public class ConvertTripsFromEvents {
 	static public void main(String[] args) throws IOException {
 		Network network = NetworkUtils.createNetwork();
 		new MatsimNetworkReader(network).readFile(args[0]);
-
+		
 		StageActivityTypes stageActivityTypes = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
 		HomeActivityTypes homeActivityTypes = new BaselineHomeActivityTypes();
 		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();
-
-		PopulationTripReader reader = new PopulationTripReader(network, stageActivityTypes, homeActivityTypes,
-				mainModeIdentifier);
-		Collection<TripItem> trips = reader.readTrips(args[1]);
-
+		
+		TripListener tripListener = new TripListener(network, stageActivityTypes, homeActivityTypes, mainModeIdentifier);
+		Collection<TripItem> trips = new EventsTripReader(tripListener).readTrips(args[1]);
+		
 		new CSVTripWriter(trips).write(args[2]);
 	}
 }

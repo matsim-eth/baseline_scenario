@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.analysis.readers;
+package ch.ethz.matsim.baseline_scenario.analysis.trips.readers;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -19,8 +19,8 @@ import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 
-import ch.ethz.matsim.baseline_scenario.analysis.TripItem;
-import ch.ethz.matsim.baseline_scenario.analysis.utils.HomeActivityTypes;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.TripItem;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.utils.HomeActivityTypes;
 
 public class PopulationTripReader {
 	final private Network network;

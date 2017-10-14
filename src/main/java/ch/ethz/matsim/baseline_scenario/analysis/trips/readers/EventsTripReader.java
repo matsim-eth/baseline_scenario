@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.analysis.readers;
+package ch.ethz.matsim.baseline_scenario.analysis.trips.readers;
 
 import java.util.Collection;
 
@@ -6,8 +6,8 @@ import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.MatsimEventsReader;
 
-import ch.ethz.matsim.baseline_scenario.analysis.TripItem;
-import ch.ethz.matsim.baseline_scenario.analysis.listeners.TripListener;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.TripItem;
+import ch.ethz.matsim.baseline_scenario.analysis.trips.listeners.TripListener;
 
 public class EventsTripReader {
 	final private TripListener tripListener;
