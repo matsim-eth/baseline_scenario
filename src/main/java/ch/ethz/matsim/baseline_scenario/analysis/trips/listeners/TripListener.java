@@ -69,11 +69,7 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 	public void handleEvent(ActivityEndEvent event) {
 		if (!stageActivityTypes.isStageActivity(event.getActType())) {
 			Integer personTripIndex = tripIndex.get(event.getPersonId());
-			
-			System.out.println(event.getLinkId());
-			
 			network.getLinks().get(event.getLinkId()).getCoord();
-			
 			
 			ongoing.put(event.getPersonId(), new TripListenerItem(event.getPersonId(), personTripIndex == null ? 0 : personTripIndex.intValue(), network.getLinks().get(event.getLinkId()).getCoord(),
 					event.getTime(), event.getActType()));
