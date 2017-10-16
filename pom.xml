@@ -21,6 +21,14 @@
 			<id>matsim-eth</id>
 			<url>http://dl.bintray.com/matsim-eth/matsim</url>
 		</repository>
+		<repository>
+			<id>matsim-eth-packagecloud</id>
+			<url>packagecloud+https://packagecloud.io/eth-ivt/matsim</url>
+		</repository>
+		<repository>
+			<id>eth-playgrounds-packagecloud</id>
+			<url>packagecloud+https://packagecloud.io/eth-ivt/playgrounds</url>
+		</repository>
 	</repositories>
 
 	<distributionManagement>
@@ -38,7 +46,7 @@
 				<version>0.0.6</version>
 			</extension>
 		</extensions>
-		<plugins>
+		<!-- plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -60,7 +68,7 @@
 					</execution>
 				</executions>
 			</plugin>
-		</plugins>
+		</plugins -->
 	</build>
 
 	<dependencies>
