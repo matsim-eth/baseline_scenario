@@ -8,7 +8,6 @@
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<skipTests>false</skipTests>
 	</properties>
 
 	<repositories>
@@ -23,8 +22,22 @@
 			<url>http://dl.bintray.com/matsim-eth/matsim</url>
 		</repository>
 	</repositories>
-	
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>packagecloud-eth-ivt</id>
+			<url>packagecloud+https://packagecloud.io/eth-ivt/matsim</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<build>
+		<extensions>
+			<extension>
+				<groupId>io.packagecloud.maven.wagon</groupId>
+				<artifactId>maven-packagecloud-wagon</artifactId>
+				<version>0.0.6</version>
+			</extension>
+		</extensions>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -62,13 +75,13 @@
 			<artifactId>dvrp</artifactId>
 			<version>0.10.0-eth</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>ch.ethz.matsim</groupId>
 			<artifactId>mode_choice</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>ch.ethz.matsim.playgrounds</groupId>
 			<artifactId>sebhoerl</artifactId>
