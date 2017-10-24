@@ -58,7 +58,7 @@ public class MakeScenario {
 		new MatsimNetworkReader(scenario.getNetwork()).readFile("network.xml.gz");
 
 		// Debug: Scale down for testing purposes already in the beginning
-		// new Downsample(scenarioScale, random).run(scenario.getPopulation());
+		new Downsample(0.1, random).run(scenario.getPopulation());
 
 		// GENERAL PREPARATION AND FIXING
 
@@ -95,12 +95,12 @@ public class MakeScenario {
 		// DEPATURE TIMES
 
 		// Dilute departure times
-		new ShiftTimes(1800.0, random).apply(scenario.getPopulation());
+		new ShiftTimes(1800.0, random, false).apply(scenario.getPopulation());
 
 		// LOCATION CHOICE
 
 		Set<Id<Person>> failedIds = RunParallelSampler.run(numberOfThreads, "microcensus.csv",
-				scenario.getPopulation(), scenario.getActivityFacilities());
+				scenario.getPopulation(), scenario.getActivityFacilities(), 10);
 		failedIds.forEach(id -> scenario.getPopulation().getPersons().remove(id));
 
 		for (Person person : scenario.getPopulation().getPersons().values()) {
