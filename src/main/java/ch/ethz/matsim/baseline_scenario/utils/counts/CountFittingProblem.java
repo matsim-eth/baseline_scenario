@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.utils;
+package ch.ethz.matsim.baseline_scenario.utils.counts;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -16,7 +16,7 @@ import org.matsim.core.router.TripStructureUtils;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.utils.IndexBuilder;
 
-public class LocationPlanChoiceProblem {
+public class CountFittingProblem {
 	final private LinkedHashMap<Id<Link>, DailyCountItem> countItems;
 	final private List<Person> persons;
 
@@ -35,7 +35,7 @@ public class LocationPlanChoiceProblem {
 
 	final private double scaling;
 
-	public LocationPlanChoiceProblem(double scaling, Collection<DailyCountItem> counts, Collection<Person> persons) {
+	public CountFittingProblem(double scaling, Collection<DailyCountItem> counts, Collection<Person> persons) {
 		this.scaling = scaling;
 		this.countItems = new LinkedHashMap<>(IndexBuilder.buildDailyIndex(counts));
 		this.persons = new LinkedList<>(persons);
@@ -186,7 +186,6 @@ public class LocationPlanChoiceProblem {
 
 				if (updatedObjective < objective) {
 					applyChange(i,j, updatedObjective);
-					System.out.println("OBJ " + updatedObjective);
 				}
 			}
 

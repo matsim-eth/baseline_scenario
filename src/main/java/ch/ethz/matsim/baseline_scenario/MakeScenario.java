@@ -1,5 +1,6 @@
 package ch.ethz.matsim.baseline_scenario;
 
+import java.util.Collection;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,6 +29,8 @@ import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 import ch.ethz.ivt.matsim.playgrounds.sebhoerl.locations.RunParallelSampler;
 import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.Downsample;
 import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.ShiftTimes;
+import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
+import ch.ethz.matsim.baseline_scenario.analysis.counts.readers.DailyReferenceCountsReader;
 import ch.ethz.matsim.baseline_scenario.utils.AdaptConfig;
 import ch.ethz.matsim.baseline_scenario.utils.FixFacilityActivityTypes;
 import ch.ethz.matsim.baseline_scenario.utils.FixLinkIds;
@@ -36,6 +39,7 @@ import ch.ethz.matsim.baseline_scenario.utils.MergeSecondaryFacilities;
 import ch.ethz.matsim.baseline_scenario.utils.RemoveInvalidPlans;
 import ch.ethz.matsim.baseline_scenario.utils.TypicalDurationForActivityTypes;
 import ch.ethz.matsim.baseline_scenario.utils.UnselectedPlanRemoval;
+import ch.ethz.matsim.baseline_scenario.utils.counts.TrafficCountPlanSelector;
 import ch.ethz.matsim.baseline_scenario.utils.routing.BestResponseCarRouting;
 
 public class MakeScenario {
@@ -58,6 +62,7 @@ public class MakeScenario {
 				.readFile("population_attributes.xml.gz");
 		new MatsimFacilitiesReader(scenario).readFile("facilities.xml.gz");
 		new MatsimNetworkReader(scenario.getNetwork()).readFile("network.xml.gz");
+		Collection<DailyCountItem> countItems = new DailyReferenceCountsReader(scenario.getNetwork()).read("daily_counts.csv");
 
 		// Debug: Scale down for testing purposes already in the beginning (or for 25% scenario)
 		new Downsample(downsampling, random).run(scenario.getPopulation());
@@ -129,9 +134,13 @@ public class MakeScenario {
 		// Do best response routing with free-flow travel times
 		new BestResponseCarRouting(numberOfThreads, scenario.getNetwork()).run(scenario.getPopulation());
 		
-		// Select plans to fit counts		
+		// Select plans to fit counts	
+		new TrafficCountPlanSelector(scenario.getNetwork(), countItems, scenarioScale, 0.01, numberOfThreads, "counts_locchoice.txt", 100).run(scenario.getPopulation());
 		new UnselectedPlanRemoval().run(scenario.getPopulation());
 
+		// Here we get some nice pre-initialized routes for free, because
+		// the TrafficCountPlanSelector already estimates them using BPR
+		
 		// OUTPUT
 
 		new PopulationWriter(scenario.getPopulation()).write("output_population.xml.gz");

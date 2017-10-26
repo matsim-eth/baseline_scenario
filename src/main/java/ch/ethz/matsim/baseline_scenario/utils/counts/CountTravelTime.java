@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.utils;
+package ch.ethz.matsim.baseline_scenario.utils.counts;
 
 import java.util.ArrayList;
 import java.util.Collection;
