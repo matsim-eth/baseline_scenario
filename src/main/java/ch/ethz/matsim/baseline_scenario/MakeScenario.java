@@ -35,12 +35,14 @@ import ch.ethz.matsim.baseline_scenario.utils.FixShopActivities;
 import ch.ethz.matsim.baseline_scenario.utils.MergeSecondaryFacilities;
 import ch.ethz.matsim.baseline_scenario.utils.RemoveInvalidPlans;
 import ch.ethz.matsim.baseline_scenario.utils.TypicalDurationForActivityTypes;
+import ch.ethz.matsim.baseline_scenario.utils.UnselectedPlanRemoval;
 import ch.ethz.matsim.baseline_scenario.utils.routing.BestResponseCarRouting;
 
 public class MakeScenario {
 	static public void main(String args[]) throws Exception {
 		double scenarioScale = Double.parseDouble(args[0]);
 		int numberOfThreads = Integer.parseInt(args[1]);
+		double downsampling = args.length > 2 ? Double.parseDouble(args[2]) : 1.0;
 
 		// TODO: Move down
 		Config config = new AdaptConfig().run(scenarioScale);
@@ -57,8 +59,8 @@ public class MakeScenario {
 		new MatsimFacilitiesReader(scenario).readFile("facilities.xml.gz");
 		new MatsimNetworkReader(scenario.getNetwork()).readFile("network.xml.gz");
 
-		// Debug: Scale down for testing purposes already in the beginning
-		new Downsample(0.1, random).run(scenario.getPopulation());
+		// Debug: Scale down for testing purposes already in the beginning (or for 25% scenario)
+		new Downsample(downsampling, random).run(scenario.getPopulation());
 
 		// GENERAL PREPARATION AND FIXING
 
@@ -100,7 +102,7 @@ public class MakeScenario {
 		// LOCATION CHOICE
 
 		Set<Id<Person>> failedIds = RunParallelSampler.run(numberOfThreads, "microcensus.csv",
-				scenario.getPopulation(), scenario.getActivityFacilities(), 10);
+				scenario.getPopulation(), scenario.getActivityFacilities(), 20);
 		failedIds.forEach(id -> scenario.getPopulation().getPersons().remove(id));
 
 		for (Person person : scenario.getPopulation().getPersons().values()) {
@@ -126,6 +128,9 @@ public class MakeScenario {
 
 		// Do best response routing with free-flow travel times
 		new BestResponseCarRouting(numberOfThreads, scenario.getNetwork()).run(scenario.getPopulation());
+		
+		// Select plans to fit counts		
+		new UnselectedPlanRemoval().run(scenario.getPopulation());
 
 		// OUTPUT
 

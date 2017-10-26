@@ -7,6 +7,8 @@ import java.io.OutputStreamWriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import org.matsim.api.core.v01.Scenario;
@@ -26,60 +28,69 @@ import ch.ethz.matsim.baseline_scenario.analysis.counts.readers.HourlyReferenceC
 import ch.ethz.matsim.baseline_scenario.analysis.counts.utils.HourlyCountsAggregator;
 import ch.ethz.matsim.baseline_scenario.utils.routing.CarRouting;
 
-public class ExtendedLocationChoice {
+public class TrafficCountPlanSelector {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		String populationInput = "/home/sebastian/baseline_scenario/data/output_population.xml.gz";
-		String networkInput = "/home/sebastian/baseline_scenario/data/output_network.xml.gz";
-		String astraCountsInput = "/home/sebastian/temp/streetCounts_ASTRA.csv";
-		String ktzhCountsInput = "/home/sebastian/temp/streetCounts_KtZH.csv";
+		String populationInput = args[0];
+		String networkInput = args[1];
+		String dailyCountsInput = args[2];
+		String distsOutput = args[3];
 		
-		double scaling = 0.001;
+		double scaling = Double.parseDouble(args[4]);
+		double replanning = Double.parseDouble(args[5]);
 		
 		Network network = NetworkUtils.createNetwork();
 		new MatsimNetworkReader(network).readFile(networkInput);
 		
 		Collection<DailyCountItem> countsItems = new LinkedList<>();
 		
-		countsItems.addAll(new DailyReferenceCountsReader(network).read(ktzhCountsInput));
-		countsItems.addAll(new HourlyCountsAggregator().aggregate(new HourlyReferenceCountsReader(network).read(astraCountsInput)));
+		countsItems.addAll(new DailyReferenceCountsReader(network).read(dailyCountsInput));
+		//countsItems.addAll(new HourlyCountsAggregator().aggregate(new HourlyReferenceCountsReader(network).read(astraCountsInput)));
 		
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new PopulationReader(scenario).readFile(populationInput);
 		
-		Collection<Person> persons = new LinkedList<>(scenario.getPopulation().getPersons().values());
+		List<Person> persons = new LinkedList<>(scenario.getPopulation().getPersons().values());
 		
 		System.out.println("Setting up choice problem ...");
 		LocationPlanChoiceProblem choiceProblem = new LocationPlanChoiceProblem(scaling, countsItems, persons);
 		TravelTime previousTravelTime = new FreeSpeedTravelTime();
 		CarRouting routing = new CarRouting(4, network);
 		
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("/home/sebastian/temp/dists.txt")));
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(distsOutput)));
 		
 		int[] reference = choiceProblem.getReference();
+
 		for (int k = 0; k < reference.length; k++) writer.write(reference[k] + " ");
 		writer.write("\n");
 		writer.flush();
 		
-		for (int u = 0; u < 100; u++) {			
+		Random random = new Random();
+		Collection<Person> activePersons = persons;
+		
+		for (int u = 0; u < 100; u++) {					
 			System.out.println("Updating choice problem ...");
-			choiceProblem.update();
-			
-			System.out.println("Solving choice problem ...");
-			choiceProblem.solve();
-			
-			System.out.println("Objective: " + choiceProblem.getObjective());
+			choiceProblem.update(activePersons);
 			
 			int[] counts = choiceProblem.getCounts();
 			for (int k = 0; k < counts.length; k++) writer.write(counts[k] + " ");
 			writer.write("\n");
 			writer.flush();
 			
+			System.out.println("Solving choice problem ...");
+			choiceProblem.solve();
+			
+			System.out.println("Objective: " + choiceProblem.getObjective());
+			
 			System.out.println("Calculating new travel time ...");
 			TravelTime travelTime = new CountTravelTime(scaling, network, persons, previousTravelTime);
 			
+			int n = (int) ( persons.size() * replanning );
+			int start = random.nextInt(persons.size() - n);
+			
 			System.out.println("Routing ...");
-			routing.run(persons, travelTime);
+			activePersons = persons.subList(start, start + n);
+			routing.run(activePersons, travelTime);
 			
 			previousTravelTime = travelTime;
 		}

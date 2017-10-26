@@ -9,13 +9,17 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 
+import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.HourlyCountItem;
 
 public class HourlyReferenceCountsReader {
+	final private Logger logger = Logger.getLogger(HourlyReferenceCountsReader.class);
+	
 	final private String delimiter;
 	final private Network network;
 
@@ -44,7 +48,8 @@ public class HourlyReferenceCountsReader {
 				header = row;
 			} else {
 				Id<Link> linkId = Id.createLinkId(row.get(header.indexOf("linkId")));
-				int midnightIndex = header.indexOf("counts");
+				int midnightIndex = header.indexOf("count");
+				if (midnightIndex == -1) midnightIndex = header.indexOf("count_h1");
 
 				if (network.getLinks().containsKey(linkId)) {
 					for (int i = 0; i < 24; i++) {
@@ -52,6 +57,8 @@ public class HourlyReferenceCountsReader {
 						counts.add(
 								new HourlyCountItem(linkId, i, reference, network.getLinks().get(linkId).getCoord()));
 					}
+				} else {
+					logger.warn(String.format("Link %s for \"%s\" not found in network", linkId.toString(), row.get(header.indexOf("direction"))));
 				}
 			}
 		}

@@ -42,7 +42,7 @@ public class LocationPlanChoiceProblem {
 
 		this.N = persons.size();
 		this.M = persons.iterator().next().getPlans().size();
-		this.K = counts.size();
+		this.K = countItems.size();
 
 		this.reference = new int[K];
 		this.counts = new int[K];
@@ -57,11 +57,16 @@ public class LocationPlanChoiceProblem {
 		this.selection = new int[N];
 	}
 
-	public void update() {
+	public void update(Collection<Person> active) {
 		{
 			int i = 0;
 
 			for (Person person : persons) {
+				if (!active.contains(person)) {
+					i++;
+					continue;
+				}
+				
 				int j = 0;
 
 				for (Plan plan : person.getPlans()) {
@@ -123,7 +128,11 @@ public class LocationPlanChoiceProblem {
 	}
 
 	private void initializeObjective() {
-		for (int i = 0; i < N; i++) {
+		for (int k = 0; k < K; k++) {
+			counts[k] = 0;
+		}
+		
+		for (int i : relevantIndices) {
 			int[] selectedRoute = routes[i][selection[i]];
 
 			for (int k = 0; k < K; k++) {
@@ -134,7 +143,9 @@ public class LocationPlanChoiceProblem {
 		double objective = 0.0;
 
 		for (int k = 0; k < K; k++) {
-			objective += Math.abs(counts[k] / scaling - reference[k]);
+			objective += Math.abs(counts[k] - reference[k] * scaling);
+			//objective += Math.pow(counts[k] - reference[k] * scaling, 2.0);
+			//objective = Math.max(objective, Math.abs(counts[k] - reference[k] * scaling));
 		}
 
 		this.objective = objective;
@@ -147,11 +158,25 @@ public class LocationPlanChoiceProblem {
 		double temporaryObjective = 0.0;
 
 		for (int k = 0; k < K; k++) {
-			int count = counts[k] - previousRoute[k] + nextRoute[k];
-			temporaryObjective += Math.abs(count / scaling - reference[k]);
+			int newCount = counts[k] - previousRoute[k] + nextRoute[k];
+			temporaryObjective += Math.abs(newCount - reference[k] * scaling);
+			//temporaryObjective += Math.pow(newCount - reference[k] * scaling, 2.0);
+			//temporaryObjective = Math.max(temporaryObjective, Math.abs(newCount - reference[k] * scaling));
 		}
 
 		return temporaryObjective;
+	}
+	
+	private void applyChange(int i, int j, double updatedObjective) {
+		int[] previousRoute = routes[i][selection[i]];
+		int[] nextRoute = routes[i][j];
+		
+		for (int k = 0; k < K; k++) {
+			counts[k] = counts[k] - previousRoute[k] + nextRoute[k];
+		}
+		
+		selection[i] = j;
+		objective = updatedObjective;
 	}
 
 	public void solve() {
@@ -160,8 +185,8 @@ public class LocationPlanChoiceProblem {
 				double updatedObjective = computeChangeObjective(i, j);
 
 				if (updatedObjective < objective) {
-					objective = updatedObjective;
-					selection[i] = j;
+					applyChange(i,j, updatedObjective);
+					System.out.println("OBJ " + updatedObjective);
 				}
 			}
 

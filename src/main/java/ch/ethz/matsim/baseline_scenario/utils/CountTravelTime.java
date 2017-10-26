@@ -43,7 +43,7 @@ public class CountTravelTime implements TravelTime {
 						Link link = network.getLinks().get(linkId);
 						int timeBin = getTimeBin(time);
 						
-						counts.get(link).set(timeBin, counts.get(link).get(timeBin));
+						counts.get(link).set(timeBin, counts.get(link).get(timeBin) + 1);
 						time += previousTravelTime.getLinkTravelTime(link, time, null, null);
 					}
 				}
@@ -59,7 +59,7 @@ public class CountTravelTime implements TravelTime {
 				double capacity = link.getCapacity();
 				
 				double travelTime = freeflowTravelTime * (1.0 + 0.15 * Math.pow(count / (capacity * scaling), 4.0));
-				
+
 				travelTimes.get(link).set(i, travelTime);
 			}
 		}
