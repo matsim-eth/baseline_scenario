@@ -23,11 +23,11 @@
 		</repository>
 		<repository>
 			<id>matsim-eth-packagecloud</id>
-			<url>packagecloud+https://packagecloud.io/eth-ivt/matsim</url>
+			<url>https://packagecloud.io/eth-ivt/matsim/maven2</url>
 		</repository>
 		<repository>
 			<id>eth-playgrounds-packagecloud</id>
-			<url>packagecloud+https://packagecloud.io/eth-ivt/playgrounds</url>
+			<url>https://packagecloud.io/eth-ivt/playgrounds/maven2</url>
 		</repository>
 	</repositories>
 
