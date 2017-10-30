@@ -135,7 +135,7 @@ public class MakeScenario {
 		new BestResponseCarRouting(numberOfThreads, scenario.getNetwork()).run(scenario.getPopulation());
 		
 		// Select plans to fit counts	
-		new TrafficCountPlanSelector(scenario.getNetwork(), countItems, scenarioScale, 0.01, numberOfThreads, "counts_locchoice.txt", 100).run(scenario.getPopulation());
+		new TrafficCountPlanSelector(scenario.getNetwork(), countItems, scenarioScale, 0.01, numberOfThreads, "counts_locchoice.txt", 20).run(scenario.getPopulation());
 		new UnselectedPlanRemoval().run(scenario.getPopulation());
 
 		// Here we get some nice pre-initialized routes for free, because
