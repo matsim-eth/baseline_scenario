@@ -43,9 +43,9 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 	final private Map<Id<Person>, TripListenerItem> ongoing = new HashMap<>();
 	final private Map<Id<Vehicle>, Id<Person>> passengers = new HashMap<>();
 	final private Map<Id<Person>, Integer> tripIndex = new HashMap<>();
-	
-	public TripListener(Network network, StageActivityTypes stageActivityTypes,
-			HomeActivityTypes homeActivityTypes, MainModeIdentifier mainModeIdentifier) {
+
+	public TripListener(Network network, StageActivityTypes stageActivityTypes, HomeActivityTypes homeActivityTypes,
+			MainModeIdentifier mainModeIdentifier) {
 		this.network = network;
 		this.stageActivityTypes = stageActivityTypes;
 		this.homeActivityTypes = homeActivityTypes;
@@ -70,16 +70,16 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 		if (!stageActivityTypes.isStageActivity(event.getActType())) {
 			Integer personTripIndex = tripIndex.get(event.getPersonId());
 			network.getLinks().get(event.getLinkId()).getCoord();
-			
-			ongoing.put(event.getPersonId(), new TripListenerItem(event.getPersonId(), personTripIndex == null ? 0 : personTripIndex.intValue(), network.getLinks().get(event.getLinkId()).getCoord(),
-					event.getTime(), event.getActType()));
-			
+
 			if (personTripIndex == null) {
 				personTripIndex = 0;
 			} else {
 				personTripIndex = personTripIndex + 1;
 			}
-			
+
+			ongoing.put(event.getPersonId(), new TripListenerItem(event.getPersonId(), personTripIndex,
+					network.getLinks().get(event.getLinkId()).getCoord(), event.getTime(), event.getActType()));
+
 			tripIndex.put(event.getPersonId(), personTripIndex);
 		}
 	}
@@ -105,8 +105,8 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 				trip.destination = network.getLinks().get(event.getLinkId()).getCoord();
 				trip.networkDistance = getNetworkDistance(trip);
 
-				trips.add(new TripItem(trip.personId, trip.personTripId, trip.origin, trip.destination, trip.startTime, trip.travelTime,
-						trip.networkDistance, trip.mode, trip.purpose, trip.returning));
+				trips.add(new TripItem(trip.personId, trip.personTripId, trip.origin, trip.destination, trip.startTime,
+						trip.travelTime, trip.networkDistance, trip.mode, trip.purpose, trip.returning));
 			}
 		}
 	}
