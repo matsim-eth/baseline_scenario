@@ -15,9 +15,10 @@ public class TripItem {
 	public String mode;
 	public String purpose;
 	public boolean returning;
+	public double crowflyDistance;
 
 	
-	public TripItem(Id<Person> personId, int personTripId, Coord origin, Coord destination, double startTime, double travelTime, double networkDistance, String mode, String purpose, boolean returning) {
+	public TripItem(Id<Person> personId, int personTripId, Coord origin, Coord destination, double startTime, double travelTime, double networkDistance, String mode, String purpose, boolean returning, double crowflyDistance) {
 		this.personId = personId;
 		this.personTripId = personTripId;
 		this.origin = origin;
@@ -28,5 +29,6 @@ public class TripItem {
 		this.mode = mode;
 		this.purpose = purpose;
 		this.returning = returning;
+		this.crowflyDistance = crowflyDistance;
 	}
 }

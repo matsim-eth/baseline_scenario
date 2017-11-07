@@ -18,6 +18,7 @@ import org.matsim.core.router.MainModeIdentifier;
 import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.geometry.CoordUtils;
 
 import ch.ethz.matsim.baseline_scenario.analysis.trips.TripItem;
 import ch.ethz.matsim.baseline_scenario.analysis.trips.utils.HomeActivityTypes;
@@ -49,7 +50,7 @@ public class PopulationTripReader {
 		for (Person person : population.getPersons().values()) {
 			List<TripStructureUtils.Trip> trips = TripStructureUtils.getTrips(person.getSelectedPlan(),
 					stageActivityTypes);
-			
+
 			int personTripIndex = 0;
 
 			for (TripStructureUtils.Trip trip : trips) {
@@ -58,10 +59,11 @@ public class PopulationTripReader {
 				tripItems.add(new TripItem(person.getId(), personTripIndex, trip.getOriginActivity().getCoord(),
 						trip.getDestinationActivity().getCoord(), trip.getOriginActivity().getEndTime(),
 						trip.getDestinationActivity().getStartTime() - trip.getOriginActivity().getEndTime(),
-						getNetworkDistance(trip), mainModeIdentifier.identifyMainMode(trip.getTripElements()),
+						getNetworkDistance(trip) / 1000.0, mainModeIdentifier.identifyMainMode(trip.getTripElements()),
 						isHomeTrip ? trip.getOriginActivity().getType() : trip.getDestinationActivity().getType(),
-						isHomeTrip));
-				
+						isHomeTrip, CoordUtils.calcEuclideanDistance(trip.getOriginActivity().getCoord(),
+								trip.getDestinationActivity().getCoord()) / 1000.0));
+
 				personTripIndex++;
 			}
 		}
@@ -70,20 +72,19 @@ public class PopulationTripReader {
 	}
 
 	private double getNetworkDistance(TripStructureUtils.Trip trip) {
-		double distance = Double.NaN;
-
 		if (mainModeIdentifier.identifyMainMode(trip.getTripElements()).equals("car")) {
 			NetworkRoute route = (NetworkRoute) trip.getLegsOnly().get(0).getRoute();
+			double distance = 0.0;
 
 			if (route != null) {
-				distance = 0.0;
-
 				for (Id<Link> linkId : route.getLinkIds()) {
 					distance += network.getLinks().get(linkId).getLength();
 				}
 			}
+
+			return distance;
 		}
 
-		return distance;
+		return trip.getLegsOnly().get(0).getRoute().getDistance();
 	}
 }

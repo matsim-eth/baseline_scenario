@@ -17,7 +17,7 @@ public class TripListenerItem extends TripItem {
 	public List<Id<Link>> route = new LinkedList<>();
 	
 	public TripListenerItem(Id<Person> personId, int personTripId, Coord origin, double startTime, String startPurpose) {
-		super(personId, personTripId, origin, null, startTime, Double.NaN, Double.NaN, "unknown", "unknown", false);
+		super(personId, personTripId, origin, null, startTime, Double.NaN, Double.NaN, "unknown", "unknown", false, Double.NaN);
 		this.startPurpose = startPurpose;
 	}
 }

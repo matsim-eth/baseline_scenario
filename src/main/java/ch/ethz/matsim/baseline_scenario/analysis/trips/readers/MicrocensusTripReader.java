@@ -12,6 +12,7 @@ import java.util.List;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 
@@ -58,9 +59,12 @@ public class MicrocensusTripReader {
 				//int module = Integer.parseInt(row.get(header.indexOf("DMOD")));
 
 				// TODO: Revise the modes and purposes again, check how Kirill did the mapping
+				Coord originCoord = transformation.transform(origin);
+				Coord destinationCoord = transformation.transform(destination);
+				
 				if (mode != null && purpose != null && tripType != 3) {
-					tripItems.add(new TripItem(personId, personTripIndex, transformation.transform(origin), transformation.transform(destination), startTime, travelTime,
-							networkDistance, mode, purpose, returning));
+					tripItems.add(new TripItem(personId, personTripIndex, originCoord, destinationCoord, startTime, travelTime,
+							networkDistance, mode, purpose, returning, CoordUtils.calcEuclideanDistance(originCoord, destinationCoord) / 1000.0));
 				}
 			}
 		}
