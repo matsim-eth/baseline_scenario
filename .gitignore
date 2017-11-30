@@ -1,6 +1,8 @@
+baseline_scenario.iml
 target
 output
 output_001
 .project
 .settings
 .classpath
+.idea/

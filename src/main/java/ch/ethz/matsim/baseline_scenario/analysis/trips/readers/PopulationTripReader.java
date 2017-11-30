@@ -8,6 +8,7 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
@@ -56,9 +57,11 @@ public class PopulationTripReader {
 			for (TripStructureUtils.Trip trip : trips) {
 				boolean isHomeTrip = homeActivityTypes.isHomeActivity(trip.getDestinationActivity().getType());
 
+				List<Leg> legs = trip.getLegsOnly();
+
 				tripItems.add(new TripItem(person.getId(), personTripIndex, trip.getOriginActivity().getCoord(),
 						trip.getDestinationActivity().getCoord(), trip.getOriginActivity().getEndTime(),
-						trip.getDestinationActivity().getStartTime() - trip.getOriginActivity().getEndTime(),
+						legs.get(legs.size() - 1).getDepartureTime() + legs.get(legs.size() - 1).getTravelTime() - legs.get(0).getDepartureTime(),
 						getNetworkDistance(trip) / 1000.0, mainModeIdentifier.identifyMainMode(trip.getTripElements()),
 						isHomeTrip ? trip.getOriginActivity().getType() : trip.getDestinationActivity().getType(),
 						isHomeTrip, CoordUtils.calcEuclideanDistance(trip.getOriginActivity().getCoord(),
@@ -83,8 +86,14 @@ public class PopulationTripReader {
 			}
 
 			return distance;
-		}
+		} else {
+			double distance = 0.0;
 
-		return trip.getLegsOnly().get(0).getRoute().getDistance();
+			for (Leg leg : trip.getLegsOnly()) {
+				distance += leg.getRoute().getDistance();
+			}
+
+			return distance;
+		}
 	}
 }
