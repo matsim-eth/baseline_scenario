@@ -43,6 +43,7 @@ public class RemoveInvalidPlans {
 			
 			if (remove) {
 				personIterator.remove();
+				population.getPersonAttributes().removeAllAttributes(person.getId().toString());
 			}
 		}
 	}
