@@ -1,6 +1,9 @@
 package ch.ethz.matsim.baseline_scenario;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -23,6 +26,7 @@ import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
+import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
@@ -32,6 +36,7 @@ import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.ShiftTimes;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.readers.DailyReferenceCountsReader;
 import ch.ethz.matsim.baseline_scenario.utils.AdaptConfig;
+import ch.ethz.matsim.baseline_scenario.utils.AttributeCleaner;
 import ch.ethz.matsim.baseline_scenario.utils.FixFacilityActivityTypes;
 import ch.ethz.matsim.baseline_scenario.utils.FixLinkIds;
 import ch.ethz.matsim.baseline_scenario.utils.FixShopActivities;
@@ -62,9 +67,11 @@ public class MakeScenario {
 				.readFile("population_attributes.xml.gz");
 		new MatsimFacilitiesReader(scenario).readFile("facilities.xml.gz");
 		new MatsimNetworkReader(scenario.getNetwork()).readFile("network.xml.gz");
-		Collection<DailyCountItem> countItems = new DailyReferenceCountsReader(scenario.getNetwork()).read("daily_counts.csv");
+		Collection<DailyCountItem> countItems = new DailyReferenceCountsReader(scenario.getNetwork())
+				.read("daily_counts.csv");
 
-		// Debug: Scale down for testing purposes already in the beginning (or for 25% scenario)
+		// Debug: Scale down for testing purposes already in the beginning (or for 25%
+		// scenario)
 		new Downsample(downsampling, random).run(scenario.getPopulation());
 
 		// GENERAL PREPARATION AND FIXING
@@ -106,8 +113,8 @@ public class MakeScenario {
 
 		// LOCATION CHOICE
 
-		Set<Id<Person>> failedIds = RunParallelSampler.run(numberOfThreads, "microcensus.csv",
-				scenario.getPopulation(), scenario.getActivityFacilities(), 20);
+		Set<Id<Person>> failedIds = RunParallelSampler.run(numberOfThreads, "microcensus.csv", scenario.getPopulation(),
+				scenario.getActivityFacilities(), 20);
 		failedIds.forEach(id -> scenario.getPopulation().getPersons().remove(id));
 
 		for (Person person : scenario.getPopulation().getPersons().values()) {
@@ -127,25 +134,33 @@ public class MakeScenario {
 		// SCORING
 
 		// Adjust activities for typical durations
-		new TypicalDurationForActivityTypes().run(scenario.getPopulation(), scenario.getActivityFacilities());
+		Set<String> personAttributeNames = new HashSet<>();
+		new TypicalDurationForActivityTypes().run(scenario.getPopulation(), scenario.getActivityFacilities(),
+				personAttributeNames);
 
 		// PREPARE FOR RUNNING
 
 		// Do best response routing with free-flow travel times
 		new BestResponseCarRouting(numberOfThreads, scenario.getNetwork()).run(scenario.getPopulation());
-		
-		// Select plans to fit counts	
-		new TrafficCountPlanSelector(scenario.getNetwork(), countItems, scenarioScale, 0.01, numberOfThreads, "counts_locchoice.txt", 20).run(scenario.getPopulation());
+
+		// Select plans to fit counts
+		new TrafficCountPlanSelector(scenario.getNetwork(), countItems, scenarioScale, 0.01, numberOfThreads,
+				"counts_locchoice.txt", 20).run(scenario.getPopulation());
 		new UnselectedPlanRemoval().run(scenario.getPopulation());
 
 		// Here we get some nice pre-initialized routes for free, because
 		// the TrafficCountPlanSelector already estimates them using BPR
-		
+
+		// Clean attributes
+		personAttributeNames.addAll(Arrays.asList("mz_id", "season_ticket"));
+		AttributeCleaner<Person> cleaner = new AttributeCleaner<>(personAttributeNames);
+		ObjectAttributes cleanedPersonAttributes = cleaner.run(scenario.getPopulation().getPersons().values(),
+				scenario.getPopulation().getPersonAttributes());
+
 		// OUTPUT
 
 		new PopulationWriter(scenario.getPopulation()).write("output_population.xml.gz");
-		new ObjectAttributesXmlWriter(scenario.getPopulation().getPersonAttributes())
-				.writeFile("output_population_attributes.xml.gz");
+		new ObjectAttributesXmlWriter(cleanedPersonAttributes).writeFile("output_population_attributes.xml.gz");
 		new FacilitiesWriter(scenario.getActivityFacilities()).write("output_facilities.xml.gz");
 		new NetworkWriter(scenario.getNetwork()).write("output_network.xml.gz");
 	}

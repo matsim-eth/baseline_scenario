@@ -1,8 +1,10 @@
 package ch.ethz.matsim.baseline_scenario.utils;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -22,14 +24,24 @@ import org.matsim.utils.objectattributes.ObjectAttributes;
 
 public class TypicalDurationForActivityTypes {
 	private void applyPerson(ObjectAttributes attributes, Id<Person> personId, String activityType,
-			double typicalDuration) {
+			double typicalDuration, Set<String> attributeNames) {
 		attributes.putAttribute(personId.toString(), "typicalDuration_" + activityType, typicalDuration);
 		attributes.putAttribute(personId.toString(), "minimalDuration_" + activityType, 0.0);
 		attributes.putAttribute(personId.toString(), "earliestEndTime_" + activityType, 0.0 * 3600.0);
 		attributes.putAttribute(personId.toString(), "latestStartTime_" + activityType, 24.0 * 3600.0);
+
+		attributeNames.add("typicalDuration_" + activityType);
+		attributeNames.add("minimalDuration_" + activityType);
+		attributeNames.add("earliestEndTime_" + activityType);
+		attributeNames.add("latestStartTime_" + activityType);
 	}
 
 	public void run(Population population, ActivityFacilities facilities) {
+		Set<String> attributes = new HashSet<>();
+		run(population, facilities, attributes);
+	}
+
+	public void run(Population population, ActivityFacilities facilities, Set<String> attributeNames) {
 		Map<String, Integer> maximumCounts = new HashMap<>();
 
 		for (Person person : population.getPersons().values()) {
@@ -49,7 +61,7 @@ public class TypicalDurationForActivityTypes {
 					typeCounts.put(current.getType(), new AtomicInteger(1));
 
 					applyPerson(population.getPersonAttributes(), person.getId(), current.getType() + "_" + 1,
-							24.0 * 3600.0);
+							24.0 * 3600.0, attributeNames);
 					activities.get(0).setType(activities.get(0).getType() + "_" + 1);
 				} else {
 					for (int index = 0; index < activities.size(); index++) {
@@ -72,7 +84,7 @@ public class TypicalDurationForActivityTypes {
 						if (isFirstActivity) {
 							if (!firstAndLastIsSameType) {
 								applyPerson(population.getPersonAttributes(), person.getId(), countedType,
-										current.getEndTime());
+										current.getEndTime(), attributeNames);
 								current.setType(countedType);
 							}
 
@@ -85,7 +97,8 @@ public class TypicalDurationForActivityTypes {
 									throw new IllegalStateException(person.getId().toString());
 								}
 
-								applyPerson(population.getPersonAttributes(), person.getId(), countedType, duration);
+								applyPerson(population.getPersonAttributes(), person.getId(), countedType, duration,
+										attributeNames);
 								current.setType(countedType);
 							} else {
 								double duration = activities.get(0).getEndTime() + 24.0 * 3600.0
@@ -96,7 +109,7 @@ public class TypicalDurationForActivityTypes {
 								}
 
 								applyPerson(population.getPersonAttributes(), person.getId(),
-										current.getType() + "_" + 1, duration);
+										current.getType() + "_" + 1, duration, attributeNames);
 								current.setType(current.getType() + "_" + 1);
 							}
 						} else {
@@ -106,7 +119,8 @@ public class TypicalDurationForActivityTypes {
 								throw new IllegalStateException(person.getId().toString());
 							}
 
-							applyPerson(population.getPersonAttributes(), person.getId(), countedType, duration);
+							applyPerson(population.getPersonAttributes(), person.getId(), countedType, duration,
+									attributeNames);
 							current.setType(countedType);
 						}
 					}
