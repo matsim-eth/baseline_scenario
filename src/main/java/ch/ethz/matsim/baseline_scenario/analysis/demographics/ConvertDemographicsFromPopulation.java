@@ -41,22 +41,37 @@ public class ConvertDemographicsFromPopulation {
 		writer.flush();
 
 		for (Person person : scenario.getPopulation().getPersons().values()) {
+			Id<Person> personId = person.getId();
+
 			String seasonTicket = (String) scenario.getPopulation().getPersonAttributes()
 					.getAttribute(person.getId().toString(), "season_ticket");
 
-			Id<Person> personId = person.getId();
+			boolean hasGA = false;
+			boolean hasHalbtax = false;
+			boolean hasZVV = false;
 
-			boolean hasGA = seasonTicket.contains("General");
-			boolean hasHalbtax = seasonTicket.contains("Halbtax");
-			boolean hasZVV = seasonTicket.contains("Verbund");
+			if (seasonTicket == null) {
+				System.err.println("No seasonTicket for " + personId);
+			} else {
+				hasGA = seasonTicket.contains("General");
+				hasHalbtax = seasonTicket.contains("Halbtax");
+				hasZVV = seasonTicket.contains("Verbund");
+			}
 
 			int age = PersonUtils.getAge(person);
 
 			Household household = scenario.getHouseholds().getHouseholds().get(householdMap.get(person.getId()));
 
-			double householdIncome = household.getIncome().getIncome();
-			int numberOfHouseholdCars = Integer.parseInt((String) scenario.getHouseholds().getHouseholdAttributes()
-					.getAttribute(household.getId().toString(), "numberOfPrivateCars"));
+			double householdIncome = -1.0;
+			int numberOfHouseholdCars = -1;
+
+			if (household == null) {
+				System.err.println("No household for " + personId);
+			} else {
+				householdIncome = household.getIncome().getIncome();
+				numberOfHouseholdCars = Integer.parseInt((String) scenario.getHouseholds().getHouseholdAttributes()
+						.getAttribute(household.getId().toString(), "numberOfPrivateCars"));
+			}
 
 			writer.write(String.join(";",
 					new String[] { personId.toString(), String.valueOf(age), String.valueOf(hasGA),
