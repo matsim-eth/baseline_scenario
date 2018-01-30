@@ -70,7 +70,7 @@ public class ConvertDemographicsFromPopulation {
 			} else {
 				householdIncome = household.getIncome().getIncome();
 				numberOfHouseholdCars = Integer.parseInt(((String) scenario.getHouseholds().getHouseholdAttributes()
-						.getAttribute(household.getId().toString(), "numberOfPrivateCars")).trim());
+						.getAttribute(household.getId().toString(), "numberOfPrivateCars")).trim().replace("3+", "9999"));
 			}
 
 			writer.write(String.join(";",
