@@ -69,8 +69,8 @@ public class ConvertDemographicsFromPopulation {
 				System.err.println("No household for " + personId);
 			} else {
 				householdIncome = household.getIncome().getIncome();
-				numberOfHouseholdCars = Integer.parseInt((String) scenario.getHouseholds().getHouseholdAttributes()
-						.getAttribute(household.getId().toString(), "numberOfPrivateCars"));
+				numberOfHouseholdCars = Integer.parseInt(((String) scenario.getHouseholds().getHouseholdAttributes()
+						.getAttribute(household.getId().toString(), "numberOfPrivateCars")).trim());
 			}
 
 			writer.write(String.join(";",
