@@ -9,36 +9,38 @@ import org.matsim.core.controler.OutputDirectoryHierarchy.OverwriteFileSetting;
 public class AdaptConfig {
 	public Config run(double scenarioScale, String prefix) {
 		Config config = ConfigUtils.createConfig();
-		
+
 		config.controler().setOverwriteFileSetting(OverwriteFileSetting.deleteDirectoryIfExists);
-		
+
 		config.plans().setInputFile(prefix + "population.xml.gz");
 		config.plans().setInputPersonAttributeFile(prefix + "population_attributes.xml.gz");
 		config.facilities().setInputFile(prefix + "facilities.xml.gz");
 		config.network().setInputFile(prefix + "network.xml.gz");
-		
+		config.households().setInputFile(prefix + "households.xml.gz");
+		config.households().setInputHouseholdAttributesFile(prefix + "household_attributes.xml.gz");
+
 		config.controler().setOutputDirectory("simulation_output");
-		
+
 		config.global().setNumberOfThreads(8);
 		config.qsim().setNumberOfThreads(8);
-		 	
+
 		config.qsim().setFlowCapFactor(scenarioScale);
 		config.qsim().setStorageCapFactor(10000.0);
 		config.qsim().setEndTime(30.0 * 3600.0);
 		config.qsim().setSimEndtimeInterpretation(EndtimeInterpretation.onlyUseEndtime);
-		
+
 		config.strategy().clearStrategySettings();
-		
+
 		StrategySettings reroute = new StrategySettings();
 		reroute.setStrategyName("ReRoute");
 		reroute.setWeight(0.1);
 		config.strategy().addStrategySettings(reroute);
-		
+
 		StrategySettings selection = new StrategySettings();
 		selection.setStrategyName("ChangeExpBeta");
 		selection.setWeight(0.9);
 		config.strategy().addStrategySettings(selection);
-		
+
 		return config;
 	}
 }

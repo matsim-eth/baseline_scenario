@@ -27,6 +27,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.households.HouseholdsReaderV10;
+import org.matsim.households.HouseholdsWriterV10;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
@@ -45,6 +46,9 @@ import ch.ethz.matsim.baseline_scenario.utils.AttributeCleaner;
 import ch.ethz.matsim.baseline_scenario.utils.FixFacilityActivityTypes;
 import ch.ethz.matsim.baseline_scenario.utils.FixLinkIds;
 import ch.ethz.matsim.baseline_scenario.utils.FixShopActivities;
+import ch.ethz.matsim.baseline_scenario.utils.HomeFacilitiesCleaner;
+import ch.ethz.matsim.baseline_scenario.utils.HouseholdAttributeCleaner;
+import ch.ethz.matsim.baseline_scenario.utils.HouseholdsCleaner;
 import ch.ethz.matsim.baseline_scenario.utils.MergeSecondaryFacilities;
 import ch.ethz.matsim.baseline_scenario.utils.RemoveInvalidPlans;
 import ch.ethz.matsim.baseline_scenario.utils.TypicalDurationForActivityTypes;
@@ -89,12 +93,17 @@ public class MakeScenario {
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(new File(inputPath, "network.xml.gz").getPath());
 		Collection<DailyCountItem> countItems = new DailyReferenceCountsReader(scenario.getNetwork())
 				.read(new File(inputPath, "daily_counts.csv").getPath());
+		new HouseholdsReaderV10(scenario.getHouseholds()).readFile(new File(inputPath, "households.xml.gz").getPath());
+		new ObjectAttributesXmlReader(scenario.getHouseholds().getHouseholdAttributes())
+				.readFile(new File(inputPath, "household_attributes.xml.gz").getPath());
 
 		inputFilesCollector.add("population.xml.gz");
 		inputFilesCollector.add("population_attributes.xml.gz");
 		inputFilesCollector.add("facilities.xml.gz");
 		inputFilesCollector.add("network.xml.gz");
 		inputFilesCollector.add("daily_counts.csv");
+		inputFilesCollector.add("households.xml.gz");
+		inputFilesCollector.add("household_attributes.xml.gz");
 
 		// Debug: Scale down for testing purposes already in the beginning (or for 25%
 		// scenario)
@@ -187,9 +196,22 @@ public class MakeScenario {
 
 		// Clean attributes
 		personAttributeNames.addAll(Arrays.asList("mz_id", "season_ticket"));
-		AttributeCleaner<Person> cleaner = new AttributeCleaner<>(personAttributeNames);
-		ObjectAttributes cleanedPersonAttributes = cleaner.run(scenario.getPopulation().getPersons().values(),
-				scenario.getPopulation().getPersonAttributes());
+		AttributeCleaner<Person> personAttributesCleaner = new AttributeCleaner<>(personAttributeNames);
+		ObjectAttributes cleanedPersonAttributes = personAttributesCleaner
+				.run(scenario.getPopulation().getPersons().values(), scenario.getPopulation().getPersonAttributes());
+
+		new HouseholdsCleaner(scenario.getPopulation().getPersons().keySet()).run(scenario.getHouseholds());
+		new HomeFacilitiesCleaner(scenario.getHouseholds().getHouseholds().keySet())
+				.run(scenario.getActivityFacilities());
+
+		// TODO: Here we cannot use the generic AttributeCleaner for Households, because
+		// they do not implement the Identifiable interface. Need to fix this in MATSim
+		// core.
+
+		Set<String> householdAttributeNames = new HashSet<>(Arrays.asList("numberOfPrivateCars", "bikeAvailability"));
+		HouseholdAttributeCleaner householdAttributesCleaner = new HouseholdAttributeCleaner(householdAttributeNames);
+		ObjectAttributes cleanedHouseholdAttributes = householdAttributesCleaner.run(
+				scenario.getHouseholds().getHouseholds().values(), scenario.getHouseholds().getHouseholdAttributes());
 
 		// OUTPUT
 
@@ -197,6 +219,10 @@ public class MakeScenario {
 				.write(new File(outputPath, baselineConfig.prefix + "population.xml.gz").getPath());
 		new ObjectAttributesXmlWriter(cleanedPersonAttributes)
 				.writeFile(new File(outputPath, baselineConfig.prefix + "population_attributes.xml.gz").getPath());
+		new HouseholdsWriterV10(scenario.getHouseholds())
+				.writeFile(new File(outputPath, baselineConfig.prefix + "households.xml.gz").getPath());
+		new ObjectAttributesXmlWriter(cleanedHouseholdAttributes)
+				.writeFile(new File(outputPath, baselineConfig.prefix + "household_attributes.xml.gz").getPath());
 		new FacilitiesWriter(scenario.getActivityFacilities())
 				.write(new File(outputPath, baselineConfig.prefix + "facilities.xml.gz").getPath());
 		new NetworkWriter(scenario.getNetwork())
@@ -208,6 +234,8 @@ public class MakeScenario {
 		outputFilesCollector.add(baselineConfig.prefix + "population_attributes.xml.gz");
 		outputFilesCollector.add(baselineConfig.prefix + "facilities.xml.gz");
 		outputFilesCollector.add(baselineConfig.prefix + "network.xml.gz");
+		outputFilesCollector.add(baselineConfig.prefix + "households.xml.gz");
+		outputFilesCollector.add(baselineConfig.prefix + "household_attributes.xml.gz");
 		outputFilesCollector.add(baselineConfig.prefix + "make_config.json");
 		outputFilesCollector.add(baselineConfig.prefix + "input.md5");
 
