@@ -1,9 +1,9 @@
 package ch.ethz.matsim.baseline_scenario;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,15 +26,20 @@ import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
+import org.matsim.households.HouseholdsReaderV10;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import ch.ethz.ivt.matsim.playgrounds.sebhoerl.locations.RunParallelSampler;
 import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.Downsample;
 import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.ShiftTimes;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.readers.DailyReferenceCountsReader;
+import ch.ethz.matsim.baseline_scenario.config.BaselineConfig;
 import ch.ethz.matsim.baseline_scenario.utils.AdaptConfig;
 import ch.ethz.matsim.baseline_scenario.utils.AttributeCleaner;
 import ch.ethz.matsim.baseline_scenario.utils.FixFacilityActivityTypes;
@@ -44,35 +49,56 @@ import ch.ethz.matsim.baseline_scenario.utils.MergeSecondaryFacilities;
 import ch.ethz.matsim.baseline_scenario.utils.RemoveInvalidPlans;
 import ch.ethz.matsim.baseline_scenario.utils.TypicalDurationForActivityTypes;
 import ch.ethz.matsim.baseline_scenario.utils.UnselectedPlanRemoval;
+import ch.ethz.matsim.baseline_scenario.utils.consistency.MD5Collector;
 import ch.ethz.matsim.baseline_scenario.utils.counts.TrafficCountPlanSelector;
 import ch.ethz.matsim.baseline_scenario.utils.routing.BestResponseCarRouting;
 
 public class MakeScenario {
 	static public void main(String args[]) throws Exception {
-		double scenarioScale = Double.parseDouble(args[0]);
-		int numberOfThreads = Integer.parseInt(args[1]);
-		double downsampling = args.length > 2 ? Double.parseDouble(args[2]) : 1.0;
+		ObjectMapper json = new ObjectMapper();
+		json.enable(SerializationFeature.INDENT_OUTPUT);
+
+		BaselineConfig baselineConfig = json.readValue(new File(args[0]), BaselineConfig.class);
+
+		File inputPath = new File(baselineConfig.inputPath);
+		File outputPath = new File(baselineConfig.outputPath);
+
+		if (!inputPath.exists()) {
+			throw new IllegalArgumentException("Input path does not exist: " + inputPath);
+		}
+
+		outputPath.mkdirs();
+
+		MD5Collector inputFilesCollector = new MD5Collector(inputPath);
+		MD5Collector outputFilesCollector = new MD5Collector(outputPath);
 
 		// TODO: Move down
-		Config config = new AdaptConfig().run(scenarioScale);
-		new ConfigWriter(config).write("output_config.xml");
+		Config config = new AdaptConfig().run(baselineConfig.outputScenarioScale, baselineConfig.prefix);
+		new ConfigWriter(config).write(new File(outputPath, baselineConfig.prefix + "config.xml").getPath());
+		outputFilesCollector.add(baselineConfig.prefix + "config.xml");
 
 		Random random = new Random(0);
 
 		// Input is Kirill's population
 
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		new PopulationReader(scenario).readFile("population.xml.gz");
+		new PopulationReader(scenario).readFile(new File(inputPath, "population.xml.gz").getPath());
 		new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes())
-				.readFile("population_attributes.xml.gz");
-		new MatsimFacilitiesReader(scenario).readFile("facilities.xml.gz");
-		new MatsimNetworkReader(scenario.getNetwork()).readFile("network.xml.gz");
+				.readFile(new File(inputPath, "population_attributes.xml.gz").getPath());
+		new MatsimFacilitiesReader(scenario).readFile(new File(inputPath, "facilities.xml.gz").getPath());
+		new MatsimNetworkReader(scenario.getNetwork()).readFile(new File(inputPath, "network.xml.gz").getPath());
 		Collection<DailyCountItem> countItems = new DailyReferenceCountsReader(scenario.getNetwork())
-				.read("daily_counts.csv");
+				.read(new File(inputPath, "daily_counts.csv").getPath());
+
+		inputFilesCollector.add("population.xml.gz");
+		inputFilesCollector.add("population_attributes.xml.gz");
+		inputFilesCollector.add("facilities.xml.gz");
+		inputFilesCollector.add("network.xml.gz");
+		inputFilesCollector.add("daily_counts.csv");
 
 		// Debug: Scale down for testing purposes already in the beginning (or for 25%
 		// scenario)
-		new Downsample(downsampling, random).run(scenario.getPopulation());
+		new Downsample(baselineConfig.inputDownsampling, random).run(scenario.getPopulation());
 
 		// GENERAL PREPARATION AND FIXING
 
@@ -91,10 +117,13 @@ public class MakeScenario {
 		new FixLinkIds(scenario.getNetwork()).run(scenario.getActivityFacilities(), scenario.getPopulation());
 
 		// Load secondary facilities (pmb)
-		new MergeSecondaryFacilities(random, "shop", "ShoppingFacilitiesFull.csv", 1.0, scenario.getNetwork())
-				.run(scenario.getActivityFacilities());
-		new MergeSecondaryFacilities(random, "leisure", "LeisureFacilitiesFull.csv", 1.0, scenario.getNetwork())
-				.run(scenario.getActivityFacilities());
+		new MergeSecondaryFacilities(random, "shop", new File(inputPath, "ShoppingFacilitiesFull.csv").getPath(), 1.0,
+				scenario.getNetwork()).run(scenario.getActivityFacilities());
+		new MergeSecondaryFacilities(random, "leisure", new File(inputPath, "LeisureFacilitiesFull.csv").getPath(), 1.0,
+				scenario.getNetwork()).run(scenario.getActivityFacilities());
+
+		inputFilesCollector.add("ShoppingFacilitiesFull.csv");
+		inputFilesCollector.add("LeisureFacilitiesFull.csv");
 
 		// Add missing activity types to facilities (escort, ...) and remove opening
 		// times from "home"
@@ -113,8 +142,10 @@ public class MakeScenario {
 
 		// LOCATION CHOICE
 
-		Set<Id<Person>> failedIds = RunParallelSampler.run(numberOfThreads, "microcensus.csv", scenario.getPopulation(),
-				scenario.getActivityFacilities(), 20);
+		inputFilesCollector.add("microcensus.csv");
+		Set<Id<Person>> failedIds = RunParallelSampler.run(baselineConfig.numberOfThreads,
+				new File(inputPath, "microcensus.csv").getPath(), scenario.getPopulation(),
+				scenario.getActivityFacilities(), baselineConfig.performIterativeLocationChoice ? 20 : 1);
 		failedIds.forEach(id -> scenario.getPopulation().getPersons().remove(id));
 
 		for (Person person : scenario.getPopulation().getPersons().values()) {
@@ -141,12 +172,15 @@ public class MakeScenario {
 		// PREPARE FOR RUNNING
 
 		// Do best response routing with free-flow travel times
-		new BestResponseCarRouting(numberOfThreads, scenario.getNetwork()).run(scenario.getPopulation());
+		new BestResponseCarRouting(baselineConfig.numberOfThreads, scenario.getNetwork()).run(scenario.getPopulation());
 
-		// Select plans to fit counts
-		new TrafficCountPlanSelector(scenario.getNetwork(), countItems, scenarioScale, 0.01, numberOfThreads,
-				"counts_locchoice.txt", 20).run(scenario.getPopulation());
-		new UnselectedPlanRemoval().run(scenario.getPopulation());
+		if (baselineConfig.performIterativeLocationChoice) {
+			// Select plans to fit counts
+			new TrafficCountPlanSelector(scenario.getNetwork(), countItems, baselineConfig.outputScenarioScale, 0.01,
+					baselineConfig.numberOfThreads, new File(outputPath, "counts_locchoice.txt").getPath(), 20)
+							.run(scenario.getPopulation());
+			new UnselectedPlanRemoval().run(scenario.getPopulation());
+		}
 
 		// Here we get some nice pre-initialized routes for free, because
 		// the TrafficCountPlanSelector already estimates them using BPR
@@ -159,9 +193,24 @@ public class MakeScenario {
 
 		// OUTPUT
 
-		new PopulationWriter(scenario.getPopulation()).write("output_population.xml.gz");
-		new ObjectAttributesXmlWriter(cleanedPersonAttributes).writeFile("output_population_attributes.xml.gz");
-		new FacilitiesWriter(scenario.getActivityFacilities()).write("output_facilities.xml.gz");
-		new NetworkWriter(scenario.getNetwork()).write("output_network.xml.gz");
+		new PopulationWriter(scenario.getPopulation())
+				.write(new File(outputPath, baselineConfig.prefix + "population.xml.gz").getPath());
+		new ObjectAttributesXmlWriter(cleanedPersonAttributes)
+				.writeFile(new File(outputPath, baselineConfig.prefix + "population_attributes.xml.gz").getPath());
+		new FacilitiesWriter(scenario.getActivityFacilities())
+				.write(new File(outputPath, baselineConfig.prefix + "facilities.xml.gz").getPath());
+		new NetworkWriter(scenario.getNetwork())
+				.write(new File(outputPath, baselineConfig.prefix + "network.xml.gz").getPath());
+		json.writeValue(new File(outputPath, baselineConfig.prefix + "make_config.json"), baselineConfig);
+		inputFilesCollector.write(new File(outputPath, baselineConfig.prefix + "input.md5"));
+
+		outputFilesCollector.add(baselineConfig.prefix + "population.xml.gz");
+		outputFilesCollector.add(baselineConfig.prefix + "population_attributes.xml.gz");
+		outputFilesCollector.add(baselineConfig.prefix + "facilities.xml.gz");
+		outputFilesCollector.add(baselineConfig.prefix + "network.xml.gz");
+		outputFilesCollector.add(baselineConfig.prefix + "make_config.json");
+		outputFilesCollector.add(baselineConfig.prefix + "input.md5");
+
+		outputFilesCollector.write(new File(outputPath, baselineConfig.prefix + "output.md5"));
 	}
 }

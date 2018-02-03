@@ -7,15 +7,15 @@ import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
 import org.matsim.core.controler.OutputDirectoryHierarchy.OverwriteFileSetting;
 
 public class AdaptConfig {
-	public Config run(double scenarioScale) {
+	public Config run(double scenarioScale, String prefix) {
 		Config config = ConfigUtils.createConfig();
 		
 		config.controler().setOverwriteFileSetting(OverwriteFileSetting.deleteDirectoryIfExists);
 		
-		config.plans().setInputFile("output_population.xml.gz");
-		config.plans().setInputPersonAttributeFile("output_population_attributes.xml.gz");
-		config.facilities().setInputFile("output_facilities.xml.gz");
-		config.network().setInputFile("output_network.xml.gz");
+		config.plans().setInputFile(prefix + "population.xml.gz");
+		config.plans().setInputPersonAttributeFile(prefix + "population_attributes.xml.gz");
+		config.facilities().setInputFile(prefix + "facilities.xml.gz");
+		config.network().setInputFile(prefix + "network.xml.gz");
 		
 		config.controler().setOutputDirectory("simulation_output");
 		
