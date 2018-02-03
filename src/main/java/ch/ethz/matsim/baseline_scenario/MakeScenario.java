@@ -201,8 +201,8 @@ public class MakeScenario {
 				.run(scenario.getPopulation().getPersons().values(), scenario.getPopulation().getPersonAttributes());
 
 		new HouseholdsCleaner(scenario.getPopulation().getPersons().keySet()).run(scenario.getHouseholds());
-		new HomeFacilitiesCleaner(scenario.getHouseholds().getHouseholds().keySet())
-				.run(scenario.getActivityFacilities());
+		new HomeFacilitiesCleaner(scenario.getHouseholds().getHouseholds().keySet(),
+				scenario.getPopulation().getPersons().values()).run(scenario.getActivityFacilities());
 
 		// TODO: Here we cannot use the generic AttributeCleaner for Households, because
 		// they do not implement the Identifiable interface. Need to fix this in MATSim

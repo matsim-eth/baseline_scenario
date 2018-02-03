@@ -1,8 +1,6 @@
 package ch.ethz.matsim.baseline_scenario.config;
 
 public class BaselineConfig {
-	public String version;
-	
 	public String inputPath;
 	public String outputPath;
 
@@ -10,8 +8,8 @@ public class BaselineConfig {
 	public double outputScenarioScale;
 
 	public int numberOfThreads;
-	
+
 	public String prefix = "baseline_";
-	
+
 	public boolean performIterativeLocationChoice = false;
 }
