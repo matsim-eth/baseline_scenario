@@ -10,6 +10,9 @@ import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
 
+/**
+ * TODO: Maybe fix this in a more sensible way than deleting them!
+ */
 public class RemoveInvalidPlans {
 	public void apply(Population population) {
 		Iterator<? extends Person> personIterator = population.getPersons().values().iterator();
