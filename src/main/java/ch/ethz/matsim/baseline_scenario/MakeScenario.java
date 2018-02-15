@@ -28,9 +28,13 @@ import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.households.HouseholdsReaderV10;
 import org.matsim.households.HouseholdsWriterV10;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
+import org.matsim.vehicles.VehicleReaderV1;
+import org.matsim.vehicles.VehicleWriterV1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -76,11 +80,6 @@ public class MakeScenario {
 		MD5Collector inputFilesCollector = new MD5Collector(inputPath);
 		MD5Collector outputFilesCollector = new MD5Collector(outputPath);
 
-		// TODO: Move down
-		Config config = new AdaptConfig().run(baselineConfig.outputScenarioScale, baselineConfig.prefix);
-		new ConfigWriter(config).write(new File(outputPath, baselineConfig.prefix + "config.xml").getPath());
-		outputFilesCollector.add(baselineConfig.prefix + "config.xml");
-
 		Random random = new Random(0);
 
 		// Input is Kirill's population
@@ -91,11 +90,16 @@ public class MakeScenario {
 				.readFile(new File(inputPath, "population_attributes.xml.gz").getPath());
 		new MatsimFacilitiesReader(scenario).readFile(new File(inputPath, "facilities.xml.gz").getPath());
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(new File(inputPath, "network.xml.gz").getPath());
+		// TODO: Since adding SwissRail, this does not work anymore properly!
+		// We need to recover the links from the hand-mapped network!
 		Collection<DailyCountItem> countItems = new DailyReferenceCountsReader(scenario.getNetwork())
 				.read(new File(inputPath, "daily_counts.csv").getPath());
 		new HouseholdsReaderV10(scenario.getHouseholds()).readFile(new File(inputPath, "households.xml.gz").getPath());
 		new ObjectAttributesXmlReader(scenario.getHouseholds().getHouseholdAttributes())
 				.readFile(new File(inputPath, "household_attributes.xml.gz").getPath());
+		new TransitScheduleReader(scenario).readFile(new File(inputPath, "transit_schedule.xml.gz").getPath());
+		new VehicleReaderV1(scenario.getTransitVehicles())
+				.readFile(new File(inputPath, "transit_vehicles.xml.gz").getPath());
 
 		inputFilesCollector.add("population.xml.gz");
 		inputFilesCollector.add("population_attributes.xml.gz");
@@ -104,6 +108,8 @@ public class MakeScenario {
 		inputFilesCollector.add("daily_counts.csv");
 		inputFilesCollector.add("households.xml.gz");
 		inputFilesCollector.add("household_attributes.xml.gz");
+		inputFilesCollector.add("transit_schedule.xml.gz");
+		inputFilesCollector.add("transit_vehicles.xml.gz");
 
 		// Debug: Scale down for testing purposes already in the beginning (or for 25%
 		// scenario)
@@ -213,6 +219,13 @@ public class MakeScenario {
 		ObjectAttributes cleanedHouseholdAttributes = householdAttributesCleaner.run(
 				scenario.getHouseholds().getHouseholds().values(), scenario.getHouseholds().getHouseholdAttributes());
 
+		// Prepare config
+
+		Config config = new AdaptConfig(scenario.getTransitSchedule()).run(baselineConfig.outputScenarioScale,
+				baselineConfig.prefix);
+		new ConfigWriter(config).write(new File(outputPath, baselineConfig.prefix + "config.xml").getPath());
+		outputFilesCollector.add(baselineConfig.prefix + "config.xml");
+
 		// OUTPUT
 
 		new PopulationWriter(scenario.getPopulation())
@@ -227,6 +240,10 @@ public class MakeScenario {
 				.write(new File(outputPath, baselineConfig.prefix + "facilities.xml.gz").getPath());
 		new NetworkWriter(scenario.getNetwork())
 				.write(new File(outputPath, baselineConfig.prefix + "network.xml.gz").getPath());
+		new TransitScheduleWriter(scenario.getTransitSchedule())
+				.writeFile(new File(outputPath, baselineConfig.prefix + "transit_schedule.xml.gz").getPath());
+		new VehicleWriterV1(scenario.getTransitVehicles())
+				.writeFile(new File(outputPath, baselineConfig.prefix + "transit_vehicles.xml.gz").getPath());
 		json.writeValue(new File(outputPath, baselineConfig.prefix + "make_config.json"), baselineConfig);
 		inputFilesCollector.write(new File(outputPath, baselineConfig.prefix + "input.md5"));
 
@@ -236,6 +253,8 @@ public class MakeScenario {
 		outputFilesCollector.add(baselineConfig.prefix + "network.xml.gz");
 		outputFilesCollector.add(baselineConfig.prefix + "households.xml.gz");
 		outputFilesCollector.add(baselineConfig.prefix + "household_attributes.xml.gz");
+		outputFilesCollector.add(baselineConfig.prefix + "transit_schedule.xml.gz");
+		outputFilesCollector.add(baselineConfig.prefix + "transit_vehicles.xml.gz");
 		outputFilesCollector.add(baselineConfig.prefix + "make_config.json");
 		outputFilesCollector.add(baselineConfig.prefix + "input.md5");
 

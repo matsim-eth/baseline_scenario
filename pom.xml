@@ -99,6 +99,7 @@
 			<version>0.10.0-nov17</version>
 		</dependency>
 
+		<!-- TODO: Remove this dependency, and drag routing stuff in from astra -->
 		<dependency>
 			<groupId>ch.ethz.matsim</groupId>
 			<artifactId>mode_choice</artifactId>
@@ -106,9 +107,21 @@
 		</dependency>
 
 		<dependency>
+			<groupId>ch.sbb</groupId>
+			<artifactId>matsim-sbb-extension</artifactId>
+			<version>0.10.0-nov17-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
 			<groupId>ch.ethz.matsim.playgrounds</groupId>
 			<artifactId>sebhoerl</artifactId>
 			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.matsim</groupId>
+			<artifactId>matsim</artifactId>
+			<version>0.10.0-nov17</version>
 		</dependency>
 
 		<dependency>
