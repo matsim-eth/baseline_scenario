@@ -6,9 +6,12 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import ch.ethz.matsim.baseline_scenario.transit.BaselineTransitModule;
+import ch.sbb.matsim.config.SBBTransitConfigGroup;
+
 public class RunScenario {
 	static public void main(String[] args) {
-		Config config = ConfigUtils.loadConfig(args[0]);
+		Config config = ConfigUtils.loadConfig(args[0], new SBBTransitConfigGroup());
 
 		config.global().setNumberOfThreads(Integer.parseInt(args[1]));
 		config.qsim().setNumberOfThreads(Integer.parseInt(args[2]));
@@ -17,6 +20,7 @@ public class RunScenario {
 		Controler controler = new Controler(scenario);
 
 		controler.addOverridingModule(new BaselineModule());
+		controler.addOverridingModule(new BaselineTransitModule());
 
 		controler.run();
 	}

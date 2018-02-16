@@ -3,14 +3,15 @@ package ch.ethz.matsim.baseline_scenario;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
@@ -18,7 +19,8 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
-import org.matsim.core.network.algorithms.NetworkCleaner;
+import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.population.io.PopulationReader;
@@ -118,24 +120,29 @@ public class MakeScenario {
 		// GENERAL PREPARATION AND FIXING
 
 		// Clean network
-		Set<Id<Link>> remove = scenario.getNetwork().getLinks().values().stream()
-				.filter(l -> !l.getAllowedModes().contains("car")).map(l -> l.getId()).collect(Collectors.toSet());
-		remove.forEach(id -> scenario.getNetwork().removeLink(id));
+		// Set<Id<Link>> remove = scenario.getNetwork().getLinks().values().stream()
+		// .filter(l -> !l.getAllowedModes().contains("car")).map(l ->
+		// l.getId()).collect(Collectors.toSet());
+		// remove.forEach(id -> scenario.getNetwork().removeLink(id));
 
-		new NetworkCleaner().run(scenario.getNetwork());
+		// new NetworkCleaner().run(scenario.getNetwork());
 
 		for (Link link : scenario.getNetwork().getLinks().values()) {
 			link.setLength(Math.max(1.0, link.getLength()));
 		}
 
+		// Obtain road network
+		Network roadNetwork = NetworkUtils.createNetwork();
+		new TransportModeNetworkFilter(scenario.getNetwork()).filter(roadNetwork, Collections.singleton("car"));
+
 		// Set link ids for activities and facilities
-		new FixLinkIds(scenario.getNetwork()).run(scenario.getActivityFacilities(), scenario.getPopulation());
+		new FixLinkIds(roadNetwork).run(scenario.getActivityFacilities(), scenario.getPopulation());
 
 		// Load secondary facilities (pmb)
 		new MergeSecondaryFacilities(random, "shop", new File(inputPath, "ShoppingFacilitiesFull.csv").getPath(), 1.0,
-				scenario.getNetwork()).run(scenario.getActivityFacilities());
+				roadNetwork).run(scenario.getActivityFacilities());
 		new MergeSecondaryFacilities(random, "leisure", new File(inputPath, "LeisureFacilitiesFull.csv").getPath(), 1.0,
-				scenario.getNetwork()).run(scenario.getActivityFacilities());
+				roadNetwork).run(scenario.getActivityFacilities());
 
 		inputFilesCollector.add("ShoppingFacilitiesFull.csv");
 		inputFilesCollector.add("LeisureFacilitiesFull.csv");
@@ -187,11 +194,11 @@ public class MakeScenario {
 		// PREPARE FOR RUNNING
 
 		// Do best response routing with free-flow travel times
-		new BestResponseCarRouting(baselineConfig.numberOfThreads, scenario.getNetwork()).run(scenario.getPopulation());
+		new BestResponseCarRouting(baselineConfig.numberOfThreads, roadNetwork).run(scenario.getPopulation());
 
 		if (baselineConfig.performIterativeLocationChoice) {
 			// Select plans to fit counts
-			new TrafficCountPlanSelector(scenario.getNetwork(), countItems, baselineConfig.outputScenarioScale, 0.01,
+			new TrafficCountPlanSelector(roadNetwork, countItems, baselineConfig.outputScenarioScale, 0.01,
 					baselineConfig.numberOfThreads, new File(outputPath, "counts_locchoice.txt").getPath(), 20)
 							.run(scenario.getPopulation());
 			new UnselectedPlanRemoval().run(scenario.getPopulation());
