@@ -46,7 +46,7 @@ import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.Downsample;
 import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.ShiftTimes;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.readers.DailyReferenceCountsReader;
-import ch.ethz.matsim.baseline_scenario.config.BaselineConfig;
+import ch.ethz.matsim.baseline_scenario.config.SwitzerlandConfig;
 import ch.ethz.matsim.baseline_scenario.utils.AdaptConfig;
 import ch.ethz.matsim.baseline_scenario.utils.AttributeCleaner;
 import ch.ethz.matsim.baseline_scenario.utils.FixFacilityActivityTypes;
@@ -63,12 +63,12 @@ import ch.ethz.matsim.baseline_scenario.utils.consistency.MD5Collector;
 import ch.ethz.matsim.baseline_scenario.utils.counts.TrafficCountPlanSelector;
 import ch.ethz.matsim.baseline_scenario.utils.routing.BestResponseCarRouting;
 
-public class MakeScenario {
+public class MakeSwitzerlandScenario {
 	static public void main(String args[]) throws Exception {
 		ObjectMapper json = new ObjectMapper();
 		json.enable(SerializationFeature.INDENT_OUTPUT);
 
-		BaselineConfig baselineConfig = json.readValue(new File(args[0]), BaselineConfig.class);
+		SwitzerlandConfig baselineConfig = json.readValue(new File(args[0]), SwitzerlandConfig.class);
 
 		File inputPath = new File(baselineConfig.inputPath);
 		File outputPath = new File(baselineConfig.outputPath);

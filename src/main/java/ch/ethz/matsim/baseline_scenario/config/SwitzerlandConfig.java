@@ -1,6 +1,6 @@
 package ch.ethz.matsim.baseline_scenario.config;
 
-public class BaselineConfig {
+public class SwitzerlandConfig {
 	public String inputPath;
 	public String outputPath;
 

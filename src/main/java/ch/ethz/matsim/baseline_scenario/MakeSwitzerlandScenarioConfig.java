@@ -8,12 +8,12 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import ch.ethz.matsim.baseline_scenario.config.BaselineConfig;
+import ch.ethz.matsim.baseline_scenario.config.SwitzerlandConfig;
 
-public class MakeScenarioConfig {
+public class MakeSwitzerlandScenarioConfig {
 	static public void main(String[] args) throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper json = new ObjectMapper();
 		json.enable(SerializationFeature.INDENT_OUTPUT);
-		json.writeValue(new File(args[0]), new BaselineConfig());
+		json.writeValue(new File(args[0]), new SwitzerlandConfig());
 	}
 }

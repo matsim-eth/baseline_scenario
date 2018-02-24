@@ -8,7 +8,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 
 import ch.ethz.matsim.baseline_scenario.transit.BaselineTransitModule;
 
-public class RunScenario {
+public class RunSwitzerlandScenario {
 	static public void main(String[] args) {
 		Config config = ConfigUtils.loadConfig(args[0]);
 
