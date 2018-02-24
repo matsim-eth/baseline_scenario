@@ -21,22 +21,22 @@ public class BaselineScoringFunctionFactory implements ScoringFunctionFactory {
 	final private ScenarioConfigGroup scenarioConfig;
 
 	final private Network network;
-	final private ActivityScoringByPersonAttributeBuilder activityByAttributeBuilder;
+	final private ActivityScoringBuilder activityScoringBuilder;
 
 	@Inject
 	public BaselineScoringFunctionFactory(PlanCalcScoreConfigGroup scoringConfig, ScenarioConfigGroup scenarioConfig,
-			Network network, Population population) {
+			Network network, Population population, ActivityScoringBuilder activityScoringBuilder) {
 		this.scoringConfig = scoringConfig;
 		this.scenarioConfig = scenarioConfig;
 		this.network = network;
-		this.activityByAttributeBuilder = new ActivityScoringByPersonAttributeBuilder(population.getPersonAttributes());
+		this.activityScoringBuilder = activityScoringBuilder;
 	}
 
 	@Override
 	public ScoringFunction createNewScoringFunction(Person person) {
 		ScoringParameters.Builder scoringBuilder = new ScoringParameters.Builder(scoringConfig,
 				scoringConfig.getScoringParameters(null), scenarioConfig);
-		activityByAttributeBuilder.apply(scoringBuilder, person);
+		activityScoringBuilder.apply(scoringBuilder, person);
 		ScoringParameters parameters = scoringBuilder.build();
 
 		SumScoringFunction sumScoringFunction = new SumScoringFunction();

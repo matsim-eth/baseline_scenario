@@ -228,13 +228,10 @@ public class MakeScenario {
 
 		// Prepare config
 
-		Config config = new AdaptConfig(scenario.getTransitSchedule()).run(baselineConfig.outputScenarioScale,
-				baselineConfig.prefix);
-		new ConfigWriter(config).write(new File(outputPath, baselineConfig.prefix + "config.xml").getPath());
-		outputFilesCollector.add(baselineConfig.prefix + "config.xml");
+		Config config = new AdaptConfig().run(baselineConfig.outputScenarioScale, baselineConfig.prefix);
 
 		// OUTPUT
-
+		new ConfigWriter(config).write(new File(outputPath, baselineConfig.prefix + "config.xml").getPath());
 		new PopulationWriter(scenario.getPopulation())
 				.write(new File(outputPath, baselineConfig.prefix + "population.xml.gz").getPath());
 		new ObjectAttributesXmlWriter(cleanedPersonAttributes)
@@ -254,6 +251,7 @@ public class MakeScenario {
 		json.writeValue(new File(outputPath, baselineConfig.prefix + "make_config.json"), baselineConfig);
 		inputFilesCollector.write(new File(outputPath, baselineConfig.prefix + "input.md5"));
 
+		outputFilesCollector.add(baselineConfig.prefix + "config.xml");
 		outputFilesCollector.add(baselineConfig.prefix + "population.xml.gz");
 		outputFilesCollector.add(baselineConfig.prefix + "population_attributes.xml.gz");
 		outputFilesCollector.add(baselineConfig.prefix + "facilities.xml.gz");
