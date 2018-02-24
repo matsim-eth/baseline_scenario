@@ -83,6 +83,8 @@ public class MakeSwitzerlandScenario {
 		MD5Collector outputFilesCollector = new MD5Collector(outputPath);
 
 		Random random = new Random(0);
+		int numberOfThreads = baselineConfig.numberOfThreads == 0 ? Runtime.getRuntime().availableProcessors()
+				: baselineConfig.numberOfThreads;
 
 		// Input is Kirill's population
 
@@ -165,7 +167,7 @@ public class MakeSwitzerlandScenario {
 		// LOCATION CHOICE
 
 		inputFilesCollector.add("microcensus.csv");
-		Set<Id<Person>> failedIds = RunParallelSampler.run(baselineConfig.numberOfThreads,
+		Set<Id<Person>> failedIds = RunParallelSampler.run(numberOfThreads,
 				new File(inputPath, "microcensus.csv").getPath(), scenario.getPopulation(),
 				scenario.getActivityFacilities(), baselineConfig.performIterativeLocationChoice ? 20 : 1);
 		failedIds.forEach(id -> scenario.getPopulation().getPersons().remove(id));
@@ -194,12 +196,12 @@ public class MakeSwitzerlandScenario {
 		// PREPARE FOR RUNNING
 
 		// Do best response routing with free-flow travel times
-		new BestResponseCarRouting(baselineConfig.numberOfThreads, roadNetwork).run(scenario.getPopulation());
+		new BestResponseCarRouting(numberOfThreads, roadNetwork).run(scenario.getPopulation());
 
 		if (baselineConfig.performIterativeLocationChoice) {
 			// Select plans to fit counts
 			new TrafficCountPlanSelector(roadNetwork, countItems, baselineConfig.outputScenarioScale, 0.01,
-					baselineConfig.numberOfThreads, new File(outputPath, "counts_locchoice.txt").getPath(), 20)
+					numberOfThreads, new File(outputPath, "counts_locchoice.txt").getPath(), 20)
 							.run(scenario.getPopulation());
 			new UnselectedPlanRemoval().run(scenario.getPopulation());
 		}

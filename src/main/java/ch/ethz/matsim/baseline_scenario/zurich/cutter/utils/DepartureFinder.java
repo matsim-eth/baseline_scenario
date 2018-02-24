@@ -1,0 +1,13 @@
+package ch.ethz.matsim.baseline_scenario.zurich.cutter.utils;
+
+import org.matsim.pt.transitSchedule.api.Departure;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitRouteStop;
+
+/**
+ * For a given original departure time at the access stop, find the
+ * corresponding Departure in the schedule
+ */
+public interface DepartureFinder {
+	Departure findDeparture(TransitRoute route, TransitRouteStop accessStop, double departureTime);
+}
