@@ -31,7 +31,7 @@ public class RunZurichScenario {
 		config.subtourModeChoice().setModes(new String[] { "car", "pt", "bike", "walk" });
 
 		controler.addOverridingModule(new BaselineModule());
-		//controler.addOverridingModule(new BaselineTransitModule());
+		controler.addOverridingModule(new BaselineTransitModule());
 		controler.addOverridingModule(new ZurichModule());
 
 		controler.run();
