@@ -102,6 +102,9 @@ public class MakeZurichScenario {
 		MD5Collector baselineFilesCollector = new MD5Collector(baselinePath);
 		MD5Collector outputFilesCollector = new MD5Collector(outputPath);
 
+		int numberOfThreads = scenarioConfig.numberOfThreads == 0 ? Runtime.getRuntime().availableProcessors()
+				: scenarioConfig.numberOfThreads;
+
 		Config config = ConfigUtils.loadConfig(new File(baselinePath, baselineConfig.prefix + "config.xml").getPath());
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 
@@ -123,7 +126,7 @@ public class MakeZurichScenario {
 
 		StageActivityTypes stageActivityTypes = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
 		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();
-		ExecutorService mainExecutor = Executors.newFixedThreadPool(baselineConfig.numberOfThreads);
+		ExecutorService mainExecutor = Executors.newFixedThreadPool(numberOfThreads);
 
 		Network roadNetwork = NetworkUtils.createNetwork();
 		new TransportModeNetworkFilter(scenario.getNetwork()).filter(roadNetwork, Collections.singleton("car"));
@@ -140,8 +143,7 @@ public class MakeZurichScenario {
 		outsideModeRoutingParams.setTeleportedModeSpeed(1e6);
 
 		ParallelPopulationRouter populationRouter = Guice.createInjector(
-				new ParallelRouterModule(baselineConfig.numberOfThreads, scenario.getActivityFacilities()),
-				new AbstractModule() {
+				new ParallelRouterModule(numberOfThreads, scenario.getActivityFacilities()), new AbstractModule() {
 					@Override
 					protected void configure() {
 						bind(StageActivityTypes.class).toInstance(stageActivityTypes);
@@ -203,8 +205,7 @@ public class MakeZurichScenario {
 		// Reroute the cut population
 
 		populationRouter = Guice.createInjector(
-				new ParallelRouterModule(baselineConfig.numberOfThreads, scenario.getActivityFacilities()),
-				new AbstractModule() {
+				new ParallelRouterModule(numberOfThreads, scenario.getActivityFacilities()), new AbstractModule() {
 					@Override
 					protected void configure() {
 						bind(StageActivityTypes.class).toInstance(stageActivityTypes);
@@ -223,8 +224,8 @@ public class MakeZurichScenario {
 
 		// Cut the network
 
-		MinimumNetworkFinder minimumNetworkFinder = new ParallelMinimumNetworkFinder(mainExecutor,
-				baselineConfig.numberOfThreads, updatedRoadNetwork, referenceLink);
+		MinimumNetworkFinder minimumNetworkFinder = new ParallelMinimumNetworkFinder(mainExecutor, numberOfThreads,
+				updatedRoadNetwork, referenceLink);
 
 		if (scenarioConfig.useMinimumNetworkCache) {
 			minimumNetworkFinder = new CachedMinimumNetworkFinder(new File(outputPath, "minimum_network.cache"),
