@@ -113,6 +113,7 @@ public class NetworkCutter {
 		allRetainedLinkIds.addAll(minimumNetworkFinder.run(routeSearchLinkIds));
 		allRetainedLinkIds.addAll(retainedInsideLinkIds);
 		allRetainedLinkIds.addAll(retainedPublicTransitLinkIds);
+		allRetainedLinkIds.addAll(retainedPopulationLinkIds);
 
 		// Note that this means, that public transit lines CANNOT change their routes in
 		// the simulation if this is desired (at least not outside of the scenario
