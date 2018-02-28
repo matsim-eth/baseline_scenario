@@ -36,7 +36,7 @@ public class FacilitiesCutter {
 		}
 	}
 
-	public void run(ActivityFacilities facilities) {
+	public void run(ActivityFacilities facilities, boolean keepAllInside) {
 		log.info("Cutting facilities ...");
 		int originalNumberOfFacilities = facilities.getFacilities().size();
 
@@ -44,8 +44,10 @@ public class FacilitiesCutter {
 
 		while (iterator.hasNext()) {
 			ActivityFacility facility = iterator.next();
+			
+			boolean keep = usedFacilityIds.contains(facility.getId()) || (extent.isInside(facility.getCoord()) && keepAllInside);
 
-			if (!usedFacilityIds.contains(facility.getId()) && !extent.isInside(facility.getCoord())) {
+			if (!keep) {
 				iterator.remove();
 			}
 		}

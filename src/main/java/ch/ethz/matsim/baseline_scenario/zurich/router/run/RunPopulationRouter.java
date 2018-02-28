@@ -22,6 +22,7 @@ import org.matsim.core.router.StageActivityTypesImpl;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.PtConstants;
+import org.matsim.pt.router.TransitRouter;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import com.google.inject.AbstractModule;
@@ -34,6 +35,7 @@ import ch.ethz.matsim.baseline_scenario.zurich.router.modules.ParallelRouterModu
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.PublicTransitRoutingModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.WalkRoutingModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.parallel.ParallelPopulationRouter;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
 
 public class RunPopulationRouter {
 	static public void main(String[] args) throws InterruptedException, ExecutionException {
@@ -58,21 +60,25 @@ public class RunPopulationRouter {
 		outsideModeRoutingParams.setBeelineDistanceFactor(1.0);
 		outsideModeRoutingParams.setTeleportedModeSpeed(1e6);
 
-		ParallelPopulationRouter router = Guice.createInjector(
-				new ParallelRouterModule(4, scenario.getActivityFacilities()), new CarRoutingModule(roadNetwork),
-				new PublicTransitRoutingModule(scenario.getNetwork(), scenario.getTransitSchedule(),
-						config.plansCalcRoute().getModeRoutingParams().get("walk")),
-				new BikeRoutingModule(config.plansCalcRoute().getModeRoutingParams().get("bike")),
-				new WalkRoutingModule(config.plansCalcRoute().getModeRoutingParams().get("walk")),
-				new OutsideRoutingModule(outsideModeRoutingParams), new AbstractModule() {
-					@Override
-					protected void configure() {
-						bind(StageActivityTypes.class)
-								.toInstance(new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE));
-						bind(MainModeIdentifier.class).toInstance(new MainModeIdentifierImpl());
-						bind(Config.class).toInstance(config);
-					}
-				}).getInstance(ParallelPopulationRouter.class);
+		ParallelPopulationRouter router = Guice
+				.createInjector(new ParallelRouterModule(4, scenario.getActivityFacilities()),
+						// new SequentialRouterModule(scenario.getActivityFacilities()),
+						new CarRoutingModule(roadNetwork),
+						new PublicTransitRoutingModule(scenario.getNetwork(), scenario.getTransitSchedule(),
+								config.plansCalcRoute().getModeRoutingParams().get("walk")),
+						new BikeRoutingModule(config.plansCalcRoute().getModeRoutingParams().get("bike")),
+						new WalkRoutingModule(config.plansCalcRoute().getModeRoutingParams().get("walk")),
+						new OutsideRoutingModule(outsideModeRoutingParams), new AbstractModule() {
+							@Override
+							protected void configure() {
+								bind(StageActivityTypes.class)
+										.toInstance(new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE));
+								bind(MainModeIdentifier.class).toInstance(new MainModeIdentifierImpl());
+								bind(Config.class).toInstance(config);
+								bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+							}
+						})
+				.getInstance(ParallelPopulationRouter.class);
 
 		ExecutorService executor = Executors.newFixedThreadPool(4);
 		router.run(scenario.getPopulation(), executor);

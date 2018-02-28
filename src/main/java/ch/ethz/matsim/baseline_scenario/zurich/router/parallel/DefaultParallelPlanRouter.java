@@ -62,6 +62,7 @@ public class DefaultParallelPlanRouter implements ParallelPlanRouter {
 				try {
 					result.addAll(f.get());
 				} catch (InterruptedException | ExecutionException e) {
+					throw new RuntimeException(e);
 				}
 			});
 

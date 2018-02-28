@@ -5,7 +5,9 @@ import java.util.Collection;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.TransportMode;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.Config;
+import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.mobsim.qsim.AbstractQSimPlugin;
 import org.matsim.core.mobsim.qsim.ActivityEnginePlugin;
@@ -16,6 +18,7 @@ import org.matsim.core.mobsim.qsim.messagequeueengine.MessageQueuePlugin;
 import org.matsim.core.mobsim.qsim.qnetsimengine.QNetsimEnginePlugin;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.Transit;
+import org.matsim.pt.config.TransitRouterConfigGroup;
 import org.matsim.pt.router.TransitRouter;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 
@@ -24,6 +27,8 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 
+import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DefaultDepartureFinder;
+import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DepartureFinder;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
 
 public class BaselineTransitModule extends AbstractModule {
@@ -34,6 +39,17 @@ public class BaselineTransitModule extends AbstractModule {
 		addRoutingModuleBinding("pt").toProvider(Transit.class);
 		addRoutingModuleBinding(TransportMode.transit_walk)
 				.to(Key.get(RoutingModule.class, Names.named(TransportMode.walk)));
+	}
+
+	@Provides
+	public EnrichedTransitRouter provideEnrichedTransitRouter(TransitRouter delegate, TransitSchedule transitSchedule,
+			DepartureFinder departureFinder, Network network, PlansCalcRouteConfigGroup routeConfig,
+			TransitRouterConfigGroup transitConfig) {
+		double beelineDistanceFactor = routeConfig.getBeelineDistanceFactors().get("walk");
+		double additionalTransferTime = transitConfig.getAdditionalTransferTime();
+
+		return new DefaultEnrichedTransitRouter(delegate, transitSchedule, departureFinder, network,
+				beelineDistanceFactor, additionalTransferTime);
 	}
 
 	@Provides
@@ -60,5 +76,11 @@ public class BaselineTransitModule extends AbstractModule {
 		plugins.add(new PopulationPlugin(config));
 
 		return plugins;
+	}
+
+	@Provides
+	@Singleton
+	public DepartureFinder provideDepartureFinder() {
+		return new DefaultDepartureFinder();
 	}
 }

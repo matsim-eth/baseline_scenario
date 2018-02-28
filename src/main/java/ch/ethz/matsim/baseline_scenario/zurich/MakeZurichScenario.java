@@ -257,7 +257,8 @@ public class MakeZurichScenario {
 
 		new HomeFacilitiesCleaner(scenario.getHouseholds().getHouseholds().keySet(),
 				scenario.getPopulation().getPersons().values()).run(scenario.getActivityFacilities());
-		new FacilitiesCutter(extent, scenario.getPopulation().getPersons().values());
+		new FacilitiesCutter(extent, scenario.getPopulation().getPersons().values())
+				.run(scenario.getActivityFacilities(), false);
 
 		mainExecutor.shutdown();
 

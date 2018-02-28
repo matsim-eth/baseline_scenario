@@ -41,6 +41,8 @@ public class DefaultTransitRouteCrossingPointFinder implements TransitRouteCross
 		int index = 0;
 		int accessStopIndex = -1;
 		int egressStopIndex = -1;
+		
+		// TODO: Important! Here we also need to consider the departure times. See DefaultEnrichedTransitRouter!
 
 		while (index < transitRoute.getStops().size() && accessStopIndex == -1) {
 			TransitRouteStop stop = transitRoute.getStops().get(index);
