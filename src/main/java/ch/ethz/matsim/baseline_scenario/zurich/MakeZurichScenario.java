@@ -51,7 +51,7 @@ import ch.ethz.matsim.baseline_scenario.zurich.consistency.BatchCheck;
 import ch.ethz.matsim.baseline_scenario.zurich.consistency.ChainStructureCheck;
 import ch.ethz.matsim.baseline_scenario.zurich.consistency.PlanConsistencyCheck;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.config.ConfigCutter;
-import ch.ethz.matsim.baseline_scenario.zurich.cutter.connector.OutsideConnector;
+import ch.ethz.matsim.baseline_scenario.zurich.cutter.connector.ClosestLinkOutsideConnector;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.facilities.FacilitiesCutter;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.network.CachedMinimumNetworkFinder;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.network.MinimumNetworkFinder;
@@ -178,8 +178,8 @@ public class MakeZurichScenario {
 				mergeOutsideActivities);
 		populationCutter.run(scenario.getPopulation(), mainExecutor);
 
-		new OutsideConnector(scenario.getPopulation()).run(scenario.getActivityFacilities(), scenario.getNetwork(),
-				roadNetwork);
+		new ClosestLinkOutsideConnector(scenario.getPopulation()).run(scenario.getActivityFacilities(),
+				scenario.getNetwork(), roadNetwork);
 
 		new RemoveEmptyPlans().run(scenario.getPopulation());
 

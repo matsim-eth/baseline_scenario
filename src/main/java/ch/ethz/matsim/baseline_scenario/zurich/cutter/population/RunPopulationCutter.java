@@ -38,6 +38,7 @@ import ch.ethz.matsim.baseline_scenario.zurich.consistency.ActivityCheck;
 import ch.ethz.matsim.baseline_scenario.zurich.consistency.BatchCheck;
 import ch.ethz.matsim.baseline_scenario.zurich.consistency.ChainStructureCheck;
 import ch.ethz.matsim.baseline_scenario.zurich.consistency.PlanConsistencyCheck;
+import ch.ethz.matsim.baseline_scenario.zurich.cutter.connector.LinkGeneratingOutsideConnector;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.connector.OutsideConnector;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.plan.PlanCutter;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.plan.PlanCutterModule;
@@ -98,7 +99,7 @@ public class RunPopulationCutter {
 		MergeOutsideActivities merger = new DefaultMergeOutsideActivities();
 		scenario.getPopulation().getPersons().values().forEach(p -> merger.run(p.getSelectedPlan().getPlanElements()));
 
-		OutsideConnector outsideConnector = new OutsideConnector(scenario.getPopulation());
+		OutsideConnector outsideConnector = new LinkGeneratingOutsideConnector(scenario.getPopulation());
 		outsideConnector.run(scenario.getActivityFacilities(), scenario.getNetwork(), roadNetwork);
 
 		new RemoveEmptyPlans().run(scenario.getPopulation());
