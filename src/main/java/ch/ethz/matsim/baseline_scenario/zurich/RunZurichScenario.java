@@ -20,16 +20,6 @@ public class RunZurichScenario {
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 		Controler controler = new Controler(scenario);
 
-		// See MATSIM-766 (https://matsim.atlassian.net/browse/MATSIM-766)
-		StrategySettings modeChoiceStrategy = new StrategySettings();
-		modeChoiceStrategy.setStrategyName("SubtourModeChoice");
-		modeChoiceStrategy.setDisableAfter(-1);
-		modeChoiceStrategy.setWeight(0.1);
-		config.strategy().addStrategySettings(modeChoiceStrategy);
-
-		config.subtourModeChoice().setChainBasedModes(new String[] { "car", "bike" });
-		config.subtourModeChoice().setModes(new String[] { "car", "pt", "bike", "walk" });
-
 		controler.addOverridingModule(new BaselineModule());
 		controler.addOverridingModule(new BaselineTransitModule());
 		controler.addOverridingModule(new ZurichModule());
