@@ -9,5 +9,10 @@ import org.matsim.pt.transitSchedule.api.TransitRouteStop;
  * corresponding Departure in the schedule
  */
 public interface DepartureFinder {
-	Departure findDeparture(TransitRoute route, TransitRouteStop accessStop, double departureTime);
+	Departure findDeparture(TransitRoute route, TransitRouteStop accessStop, double departureTime)
+			throws NoDepartureFoundException;
+
+	static public class NoDepartureFoundException extends Exception {
+		private static final long serialVersionUID = -7437914556322222223L;
+	}
 }

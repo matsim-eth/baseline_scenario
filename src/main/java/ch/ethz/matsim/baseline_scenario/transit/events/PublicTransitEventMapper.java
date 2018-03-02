@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.transit;
+package ch.ethz.matsim.baseline_scenario.transit.events;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.GenericEvent;
@@ -15,12 +15,12 @@ public class PublicTransitEventMapper implements CustomEventMapper<PublicTransit
 		Id<Person> personId = Id.create(event.getAttributes().get("person"), Person.class);
 		Id<TransitLine> transitLineId = Id.create(event.getAttributes().get("line"), TransitLine.class);
 		Id<TransitRoute> transitRouteId = Id.create(event.getAttributes().get("route"), TransitRoute.class);
-		Id<TransitStopFacility> accessStopId = Id.create(event.getAttributes().get("access_stop"),
+		Id<TransitStopFacility> accessStopId = Id.create(event.getAttributes().get("accessStop"),
 				TransitStopFacility.class);
-		Id<TransitStopFacility> egressStopId = Id.create(event.getAttributes().get("egress_stop"),
+		Id<TransitStopFacility> egressStopId = Id.create(event.getAttributes().get("egressStop"),
 				TransitStopFacility.class);
-		double vehicleDepartureTime = Double.parseDouble(event.getAttributes().get("vehicle_departure_time"));
-		double travelDistance = Double.parseDouble(event.getAttributes().get("travel_distance"));
+		double vehicleDepartureTime = Double.parseDouble(event.getAttributes().get("vehicleDepartureTime"));
+		double travelDistance = Double.parseDouble(event.getAttributes().get("travelDistance"));
 
 		return new PublicTransitEvent(arrivalTime, personId, transitLineId, transitRouteId, accessStopId, egressStopId,
 				vehicleDepartureTime, travelDistance);

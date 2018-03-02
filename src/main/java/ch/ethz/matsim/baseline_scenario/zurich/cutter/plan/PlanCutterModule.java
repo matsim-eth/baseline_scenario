@@ -89,9 +89,8 @@ public class PlanCutterModule extends AbstractModule {
 
 	@Provides
 	@Singleton
-	public TransitRouteCrossingPointFinder provideTransitRouteCrossingPointFinder(ScenarioExtent extent,
-			DepartureFinder departureFinder) {
-		return new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule, departureFinder);
+	public TransitRouteCrossingPointFinder provideTransitRouteCrossingPointFinder(ScenarioExtent extent) {
+		return new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule);
 	}
 
 	@Provides

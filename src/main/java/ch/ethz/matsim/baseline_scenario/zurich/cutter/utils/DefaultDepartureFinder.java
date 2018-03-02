@@ -6,11 +6,18 @@ import org.matsim.pt.transitSchedule.api.TransitRouteStop;
 
 public class DefaultDepartureFinder implements DepartureFinder {
 	@Override
-	public Departure findDeparture(TransitRoute route, TransitRouteStop accessStop, double departureTime) {
+	public Departure findDeparture(TransitRoute route, TransitRouteStop accessStop, double departureTime)
+			throws NoDepartureFoundException {
 		double accessStopOffset = accessStop.getDepartureOffset();
 
-		return route.getDepartures().values().stream()
+		Departure result = route.getDepartures().values().stream()
 				.filter(d -> departureTime <= d.getDepartureTime() + accessStopOffset)
 				.min((a, b) -> Double.compare(a.getDepartureTime(), b.getDepartureTime())).orElse(null);
+
+		if (result == null) {
+			throw new NoDepartureFoundException();
+		}
+
+		return result;
 	}
 }

@@ -12,8 +12,10 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
 
-import ch.ethz.matsim.baseline_scenario.transit.DefaultEnrichedTransitRouter;
-import ch.ethz.matsim.baseline_scenario.transit.EnrichedTransitRouter;
+import ch.ethz.matsim.baseline_scenario.transit.connection.DefaultTransitConnectionFinder;
+import ch.ethz.matsim.baseline_scenario.transit.connection.TransitConnectionFinder;
+import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRouter;
+import ch.ethz.matsim.baseline_scenario.transit.routing.EnrichedTransitRouter;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DefaultDepartureFinder;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DepartureFinder;
 import ch.ethz.matsim.baseline_scenario.zurich.router.trip.PublicTransitTripRouter;
@@ -45,12 +47,19 @@ public class PublicTransitRoutingModule extends AbstractModule {
 	}
 
 	@Provides
-	public EnrichedTransitRouter provideEnrichedTransitRouter(TransitRouter delegate, DepartureFinder departureFinder,
-			PlansCalcRouteConfigGroup routeConfig, TransitRouterConfigGroup transitConfig) {
+	@Singleton
+	public TransitConnectionFinder provideTransitConnectionFinder(DepartureFinder departureFinder) {
+		return new DefaultTransitConnectionFinder(departureFinder);
+	}
+
+	@Provides
+	public EnrichedTransitRouter provideEnrichedTransitRouter(TransitRouter delegate,
+			TransitConnectionFinder connectionFinder, PlansCalcRouteConfigGroup routeConfig,
+			TransitRouterConfigGroup transitConfig) {
 		double beelineDistanceFactor = routeConfig.getBeelineDistanceFactors().get("walk");
 		double additionalTransferTime = transitConfig.getAdditionalTransferTime();
 
-		return new DefaultEnrichedTransitRouter(delegate, transitSchedule, departureFinder, network,
+		return new DefaultEnrichedTransitRouter(delegate, transitSchedule, connectionFinder, network,
 				beelineDistanceFactor, additionalTransferTime);
 	}
 

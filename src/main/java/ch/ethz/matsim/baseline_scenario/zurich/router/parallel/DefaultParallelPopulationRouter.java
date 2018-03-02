@@ -48,6 +48,6 @@ public class DefaultParallelPopulationRouter implements ParallelPopulationRouter
 			}
 		}
 		
-		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()])).get();
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()])).join();
 	}
 }

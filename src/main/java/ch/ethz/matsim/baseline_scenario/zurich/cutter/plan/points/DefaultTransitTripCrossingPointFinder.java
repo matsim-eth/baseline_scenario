@@ -8,7 +8,8 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.pt.routes.ExperimentalTransitRoute;
+
+import ch.ethz.matsim.baseline_scenario.transit.routing.EnrichedTransitRoute;
 
 public class DefaultTransitTripCrossingPointFinder implements TransitTripCrossingPointFinder {
 	final private TransitRouteCrossingPointFinder transitFinder;
@@ -43,8 +44,8 @@ public class DefaultTransitTripCrossingPointFinder implements TransitTripCrossin
 					break;
 				case "pt":
 					result.addAll(transitFinder
-							.findCrossingPoints((ExperimentalTransitRoute) leg.getRoute(), leg.getDepartureTime())
-							.stream().map(p -> new TransitTripCrossingPoint(p)).collect(Collectors.toList()));
+							.findCrossingPoints((EnrichedTransitRoute) leg.getRoute(), leg.getDepartureTime()).stream()
+							.map(p -> new TransitTripCrossingPoint(p)).collect(Collectors.toList()));
 					break;
 				default:
 					throw new IllegalStateException();

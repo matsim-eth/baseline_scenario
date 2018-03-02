@@ -1,6 +1,7 @@
 package ch.ethz.matsim.baseline_scenario.zurich.router.run;
 
 import java.util.Collections;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,12 +28,16 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Injector;
 
+import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.Downsample;
+import ch.ethz.matsim.baseline_scenario.zurich.router.PopulationRouter;
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.BikeRoutingModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.CarRoutingModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.OutsideRoutingModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.ParallelRouterModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.PublicTransitRoutingModule;
+import ch.ethz.matsim.baseline_scenario.zurich.router.modules.SequentialRouterModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.WalkRoutingModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.parallel.ParallelPopulationRouter;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
@@ -45,6 +50,7 @@ public class RunPopulationRouter {
 		String facilitiesInputPath = args[3];
 		String transitScheduleInputPath = args[4];
 		String populationOutputPath = args[5];
+		boolean useParallelImplementaton = Boolean.parseBoolean(args[6]);
 
 		Config config = ConfigUtils.loadConfig(configInputPath);
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
@@ -53,6 +59,8 @@ public class RunPopulationRouter {
 		new MatsimFacilitiesReader(scenario).readFile(facilitiesInputPath);
 		new TransitScheduleReader(scenario).readFile(transitScheduleInputPath);
 
+		new Downsample(0.1, new Random(0)).run(scenario.getPopulation());
+
 		Network roadNetwork = NetworkUtils.createNetwork();
 		new TransportModeNetworkFilter(scenario.getNetwork()).filter(roadNetwork, Collections.singleton("car"));
 
@@ -60,29 +68,33 @@ public class RunPopulationRouter {
 		outsideModeRoutingParams.setBeelineDistanceFactor(1.0);
 		outsideModeRoutingParams.setTeleportedModeSpeed(1e6);
 
-		ParallelPopulationRouter router = Guice
-				.createInjector(new ParallelRouterModule(4, scenario.getActivityFacilities()),
-						// new SequentialRouterModule(scenario.getActivityFacilities()),
-						new CarRoutingModule(roadNetwork),
-						new PublicTransitRoutingModule(scenario.getNetwork(), scenario.getTransitSchedule(),
-								config.plansCalcRoute().getModeRoutingParams().get("walk")),
-						new BikeRoutingModule(config.plansCalcRoute().getModeRoutingParams().get("bike")),
-						new WalkRoutingModule(config.plansCalcRoute().getModeRoutingParams().get("walk")),
-						new OutsideRoutingModule(outsideModeRoutingParams), new AbstractModule() {
-							@Override
-							protected void configure() {
-								bind(StageActivityTypes.class)
-										.toInstance(new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE));
-								bind(MainModeIdentifier.class).toInstance(new MainModeIdentifierImpl());
-								bind(Config.class).toInstance(config);
-								bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
-							}
-						})
-				.getInstance(ParallelPopulationRouter.class);
+		AbstractModule routerModule = useParallelImplementaton
+				? new ParallelRouterModule(4, scenario.getActivityFacilities())
+				: new SequentialRouterModule(scenario.getActivityFacilities());
 
-		ExecutorService executor = Executors.newFixedThreadPool(4);
-		router.run(scenario.getPopulation(), executor);
-		executor.shutdown();
+		Injector injector = Guice.createInjector(routerModule, new CarRoutingModule(roadNetwork),
+				new PublicTransitRoutingModule(scenario.getNetwork(), scenario.getTransitSchedule(),
+						config.plansCalcRoute().getModeRoutingParams().get("walk")),
+				new BikeRoutingModule(config.plansCalcRoute().getModeRoutingParams().get("bike")),
+				new WalkRoutingModule(config.plansCalcRoute().getModeRoutingParams().get("walk")),
+				new OutsideRoutingModule(outsideModeRoutingParams), new AbstractModule() {
+					@Override
+					protected void configure() {
+						bind(StageActivityTypes.class)
+								.toInstance(new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE));
+						bind(MainModeIdentifier.class).toInstance(new MainModeIdentifierImpl());
+						bind(Config.class).toInstance(config);
+						bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+					}
+				});
+
+		if (!useParallelImplementaton) {
+			injector.getInstance(PopulationRouter.class).run(scenario.getPopulation());
+		} else {
+			ExecutorService executor = Executors.newFixedThreadPool(4);
+			injector.getInstance(ParallelPopulationRouter.class).run(scenario.getPopulation(), executor);
+			executor.shutdown();
+		}
 
 		new PopulationWriter(scenario.getPopulation()).write(populationOutputPath);
 	}

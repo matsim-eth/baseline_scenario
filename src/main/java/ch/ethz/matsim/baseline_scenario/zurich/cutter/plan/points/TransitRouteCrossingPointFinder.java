@@ -2,10 +2,8 @@ package ch.ethz.matsim.baseline_scenario.zurich.cutter.plan.points;
 
 import java.util.List;
 
-import org.matsim.pt.routes.ExperimentalTransitRoute;
+import ch.ethz.matsim.baseline_scenario.transit.routing.EnrichedTransitRoute;
 
 public interface TransitRouteCrossingPointFinder {
-
-	List<TransitRouteCrossingPoint> findCrossingPoints(ExperimentalTransitRoute route, double departureTime);
-
+	List<TransitRouteCrossingPoint> findCrossingPoints(EnrichedTransitRoute route, double departureTime);
 }

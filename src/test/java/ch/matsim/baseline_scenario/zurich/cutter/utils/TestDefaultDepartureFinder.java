@@ -13,10 +13,11 @@ import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
 
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DefaultDepartureFinder;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DepartureFinder;
+import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DepartureFinder.NoDepartureFoundException;
 
 public class TestDefaultDepartureFinder {
 	@Test
-	public void testDefaultDepartureFinder() {
+	public void testDefaultDepartureFinder() throws NoDepartureFoundException {
 		TransitScheduleFactory factory = new TransitScheduleFactoryImpl();
 
 		TransitRouteStop stop00 = factory.createTransitRouteStop(null, 0.0, 0.0);
@@ -39,8 +40,15 @@ public class TestDefaultDepartureFinder {
 		Assert.assertEquals(departureAt09, finder.findDeparture(route, stop00, 8.5 * 3600.0));
 		Assert.assertEquals(departureAt10, finder.findDeparture(route, stop00, 9.5 * 3600.0));
 		Assert.assertEquals(departureAt11, finder.findDeparture(route, stop00, 10.5 * 3600.0));
-		Assert.assertNull(finder.findDeparture(route, stop00, 11.5 * 3600.0));
-
+		
+		boolean exceptionThrown = false;
+		try {
+			finder.findDeparture(route, stop00, 11.5 * 3600.0);
+		} catch (NoDepartureFoundException e) {
+			exceptionThrown = true;
+		}
+		Assert.assertTrue(exceptionThrown);
+		
 		Assert.assertEquals(departureAt10, finder.findDeparture(route, stop45, 10.5 * 3600.0));
 		Assert.assertEquals(departureAt09, finder.findDeparture(route, stop90, 10.0 * 3600.0));
 

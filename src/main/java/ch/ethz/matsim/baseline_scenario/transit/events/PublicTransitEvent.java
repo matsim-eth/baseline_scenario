@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.transit;
+package ch.ethz.matsim.baseline_scenario.transit.events;
 
 import java.util.Map;
 
@@ -75,10 +75,10 @@ public class PublicTransitEvent extends Event implements HasPersonId {
 		attributes.put("person", personId.toString());
 		attributes.put("line", transitLineId.toString());
 		attributes.put("route", transitRouteId.toString());
-		attributes.put("access_stop", accessStopId.toString());
-		attributes.put("egress_stop", egressStopId.toString());
-		attributes.put("vehicle_departure_time", String.valueOf(vehicleDepartureTime));
-		attributes.put("travel_distance", String.valueOf(travelDistance));
+		attributes.put("accessStop", accessStopId.toString());
+		attributes.put("egressStop", egressStopId.toString());
+		attributes.put("vehicleDepartureTime", String.valueOf(vehicleDepartureTime));
+		attributes.put("travelDistance", String.valueOf(travelDistance));
 		return attributes;
 	}
 }

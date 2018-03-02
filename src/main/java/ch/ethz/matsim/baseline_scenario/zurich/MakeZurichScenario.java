@@ -76,6 +76,7 @@ import ch.ethz.matsim.baseline_scenario.zurich.router.modules.ParallelRouterModu
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.PublicTransitRoutingModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.WalkRoutingModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.parallel.ParallelPopulationRouter;
+import ch.ethz.matsim.baseline_scenario.zurich.utils.AdjustLinkLengths;
 import ch.ethz.matsim.baseline_scenario.zurich.utils.AttributeNamesReader;
 import ch.ethz.matsim.baseline_scenario.zurich.utils.OutsideAttributeSetter;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
@@ -234,6 +235,8 @@ public class MakeZurichScenario {
 
 		new NetworkCutter(extent, minimumNetworkFinder).run(scenario.getPopulation(), scenario.getTransitSchedule(),
 				scenario.getNetwork());
+
+		new AdjustLinkLengths(10.0).run(scenario.getNetwork());
 
 		// Cut households
 

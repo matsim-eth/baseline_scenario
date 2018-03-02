@@ -1,12 +1,12 @@
-package ch.ethz.matsim.baseline_scenario.transit;
+package ch.ethz.matsim.baseline_scenario.transit.simulation;
 
 import java.util.Collection;
 import java.util.Collections;
 
-import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.mobsim.qsim.AbstractQSimPlugin;
+import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.core.mobsim.qsim.interfaces.DepartureHandler;
 import org.matsim.core.mobsim.qsim.interfaces.MobsimEngine;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
@@ -15,6 +15,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+
+import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DepartureFinder;
 
 public class BaselineTransitPlugin extends AbstractQSimPlugin {
 	public BaselineTransitPlugin(Config config) {
@@ -31,8 +33,9 @@ public class BaselineTransitPlugin extends AbstractQSimPlugin {
 			@Provides
 			@Singleton
 			public BaselineTransitEngine provideBaselineTransitEngine(EventsManager eventsManager,
-					TransitSchedule transitSchedule, Network network) {
-				return new BaselineTransitEngine(eventsManager, transitSchedule, network);
+					TransitSchedule transitSchedule, DepartureFinder departureFinder, QSim qsim) {
+				return new BaselineTransitEngine(eventsManager, transitSchedule, departureFinder,
+						qsim.getAgentCounter());
 			}
 		});
 	}

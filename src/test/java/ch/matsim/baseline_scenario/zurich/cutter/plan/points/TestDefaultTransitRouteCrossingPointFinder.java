@@ -7,7 +7,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
-import org.matsim.pt.routes.ExperimentalTransitRoute;
 import org.matsim.pt.transitSchedule.TransitScheduleFactoryImpl;
 import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
@@ -17,16 +16,18 @@ import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleFactory;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
+import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRoute;
+import ch.ethz.matsim.baseline_scenario.transit.routing.EnrichedTransitRoute;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.plan.points.DefaultTransitRouteCrossingPointFinder;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.plan.points.TransitRouteCrossingPoint;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.plan.points.TransitRouteCrossingPointFinder;
-import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DepartureFinder;
 import ch.ethz.matsim.baseline_scenario.zurich.extent.ScenarioExtent;
 
 public class TestDefaultTransitRouteCrossingPointFinder {
 	final private static TransitSchedule transitSchedule;
 	final private static TransitLine transitLine;
 	final private static TransitRoute transitRoute;
+	final private static Departure departure;
 
 	static {
 		/*
@@ -51,25 +52,13 @@ public class TestDefaultTransitRouteCrossingPointFinder {
 		facilities.forEach(transitSchedule::addStopFacility);
 		transitSchedule.addTransitLine(transitLine);
 		transitLine.addRoute(transitRoute);
+
+		departure = factory.createDeparture(Id.create("dep", Departure.class), 50.0);
+		transitRoute.addDeparture(departure);
 	}
 
-	final private static ExperimentalTransitRoute routeMock;
-
-	static {
-		TransitStopFacility accessFacility = transitSchedule.getFacilities()
-				.get(Id.create("fac4", TransitStopFacility.class));
-		TransitStopFacility egressFacility = transitSchedule.getFacilities()
-				.get(Id.create("fac7", TransitStopFacility.class));
-
-		routeMock = new ExperimentalTransitRoute(accessFacility, transitLine, transitRoute, egressFacility);
-	}
-
-	final private static DepartureFinder departureFinderMock = new DepartureFinder() {
-		@Override
-		public Departure findDeparture(TransitRoute route, TransitRouteStop accessStop, double departureTime) {
-			return new TransitScheduleFactoryImpl().createDeparture(Id.create("dep", Departure.class), 50.0);
-		}
-	};
+	final private static EnrichedTransitRoute routeMock = new DefaultEnrichedTransitRoute(null, null, 0.0, 0.0, 0.0, 3,
+			6, transitLine.getId(), transitRoute.getId(), departure.getId());
 
 	static ScenarioExtent createExtentMock(double... inside) {
 		List<Double> _inside = new LinkedList<>();
@@ -104,7 +93,7 @@ public class TestDefaultTransitRouteCrossingPointFinder {
 
 		// 1) Outside -> Inside
 		extent = createExtentMock(6.0, 7.0);
-		finder = new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule, departureFinderMock);
+		finder = new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule);
 		result = finder.findCrossingPoints(routeMock, 25.0);
 
 		Assert.assertEquals(1, result.size());
@@ -116,7 +105,7 @@ public class TestDefaultTransitRouteCrossingPointFinder {
 
 		// 2) Inside -> Outside
 		extent = createExtentMock(4.0, 5.0);
-		finder = new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule, departureFinderMock);
+		finder = new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule);
 		result = finder.findCrossingPoints(routeMock, 25.0);
 
 		Assert.assertEquals(1, result.size());
@@ -128,7 +117,7 @@ public class TestDefaultTransitRouteCrossingPointFinder {
 
 		// 3) Inside -> Outside -> Inside
 		extent = createExtentMock(4.0, 7.0);
-		finder = new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule, departureFinderMock);
+		finder = new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule);
 		result = finder.findCrossingPoints(routeMock, 25.0);
 
 		Assert.assertEquals(2, result.size());
@@ -145,7 +134,7 @@ public class TestDefaultTransitRouteCrossingPointFinder {
 
 		// 4) Outside -> Inside -> Outside
 		extent = createExtentMock(5.0, 6.0);
-		finder = new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule, departureFinderMock);
+		finder = new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule);
 		result = finder.findCrossingPoints(routeMock, 25.0);
 
 		Assert.assertEquals(2, result.size());
@@ -162,7 +151,7 @@ public class TestDefaultTransitRouteCrossingPointFinder {
 
 		// 5) Inside -> Outside -> Inside -> Outside
 		extent = createExtentMock(4.0, 6.0);
-		finder = new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule, departureFinderMock);
+		finder = new DefaultTransitRouteCrossingPointFinder(extent, transitSchedule);
 		result = finder.findCrossingPoints(routeMock, 25.0);
 		Assert.assertEquals(3, result.size());
 	}
