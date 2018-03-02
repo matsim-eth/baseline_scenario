@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.matsim.api.core.v01.Id;
+import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 
@@ -17,6 +18,7 @@ public class TestDefaultEnrichedTransitRoute {
 
 		description.transitLineId = Id.create("abc", TransitLine.class);
 		description.transitRouteId = Id.create("def", TransitRoute.class);
+		description.departureId = Id.create("dep", Departure.class);
 
 		description.accessStopIndex = 20;
 		description.egressStopindex = 40;
@@ -27,7 +29,7 @@ public class TestDefaultEnrichedTransitRoute {
 		String serialized = new ObjectMapper().writeValueAsString(description);
 
 		Assert.assertEquals(
-				"{\"inVehicleTime\":30.0,\"transferTime\":55.0,\"accessStopIndex\":20,\"egressStopindex\":40,\"transitRouteId\":\"def\",\"transitLineId\":\"abc\"}",
+				"{\"inVehicleTime\":30.0,\"transferTime\":55.0,\"accessStopIndex\":20,\"egressStopindex\":40,\"transitRouteId\":\"def\",\"transitLineId\":\"abc\",\"departureId\":\"dep\"}",
 				serialized);
 
 		DefaultEnrichedTransitRoute.RouteDescription deserialized = new ObjectMapper().readValue(serialized,
