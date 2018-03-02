@@ -104,6 +104,10 @@ public class BaselineTransitEngine implements DepartureHandler, MobsimEngine {
 				if (arrivalTime < vehicleDepartureTime || arrivalTime < now) {
 					throw new IllegalStateException();
 				}
+				
+				if (Math.abs(arrivalTime - now) < 1.0) {
+					arrivalTime = now + 1.0;
+				}
 
 				Id<Link> arrivalLinkId = egressStop.getStopFacility().getLinkId();
 
