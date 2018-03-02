@@ -98,13 +98,15 @@ public class BaselineTransitEngine implements DepartureHandler, MobsimEngine {
 
 			try {
 				Departure departure = departureFinder.findDeparture(transitRoute, accessStop, now);
+
+				double inVehicleTime = egressStop.getArrivalOffset() - accessStop.getDepartureOffset();
 				double vehicleDepartureTime = departure.getDepartureTime() + accessStop.getDepartureOffset();
-				double arrivalTime = vehicleDepartureTime + route.getInVehicleTime();
+				double arrivalTime = vehicleDepartureTime + inVehicleTime;
 
 				if (arrivalTime < vehicleDepartureTime || arrivalTime < now) {
 					throw new IllegalStateException();
 				}
-				
+
 				if (Math.abs(arrivalTime - now) < 1.0) {
 					arrivalTime = now + 1.0;
 				}
