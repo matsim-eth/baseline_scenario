@@ -9,7 +9,7 @@ import org.matsim.pt.transitSchedule.api.TransitRoute;
 public interface EnrichedTransitRoute extends Route {
 	double getInVehicleTime();
 
-	double getTransferTime();
+	double getWaitingTime();
 
 	Id<TransitLine> getTransitLineId();
 

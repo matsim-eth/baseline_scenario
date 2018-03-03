@@ -41,8 +41,8 @@ public class CSVTripWriter {
 	private String formatHeader() {
 		return String.join(delimiter,
 				new String[] { "person_id", "person_trip_id", "origin_x", "origin_y", "destination_x", "destination_y",
-						"start_time", "travel_time", "network_distance", "mode", "purpose", "returning",
-						"crowfly_distance" });
+						"start_time", "travel_time", "network_distance", "mode", "preceedingPurpose",
+						"followingPurpose", "returning", "crowfly_distance" });
 	}
 
 	private String formatTrip(TripItem trip) {
@@ -50,7 +50,8 @@ public class CSVTripWriter {
 				String.valueOf(trip.origin.getX()), String.valueOf(trip.origin.getY()),
 				String.valueOf(trip.destination.getX()), String.valueOf(trip.destination.getY()),
 				String.valueOf(trip.startTime), String.valueOf(trip.travelTime), String.valueOf(trip.networkDistance),
-				String.valueOf(trip.mode), normalizeActivityType(String.valueOf(trip.purpose)),
-				String.valueOf(trip.returning), String.valueOf(trip.crowflyDistance) });
+				String.valueOf(trip.mode), normalizeActivityType(String.valueOf(trip.preceedingPurpose)),
+				normalizeActivityType(String.valueOf(trip.followingPurpose)), String.valueOf(trip.returning),
+				String.valueOf(trip.crowflyDistance) });
 	}
 }

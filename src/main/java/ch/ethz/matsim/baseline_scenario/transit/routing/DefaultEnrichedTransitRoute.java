@@ -69,7 +69,7 @@ public class DefaultEnrichedTransitRoute extends AbstractRoute implements Enrich
 	}
 
 	@Override
-	public double getTransferTime() {
+	public double getWaitingTime() {
 		return routeDescription.transferTime;
 	}
 
@@ -101,7 +101,7 @@ public class DefaultEnrichedTransitRoute extends AbstractRoute implements Enrich
 	@Override
 	public DefaultEnrichedTransitRoute clone() {
 		return new DefaultEnrichedTransitRoute(getStartLinkId(), getEndLinkId(), getDistance(), getInVehicleTime(),
-				getTransferTime(), getAccessStopIndex(), getEgressStopIndex(), getTransitLineId(), getTransitRouteId(),
+				getWaitingTime(), getAccessStopIndex(), getEgressStopIndex(), getTransitLineId(), getTransitRouteId(),
 				getDepartureId());
 	}
 

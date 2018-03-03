@@ -13,12 +13,14 @@ public class TripItem {
 	public double travelTime;
 	public double networkDistance;
 	public String mode;
-	public String purpose;
+	public String followingPurpose;
+	public String preceedingPurpose;
 	public boolean returning;
 	public double crowflyDistance;
 
-	
-	public TripItem(Id<Person> personId, int personTripId, Coord origin, Coord destination, double startTime, double travelTime, double networkDistance, String mode, String purpose, boolean returning, double crowflyDistance) {
+	public TripItem(Id<Person> personId, int personTripId, Coord origin, Coord destination, double startTime,
+			double travelTime, double networkDistance, String mode, String preceedingPurpose, String followingPurpose,
+			boolean returning, double crowflyDistance) {
 		this.personId = personId;
 		this.personTripId = personTripId;
 		this.origin = origin;
@@ -27,7 +29,8 @@ public class TripItem {
 		this.travelTime = travelTime;
 		this.networkDistance = networkDistance;
 		this.mode = mode;
-		this.purpose = purpose;
+		this.followingPurpose = followingPurpose;
+		this.preceedingPurpose = preceedingPurpose;
 		this.returning = returning;
 		this.crowflyDistance = crowflyDistance;
 	}

@@ -12,12 +12,12 @@ import org.matsim.api.core.v01.population.PlanElement;
 import ch.ethz.matsim.baseline_scenario.analysis.trips.TripItem;
 
 public class TripListenerItem extends TripItem {
-	public String startPurpose;
 	public List<PlanElement> elements = new LinkedList<>();
 	public List<Id<Link>> route = new LinkedList<>();
-	
-	public TripListenerItem(Id<Person> personId, int personTripId, Coord origin, double startTime, String startPurpose) {
-		super(personId, personTripId, origin, null, startTime, Double.NaN, Double.NaN, "unknown", "unknown", false, Double.NaN);
-		this.startPurpose = startPurpose;
+
+	public TripListenerItem(Id<Person> personId, int personTripId, Coord origin, double startTime,
+			String startPurpose) {
+		super(personId, personTripId, origin, null, startTime, Double.NaN, Double.NaN, "unknown", startPurpose,
+				"unknown", false, Double.NaN);
 	}
 }

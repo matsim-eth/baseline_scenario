@@ -26,6 +26,8 @@ public class AdaptConfig {
 
 		config.controler().setOutputDirectory("simulation_output");
 
+		config.linkStats().setWriteLinkStatsInterval(-1);
+
 		config.global().setNumberOfThreads(8);
 		config.qsim().setNumberOfThreads(8);
 

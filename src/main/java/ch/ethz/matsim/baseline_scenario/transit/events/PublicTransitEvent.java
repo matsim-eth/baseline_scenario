@@ -3,16 +3,16 @@ package ch.ethz.matsim.baseline_scenario.transit.events;
 import java.util.Map;
 
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.events.Event;
+import org.matsim.api.core.v01.events.GenericEvent;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.internal.HasPersonId;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
-public class PublicTransitEvent extends Event implements HasPersonId {
+public class PublicTransitEvent extends GenericEvent implements HasPersonId {
 	final public static String TYPE = "pt_transit";
-	
+
 	final private Id<Person> personId;
 	final private Id<TransitLine> transitLineId;
 	final private Id<TransitRoute> transitRouteId;
@@ -24,7 +24,7 @@ public class PublicTransitEvent extends Event implements HasPersonId {
 	public PublicTransitEvent(double arrivalTime, Id<Person> personId, Id<TransitLine> transitLineId,
 			Id<TransitRoute> transitRouteId, Id<TransitStopFacility> accessStopId, Id<TransitStopFacility> egressStopId,
 			double vehicleDepartureTime, double travelDistance) {
-		super(arrivalTime);
+		super(TYPE, arrivalTime);
 
 		this.personId = personId;
 		this.transitLineId = transitLineId;

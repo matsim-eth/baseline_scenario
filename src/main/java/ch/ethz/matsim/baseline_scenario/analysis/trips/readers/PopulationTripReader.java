@@ -61,10 +61,11 @@ public class PopulationTripReader {
 
 				tripItems.add(new TripItem(person.getId(), personTripIndex, trip.getOriginActivity().getCoord(),
 						trip.getDestinationActivity().getCoord(), trip.getOriginActivity().getEndTime(),
-						legs.get(legs.size() - 1).getDepartureTime() + legs.get(legs.size() - 1).getTravelTime() - legs.get(0).getDepartureTime(),
+						legs.get(legs.size() - 1).getDepartureTime() + legs.get(legs.size() - 1).getTravelTime()
+								- legs.get(0).getDepartureTime(),
 						getNetworkDistance(trip) / 1000.0, mainModeIdentifier.identifyMainMode(trip.getTripElements()),
-						isHomeTrip ? trip.getOriginActivity().getType() : trip.getDestinationActivity().getType(),
-						isHomeTrip, CoordUtils.calcEuclideanDistance(trip.getOriginActivity().getCoord(),
+						trip.getOriginActivity().getType(), trip.getDestinationActivity().getType(), isHomeTrip,
+						CoordUtils.calcEuclideanDistance(trip.getOriginActivity().getCoord(),
 								trip.getDestinationActivity().getCoord()) / 1000.0));
 
 				personTripIndex++;

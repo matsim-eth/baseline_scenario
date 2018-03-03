@@ -72,6 +72,8 @@ public class RunPopulationRouter {
 				? new ParallelRouterModule(4, scenario.getActivityFacilities())
 				: new SequentialRouterModule(scenario.getActivityFacilities());
 
+		config.transitRouter().setAdditionalTransferTime(120.0);
+
 		Injector injector = Guice.createInjector(routerModule, new CarRoutingModule(roadNetwork),
 				new PublicTransitRoutingModule(scenario.getNetwork(), scenario.getTransitSchedule(),
 						config.plansCalcRoute().getModeRoutingParams().get("walk")),
