@@ -3,12 +3,14 @@ package ch.ethz.matsim.baseline_scenario.zurich.cutter.utils;
 import java.util.List;
 
 import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.PlanElement;
 
 public class DefaultMergeOutsideActivities implements MergeOutsideActivities {
 	@Override
 	public void run(List<PlanElement> plan) {
 		while (plan.size() > 1 && ((Activity) plan.get(0)).getType().equals("outside")
+				&& ((Leg) plan.get(1)).getMode().equals("outside")
 				&& ((Activity) plan.get(2)).getType().equals("outside")) {
 			// While the first two activities are outside, remove the first one and the
 			// following leg
@@ -17,6 +19,7 @@ public class DefaultMergeOutsideActivities implements MergeOutsideActivities {
 		}
 
 		while (plan.size() > 1 && ((Activity) plan.get(plan.size() - 3)).getType().equals("outside")
+				&& ((Leg) plan.get(plan.size() - 2)).getMode().equals("outside")
 				&& ((Activity) plan.get(plan.size() - 1)).getType().equals("outside")) {
 			// While the last two activities are outside, remove the last one and the
 			// preceeding leg
@@ -29,14 +32,19 @@ public class DefaultMergeOutsideActivities implements MergeOutsideActivities {
 			// middle one and the preceeding leg
 
 			Activity firstActivity = (Activity) plan.get(i);
+			Leg firstLeg = (Leg) plan.get(i + 1);
 			Activity secondActivity = (Activity) plan.get(i + 2);
+			Leg secondLeg = (Leg) plan.get(i + 3);
 			Activity thirdActivity = (Activity) plan.get(i + 4);
 
-			boolean firstIsOutside = firstActivity.getType().equals("outside");
-			boolean secondIsOutside = secondActivity.getType().equals("outside");
-			boolean thirdIsOutside = thirdActivity.getType().equals("outside");
+			boolean firstActivityIsOutside = firstActivity.getType().equals("outside");
+			boolean firstLegIsOutside = firstLeg.getMode().equals("outside");
+			boolean secondActivityIsOutside = secondActivity.getType().equals("outside");
+			boolean secondLegIsOutside = secondLeg.getMode().equals("outside");
+			boolean thirdActivityIsOutside = thirdActivity.getType().equals("outside");
 
-			if (firstIsOutside && secondIsOutside && thirdIsOutside) {
+			if (firstActivityIsOutside && firstLegIsOutside && secondActivityIsOutside && secondLegIsOutside
+					&& thirdActivityIsOutside) {
 				// We can delete the one in the middle
 				plan.remove(i + 1);
 				plan.remove(i + 1);
