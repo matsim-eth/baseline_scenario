@@ -85,17 +85,20 @@ public class DefaultTransitConnectionFinder implements TransitConnectionFinder {
 				accessStopIndex = updateAccessStopIndex(transitRoute, accessStopId, connectionDepartureTime,
 						accessStopIndex, egressStopIndex);
 				accessStop = transitRoute.getStops().get(accessStopIndex);
+
+				// Find the corresponding departure
+				routeDeparture = departureFinder.findDeparture(transitRoute, accessStop, connectionDepartureTime);
+				vehicleDepartureTime = accessStop.getDepartureOffset() + routeDeparture.getDepartureTime();
 			}
 
 			inVehicleTime = egressStop.getArrivalOffset() - accessStop.getDepartureOffset();
 			waitingTime = totalTravelTime - inVehicleTime;
 
-			if (inVehicleTime < 0.0) {
-				throw new IllegalStateException();
-			}
-
-			if (waitingTime < 0.0) {
-				throw new IllegalStateException();
+			if (inVehicleTime < 0.0 || waitingTime < 0.0) {
+				throw new IllegalStateException(String.format(
+						"In-vehicle time or waiting time is negative! Route: %s, Access stop: %s, Egress stop: %s, Departure time: %f (Access stop index: %d, Egress stop index: %d, In-vehicle time: %f, Waiting time: %f)",
+						transitRoute.getId().toString(), accessStopId.toString(), egressStopId.toString(),
+						connectionDepartureTime, accessStopIndex, egressStopIndex, inVehicleTime, waitingTime));
 			}
 
 			return new DefaultTransitConnection(routeDeparture, accessStop, egressStop, inVehicleTime, waitingTime);
