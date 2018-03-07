@@ -92,9 +92,6 @@ public class DefaultTransitConnectionFinder implements TransitConnectionFinder {
 				inVehicleTime = egressStop.getArrivalOffset() - accessStop.getDepartureOffset();
 				waitingTime = totalTravelTime - inVehicleTime;
 				
-				System.out.println(totalTravelTime);
-				System.out.println(inVehicleTime);
-
 				while (waitingTime < 0.0) {
 					// It may happen that the route has a loop. A good indicator for that is that
 					// the waiting time is negative. In that case we can try to recover the actual
