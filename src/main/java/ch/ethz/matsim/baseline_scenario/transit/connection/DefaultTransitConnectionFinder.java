@@ -58,52 +58,86 @@ public class DefaultTransitConnectionFinder implements TransitConnectionFinder {
 			Id<TransitStopFacility> accessStopId, Id<TransitStopFacility> egressStopId, TransitRoute transitRoute)
 			throws NoConnectionFoundException {
 		try {
-			// Find the first stop with the given access stop id with a departure after the
-			// leg departure time
-			int accessStopIndex = findStopIndex(transitRoute, accessStopId, connectionDepartureTime, 0);
-			TransitRouteStop accessStop = transitRoute.getStops().get(accessStopIndex);
+			// Recovering the correct access and egress stops from the informaton given in
+			// the ExperimentalTransitRoutes is tricky. Please refer to
+			// https://matsim.atlassian.net/browse/MATSIM-790 to understand why this is so
+			// complicated here.
 
-			// Find the corresponding departure
-			Departure routeDeparture = departureFinder.findDeparture(transitRoute, accessStop, connectionDepartureTime);
-			double vehicleDepartureTime = accessStop.getDepartureOffset() + routeDeparture.getDepartureTime();
+			double waitingTime = 0.0;
+			double inVehicleTime = 0.0;
 
-			// Find the stop with the given egress stop id that comes after the access stop
-			// and after the vehicle departure time
-			int egressStopIndex = findStopIndex(transitRoute, egressStopId, vehicleDepartureTime, accessStopIndex);
-			TransitRouteStop egressStop = transitRoute.getStops().get(egressStopIndex);
+			Departure routeDeparture = null;
+			TransitRouteStop accessStop;
+			TransitRouteStop egressStop;
 
-			// Compute waiting time
-			double inVehicleTime = egressStop.getArrivalOffset() - accessStop.getDepartureOffset();
-			double waitingTime = totalTravelTime - inVehicleTime;
+			int minimumAccessStopIndex = 0;
 
-			if (waitingTime < 0.0) {
-				// It may happen that the route has a loop. A good indicator for that is that
-				// the waiting time is negative. In that case we can try to recover the actual
-				// access stop (which must come after the one that we initially found and before
-				// the egress stop).
-
-				accessStopIndex = updateAccessStopIndex(transitRoute, accessStopId, connectionDepartureTime,
-						accessStopIndex, egressStopIndex);
+			do {
+				// Find the first stop with the given access stop id with a departure after the
+				// leg departure time
+				int accessStopIndex = findStopIndex(transitRoute, accessStopId, connectionDepartureTime,
+						minimumAccessStopIndex);
 				accessStop = transitRoute.getStops().get(accessStopIndex);
 
 				// Find the corresponding departure
 				routeDeparture = departureFinder.findDeparture(transitRoute, accessStop, connectionDepartureTime);
-				vehicleDepartureTime = accessStop.getDepartureOffset() + routeDeparture.getDepartureTime();
-			}
+				double vehicleDepartureTime = accessStop.getDepartureOffset() + routeDeparture.getDepartureTime();
 
-			inVehicleTime = egressStop.getArrivalOffset() - accessStop.getDepartureOffset();
-			waitingTime = totalTravelTime - inVehicleTime;
+				// Find the stop with the given egress stop id that comes after the access stop
+				// and after the vehicle departure time
+				int egressStopIndex = findStopIndex(transitRoute, egressStopId, vehicleDepartureTime, accessStopIndex);
+				egressStop = transitRoute.getStops().get(egressStopIndex);
 
-			if (inVehicleTime < 0.0 || waitingTime < 0.0) {
-				throw new IllegalStateException(String.format(
-						"In-vehicle time or waiting time is negative! Route: %s, Access stop: %s, Egress stop: %s, Departure time: %f (Access stop index: %d, Egress stop index: %d, In-vehicle time: %f, Waiting time: %f)",
-						transitRoute.getId().toString(), accessStopId.toString(), egressStopId.toString(),
-						connectionDepartureTime, accessStopIndex, egressStopIndex, inVehicleTime, waitingTime));
-			}
+				// Compute waiting time
+				inVehicleTime = egressStop.getArrivalOffset() - accessStop.getDepartureOffset();
+				waitingTime = totalTravelTime - inVehicleTime;
+				
+				System.out.println(totalTravelTime);
+				System.out.println(inVehicleTime);
+
+				while (waitingTime < 0.0) {
+					// It may happen that the route has a loop. A good indicator for that is that
+					// the waiting time is negative. In that case we can try to recover the actual
+					// access stop (which must come after the one that we initially found and before
+					// the egress stop).
+
+					int updatedAccessStopIndex = updateAccessStopIndex(transitRoute, accessStopId,
+							connectionDepartureTime, accessStopIndex, egressStopIndex);
+
+					if (updatedAccessStopIndex != accessStopIndex) {
+						accessStopIndex = updatedAccessStopIndex;
+						accessStop = transitRoute.getStops().get(accessStopIndex);
+
+						// Find the corresponding departure
+						routeDeparture = departureFinder.findDeparture(transitRoute, accessStop,
+								connectionDepartureTime);
+						vehicleDepartureTime = accessStop.getDepartureOffset() + routeDeparture.getDepartureTime();
+
+						// Hopefully, now the waiting time fits, otherwise we have to do another round.
+					} else {
+						// We were not able to find a better access stop.
+						break;
+					}
+
+					// Update in-vehicle time and waiting time
+					inVehicleTime = egressStop.getArrivalOffset() - accessStop.getDepartureOffset();
+					waitingTime = totalTravelTime - inVehicleTime;
+				}
+
+				// At this point waiting time may still be negative. This can happen if there is
+				// another connection between the access stop id and the egress stop id on the
+				// given route. This means we have to do another search round with access stops
+				// that are AFTER the current egress stop.
+				// If there is a bug somewhere, the functions above should not be able to find
+				// another connection at some point and raise an error.
+
+				minimumAccessStopIndex = egressStopIndex;
+			} while (waitingTime < 0.0);
 
 			return new DefaultTransitConnection(routeDeparture, accessStop, egressStop, inVehicleTime, waitingTime);
 		} catch (NoDepartureFoundException e) {
-			throw new NoConnectionFoundException();
+			throw new NoConnectionFoundException(transitRoute, accessStopId, egressStopId, connectionDepartureTime,
+					totalTravelTime);
 		}
 	}
 }
