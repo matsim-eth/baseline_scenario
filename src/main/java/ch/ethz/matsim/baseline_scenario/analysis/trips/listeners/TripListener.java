@@ -3,6 +3,7 @@ package ch.ethz.matsim.baseline_scenario.analysis.trips.listeners;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.matsim.api.core.v01.Id;
@@ -20,6 +21,7 @@ import org.matsim.api.core.v01.events.handler.PersonEntersVehicleEventHandler;
 import org.matsim.api.core.v01.events.handler.PersonLeavesVehicleEventHandler;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.api.experimental.events.TeleportationArrivalEvent;
@@ -27,6 +29,7 @@ import org.matsim.core.api.experimental.events.handler.TeleportationArrivalEvent
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.router.MainModeIdentifier;
 import org.matsim.core.router.StageActivityTypes;
+import org.matsim.core.router.TripStructureUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.vehicles.Vehicle;
@@ -109,6 +112,16 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 				trip.destination = network.getLinks().get(event.getLinkId()).getCoord();
 				trip.networkDistance = getNetworkDistance(trip) / 1000;
 				trip.crowflyDistance = CoordUtils.calcEuclideanDistance(trip.origin, trip.destination) / 1000.0;
+
+				/*if (trip.mode.equals("pt")) {
+					List<Activity> transferActivities = TripStructureUtils.getActivities(trip.elements,
+							stageActivityTypes);
+
+					if (transferActivities.size() > 0) {
+						trip.travelTime -= transferActivities.get(0).getEndTime()
+								- transferActivities.get(0).getStartTime();
+					}
+				}*/
 
 				trips.add(new TripItem(trip.personId, trip.personTripId, trip.origin, trip.destination, trip.startTime,
 						trip.travelTime, trip.networkDistance, trip.mode, trip.preceedingPurpose, trip.followingPurpose,
