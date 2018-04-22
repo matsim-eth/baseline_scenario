@@ -24,14 +24,14 @@ public class DefaultParallelPopulationRouter implements ParallelPopulationRouter
 		this.planRouter = planRouter;
 	}
 
-	private void progress(int numberOfPersons, int currentlyProcessed) {
-		logger.info(String.format("Routing population %d/%d (%.2f%%)", currentlyProcessed, numberOfPersons,
-				100.0 * currentlyProcessed / numberOfPersons));
+	private void progress(int numberOfPlans, int currentlyProcessed) {
+		logger.info(String.format("Routing population %d/%d (%.2f%%)", currentlyProcessed, numberOfPlans,
+				100.0 * currentlyProcessed / numberOfPlans));
 	}
 
 	@Override
 	public void run(Population population, Executor executor) throws InterruptedException, ExecutionException {
-		int numberOfPersons = population.getPersons().values().size();
+		AtomicInteger numberOfPlans = new AtomicInteger(0);
 		AtomicInteger currentlyProcessed = new AtomicInteger(0);
 
 		List<Future<?>> futures = new LinkedList<>();
@@ -43,11 +43,13 @@ public class DefaultParallelPopulationRouter implements ParallelPopulationRouter
 
 				futures.add(planRouter.route(oldElements, executor).thenAccept(newElements -> {
 					plan.getPlanElements().addAll(newElements);
-					progress(numberOfPersons, currentlyProcessed.incrementAndGet());
+					progress(numberOfPlans.get(), currentlyProcessed.incrementAndGet());
 				}));
+
+				numberOfPlans.incrementAndGet();
 			}
 		}
-		
+
 		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()])).join();
 	}
 }
