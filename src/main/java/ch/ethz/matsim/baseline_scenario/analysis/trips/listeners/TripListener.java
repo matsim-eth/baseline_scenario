@@ -2,6 +2,7 @@ package ch.ethz.matsim.baseline_scenario.analysis.trips.listeners;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -45,18 +46,20 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 	final private MainModeIdentifier mainModeIdentifier;
 	final private Network network;
 	final private PopulationFactory factory;
+	final private Collection<String> networkRouteModes;
 
 	final private Collection<TripItem> trips = new LinkedList<>();
 	final private Map<Id<Person>, TripListenerItem> ongoing = new HashMap<>();
-	final private Map<Id<Vehicle>, Id<Person>> passengers = new HashMap<>();
+	final private Map<Id<Vehicle>, Collection<Id<Person>>> passengers = new HashMap<>();
 	final private Map<Id<Person>, Integer> tripIndex = new HashMap<>();
 
 	public TripListener(Network network, StageActivityTypes stageActivityTypes, HomeActivityTypes homeActivityTypes,
-			MainModeIdentifier mainModeIdentifier) {
+			MainModeIdentifier mainModeIdentifier, Collection<String> networkRouteModes) {
 		this.network = network;
 		this.stageActivityTypes = stageActivityTypes;
 		this.homeActivityTypes = homeActivityTypes;
 		this.mainModeIdentifier = mainModeIdentifier;
+		this.networkRouteModes = networkRouteModes;
 		this.factory = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getPopulation().getFactory();
 	}
 
@@ -136,21 +139,35 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 
 	@Override
 	public void handleEvent(PersonEntersVehicleEvent event) {
-		passengers.put(event.getVehicleId(), event.getPersonId());
+		if (!passengers.containsKey(event.getVehicleId())) {
+			passengers.put(event.getVehicleId(), new HashSet<>());
+		}
+
+		passengers.get(event.getVehicleId()).add(event.getPersonId());
 	}
 
 	@Override
 	public void handleEvent(PersonLeavesVehicleEvent event) {
-		passengers.remove(event.getVehicleId());
+		if (passengers.containsKey(event.getVehicleId())) {
+			passengers.get(event.getVehicleId()).remove(event.getPersonId());
+
+			if (passengers.get(event.getVehicleId()).size() == 0) {
+				passengers.remove(event.getVehicleId());
+			}
+		}
 	}
 
 	@Override
 	public void handleEvent(LinkEnterEvent event) {
-		ongoing.get(passengers.get(event.getVehicleId())).route.add(event.getLinkId());
+		Collection<Id<Person>> personIds = passengers.get(event.getVehicleId());
+
+		if (personIds != null) {
+			personIds.forEach(id -> ongoing.get(id).route.add(event.getLinkId()));
+		}
 	}
 
 	private double getNetworkDistance(TripListenerItem trip) {
-		if (mainModeIdentifier.identifyMainMode(trip.elements).equals("car")) {
+		if (networkRouteModes.contains(mainModeIdentifier.identifyMainMode(trip.elements))) {
 			double distance = 0.0;
 
 			if (trip.route.size() > 0) {
