@@ -116,20 +116,6 @@ public class TripListener implements ActivityStartEventHandler, ActivityEndEvent
 				trip.networkDistance = getNetworkDistance(trip) / 1000;
 				trip.crowflyDistance = CoordUtils.calcEuclideanDistance(trip.origin, trip.destination) / 1000.0;
 
-				// Cap waiting time at 60s
-				if (trip.mode.equals("pt")) {
-					List<Activity> transferActivities = TripStructureUtils.getActivities(trip.elements,
-							stageActivityTypes);
-
-					if (transferActivities.size() > 0) {
-						double firstWaitingTime = transferActivities.get(0).getEndTime()
-								- transferActivities.get(0).getStartTime();
-
-						trip.travelTime -= firstWaitingTime;
-						trip.travelTime += Math.min(firstWaitingTime, 60.0);
-					}
-				}
-
 				trips.add(new TripItem(trip.personId, trip.personTripId, trip.origin, trip.destination, trip.startTime,
 						trip.travelTime, trip.networkDistance, trip.mode, trip.preceedingPurpose, trip.followingPurpose,
 						trip.returning, trip.crowflyDistance));

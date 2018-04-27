@@ -26,12 +26,14 @@ public class TransitTripItem {
 
 	public int numberOfTransfers = -1;
 
+	public double firstWaitingTime = Double.NaN;
+
 	public TransitTripItem() {
 	}
 
 	public TransitTripItem(Id<Person> personId, int personTripId, Coord origin, Coord destination, double startTime,
 			double inVehicleTime, double waitingTime, double inVehicleDistance, double inVehicleCrowflyDistance,
-			double transferDistance, double transferCrowflyDistance, int numberOfTransfers) {
+			double transferDistance, double transferCrowflyDistance, int numberOfTransfers, double firstWaitingTime) {
 		this.personId = personId;
 		this.personTripId = personTripId;
 		this.origin = origin;
@@ -44,5 +46,6 @@ public class TransitTripItem {
 		this.transferDistance = transferDistance;
 		this.transferCrowflyDistance = transferCrowflyDistance;
 		this.numberOfTransfers = numberOfTransfers;
+		this.firstWaitingTime = firstWaitingTime;
 	}
 }

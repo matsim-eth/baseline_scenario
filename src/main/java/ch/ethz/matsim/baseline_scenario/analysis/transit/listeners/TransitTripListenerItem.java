@@ -8,4 +8,5 @@ public class TransitTripListenerItem extends TransitTripItem {
 	public String mode = "unknown";
 	public Coord intermediateOrigin;
 	public double legDepartureTime;
+	public boolean waitingForFirstTransitEvent = true;
 }

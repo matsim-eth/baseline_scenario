@@ -101,6 +101,11 @@ public class TransitTripListener implements ActivityStartEventHandler, ActivityE
 
 			item.inVehicleTime += inVehicleTime;
 			item.waitingTime += waitingTime;
+
+			if (item.waitingForFirstTransitEvent) {
+				item.waitingForFirstTransitEvent = false;
+				item.firstWaitingTime = waitingTime;
+			}
 		}
 	}
 
