@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.analysis.counts.readers;
+package ch.ethz.matsim.baseline_scenario.analysis.counts.utils.compatibility;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -16,18 +16,18 @@ import org.matsim.api.core.v01.network.Network;
 
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
 
-public class DailyReferenceCountsReader {
-	final private Logger logger = Logger.getLogger(DailyReferenceCountsReader.class);
+public class DeprecatedDailyReferenceCountsReader {
+	final private Logger logger = Logger.getLogger(DeprecatedDailyReferenceCountsReader.class);
 
 	final private String delimiter;
 	final private Network network;
 
-	public DailyReferenceCountsReader(Network network, String delimiter) {
+	public DeprecatedDailyReferenceCountsReader(Network network, String delimiter) {
 		this.delimiter = delimiter;
 		this.network = network;
 	}
 
-	public DailyReferenceCountsReader(Network network) {
+	public DeprecatedDailyReferenceCountsReader(Network network) {
 		this(network, ";");
 	}
 

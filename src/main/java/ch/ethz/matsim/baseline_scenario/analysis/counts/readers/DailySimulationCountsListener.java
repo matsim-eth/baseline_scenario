@@ -5,9 +5,9 @@ import java.util.Map;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
-import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.network.Link;
 
+import ch.ethz.matsim.baseline_scenario.analysis.counts.items.CountItem;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.utils.IndexBuilder;
 
@@ -15,6 +15,7 @@ public class DailySimulationCountsListener implements SimulationCountsListener {
 	final private Map<Id<Link>, DailyCountItem> items;
 
 	public DailySimulationCountsListener(Collection<DailyCountItem> items) {
+		items.forEach(CountItem::reset);
 		this.items = IndexBuilder.buildDailyIndex(items);
 	}
 

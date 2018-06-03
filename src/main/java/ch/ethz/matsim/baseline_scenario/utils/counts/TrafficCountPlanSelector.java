@@ -24,7 +24,7 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
-import ch.ethz.matsim.baseline_scenario.analysis.counts.readers.DailyReferenceCountsReader;
+import ch.ethz.matsim.baseline_scenario.analysis.counts.utils.compatibility.DeprecatedDailyReferenceCountsReader;
 import ch.ethz.matsim.baseline_scenario.utils.routing.CarRouting;
 
 public class TrafficCountPlanSelector {
@@ -122,7 +122,7 @@ public class TrafficCountPlanSelector {
 		Network network = NetworkUtils.createNetwork();
 		new MatsimNetworkReader(network).readFile(networkInput);
 
-		Collection<DailyCountItem> countItems = new DailyReferenceCountsReader(network).read(dailyCountsInput);
+		Collection<DailyCountItem> countItems = new DeprecatedDailyReferenceCountsReader(network).read(dailyCountsInput);
 
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new PopulationReader(scenario).readFile(populationInput);

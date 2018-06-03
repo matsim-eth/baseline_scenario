@@ -19,4 +19,8 @@ abstract public class CountItem {
 	public void increase(int amount) {
 		simulation += amount;
 	}
+	
+	public void reset() {
+		simulation = 0;
+	}
 }

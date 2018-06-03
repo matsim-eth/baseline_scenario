@@ -45,7 +45,7 @@ import ch.ethz.ivt.matsim.playgrounds.sebhoerl.locations.RunParallelSampler;
 import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.Downsample;
 import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.ShiftTimes;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
-import ch.ethz.matsim.baseline_scenario.analysis.counts.readers.DailyReferenceCountsReader;
+import ch.ethz.matsim.baseline_scenario.analysis.counts.utils.compatibility.DeprecatedDailyReferenceCountsReader;
 import ch.ethz.matsim.baseline_scenario.config.SwitzerlandConfig;
 import ch.ethz.matsim.baseline_scenario.utils.AdaptConfig;
 import ch.ethz.matsim.baseline_scenario.utils.AttributeCleaner;
@@ -96,7 +96,7 @@ public class MakeSwitzerlandScenario {
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(new File(inputPath, "network.xml.gz").getPath());
 		// TODO: Since adding SwissRail, this does not work anymore properly!
 		// We need to recover the links from the hand-mapped network!
-		Collection<DailyCountItem> countItems = new DailyReferenceCountsReader(scenario.getNetwork())
+		Collection<DailyCountItem> countItems = new DeprecatedDailyReferenceCountsReader(scenario.getNetwork())
 				.read(new File(inputPath, "daily_counts.csv").getPath());
 		new HouseholdsReaderV10(scenario.getHouseholds()).readFile(new File(inputPath, "households.xml.gz").getPath());
 		new ObjectAttributesXmlReader(scenario.getHouseholds().getHouseholdAttributes())

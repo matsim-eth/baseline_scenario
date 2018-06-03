@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.analysis.counts.readers;
+package ch.ethz.matsim.baseline_scenario.analysis.counts.utils.compatibility;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -14,21 +14,20 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 
-import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.HourlyCountItem;
 
-public class HourlyReferenceCountsReader {
-	final private Logger logger = Logger.getLogger(HourlyReferenceCountsReader.class);
-	
+public class DeprecatedHourlyReferenceCountsReader {
+	final private Logger logger = Logger.getLogger(DeprecatedHourlyReferenceCountsReader.class);
+
 	final private String delimiter;
 	final private Network network;
 
-	public HourlyReferenceCountsReader(Network network, String delimiter) {
+	public DeprecatedHourlyReferenceCountsReader(Network network, String delimiter) {
 		this.delimiter = delimiter;
 		this.network = network;
 	}
 
-	public HourlyReferenceCountsReader(Network network) {
+	public DeprecatedHourlyReferenceCountsReader(Network network) {
 		this(network, ";");
 	}
 
@@ -49,7 +48,8 @@ public class HourlyReferenceCountsReader {
 			} else {
 				Id<Link> linkId = Id.createLinkId(row.get(header.indexOf("linkId")));
 				int midnightIndex = header.indexOf("count");
-				if (midnightIndex == -1) midnightIndex = header.indexOf("count_h1");
+				if (midnightIndex == -1)
+					midnightIndex = header.indexOf("count_h1");
 
 				if (network.getLinks().containsKey(linkId)) {
 					for (int i = 0; i < 24; i++) {
@@ -58,7 +58,8 @@ public class HourlyReferenceCountsReader {
 								new HourlyCountItem(linkId, i, reference, network.getLinks().get(linkId).getCoord()));
 					}
 				} else {
-					logger.warn(String.format("Link %s for \"%s\" not found in network", linkId.toString(), row.get(header.indexOf("direction"))));
+					logger.warn(String.format("Link %s for \"%s\" not found in network", linkId.toString(),
+							row.get(header.indexOf("direction"))));
 				}
 			}
 		}
