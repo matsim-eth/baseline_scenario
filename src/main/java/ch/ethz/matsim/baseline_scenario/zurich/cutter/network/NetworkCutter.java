@@ -100,7 +100,7 @@ public class NetworkCutter {
 		for (TransitStopFacility facility : transitSchedule.getFacilities().values()) {
 			retainedPublicTransitLinkIds.add(facility.getLinkId());
 		}
-
+		
 		// Further processing is needed for the population links, because it may be the
 		// case that an agent is using "walk" in the given population, whereas he may
 		// change this decision in the simulation. Then, we still need to make sure that
@@ -114,7 +114,7 @@ public class NetworkCutter {
 		allRetainedLinkIds.addAll(retainedInsideLinkIds);
 		allRetainedLinkIds.addAll(retainedPublicTransitLinkIds);
 		allRetainedLinkIds.addAll(retainedPopulationLinkIds);
-
+		
 		// Note that this means, that public transit lines CANNOT change their routes in
 		// the simulation if this is desired (at least not outside of the scenario
 		// extent).

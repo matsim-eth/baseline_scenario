@@ -1,7 +1,8 @@
 package ch.ethz.matsim.baseline_scenario.config;
 
+@Deprecated
 public class SwitzerlandConfig {
-	public String inputPath;
+	public String baselinePath;
 	public String outputPath;
 
 	public double inputDownsampling = 1.0;

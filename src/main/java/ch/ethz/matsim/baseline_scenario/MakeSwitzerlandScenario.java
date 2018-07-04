@@ -63,6 +63,7 @@ import ch.ethz.matsim.baseline_scenario.utils.consistency.MD5Collector;
 import ch.ethz.matsim.baseline_scenario.utils.counts.TrafficCountPlanSelector;
 import ch.ethz.matsim.baseline_scenario.utils.routing.BestResponseCarRouting;
 
+@Deprecated
 public class MakeSwitzerlandScenario {
 	static public void main(String args[]) throws Exception {
 		ObjectMapper json = new ObjectMapper();
@@ -70,7 +71,7 @@ public class MakeSwitzerlandScenario {
 
 		SwitzerlandConfig baselineConfig = json.readValue(new File(args[0]), SwitzerlandConfig.class);
 
-		File inputPath = new File(baselineConfig.inputPath);
+		File inputPath = new File(baselineConfig.baselinePath);
 		File outputPath = new File(baselineConfig.outputPath);
 
 		if (!inputPath.exists()) {

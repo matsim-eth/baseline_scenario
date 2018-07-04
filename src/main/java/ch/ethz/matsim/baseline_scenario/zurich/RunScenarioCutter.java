@@ -1,7 +1,6 @@
 package ch.ethz.matsim.baseline_scenario.zurich;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,7 +9,6 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
@@ -28,9 +26,7 @@ import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.households.HouseholdsWriterV10;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.router.TransitRouter;
-import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
-import org.matsim.utils.objectattributes.ObjectAttributes;
-import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
+import org.matsim.pt.router.TransitRouterImplFactory;
 import org.matsim.vehicles.VehicleWriterV1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,12 +35,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.name.Names;
 
-import ch.ethz.matsim.baseline_scenario.config.SwitzerlandConfig;
-import ch.ethz.matsim.baseline_scenario.config.ZurichScenarioConfig;
-import ch.ethz.matsim.baseline_scenario.utils.AttributeCleaner;
+import ch.ethz.matsim.baseline_scenario.config.ScenarioConfig;
 import ch.ethz.matsim.baseline_scenario.utils.HomeFacilitiesCleaner;
-import ch.ethz.matsim.baseline_scenario.utils.HouseholdAttributeCleaner;
-import ch.ethz.matsim.baseline_scenario.utils.HouseholdsCleaner;
 import ch.ethz.matsim.baseline_scenario.utils.consistency.MD5Collector;
 import ch.ethz.matsim.baseline_scenario.zurich.consistency.ActivityCheck;
 import ch.ethz.matsim.baseline_scenario.zurich.consistency.BatchCheck;
@@ -77,17 +69,16 @@ import ch.ethz.matsim.baseline_scenario.zurich.router.modules.PublicTransitRouti
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.WalkRoutingModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.parallel.ParallelPopulationRouter;
 import ch.ethz.matsim.baseline_scenario.zurich.utils.AdjustLinkLengths;
-import ch.ethz.matsim.baseline_scenario.zurich.utils.AttributeNamesReader;
 import ch.ethz.matsim.baseline_scenario.zurich.utils.OutsideAttributeSetter;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
 
-@Deprecated
-public class MakeZurichScenario {
+public class RunScenarioCutter {
 	public static void main(String[] args) throws Exception {
 		ObjectMapper json = new ObjectMapper();
 		json.enable(SerializationFeature.INDENT_OUTPUT);
-
-		ZurichScenarioConfig scenarioConfig = json.readValue(new File(args[0]), ZurichScenarioConfig.class);
+		
+		// Provide: <PATH TO CONFIG>		
+		ScenarioConfig scenarioConfig = json.readValue(new File(args[0]), ScenarioConfig.class);	
 
 		File baselinePath = new File(scenarioConfig.baselinePath);
 		File outputPath = new File(scenarioConfig.outputPath);
@@ -98,33 +89,27 @@ public class MakeZurichScenario {
 
 		outputPath.mkdirs();
 
-		SwitzerlandConfig baselineConfig = json.readValue(
-				new File(args[1]), SwitzerlandConfig.class);
-
 		MD5Collector baselineFilesCollector = new MD5Collector(baselinePath);
 		MD5Collector outputFilesCollector = new MD5Collector(outputPath);
 
 		int numberOfThreads = scenarioConfig.numberOfThreads == 0 ? Runtime.getRuntime().availableProcessors()
 				: scenarioConfig.numberOfThreads;
 
-		Config config = ConfigUtils.loadConfig(new File(baselinePath, "config.xml").getPath());
+		Config config = ConfigUtils.loadConfig(new File(scenarioConfig.baselinePath + scenarioConfig.config).getPath());
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 
-		baselineFilesCollector.add(baselineConfig.prefix + "population.xml.gz");
-//		baselineFilesCollector.add(baselineConfig.prefix + "population_attributes.xml.gz");
-//		baselineFilesCollector.add(baselineConfig.prefix + "households.xml.gz");
-//		baselineFilesCollector.add(baselineConfig.prefix + "household_attributes.xml.gz");
-		baselineFilesCollector.add(baselineConfig.prefix + "facilities.xml.gz");
-		baselineFilesCollector.add(baselineConfig.prefix + "network.xml.gz");
-		baselineFilesCollector.add(baselineConfig.prefix + "transit_schedule.xml.gz");
-		baselineFilesCollector.add(baselineConfig.prefix + "transit_vehicles.xml.gz");
-		baselineFilesCollector.add(baselineConfig.prefix + "config.xml");
-		baselineFilesCollector.add(baselineConfig.prefix + "make_config.json");
-		baselineFilesCollector.add(baselineConfig.prefix + "input.md5");
-		baselineFilesCollector.add(baselineConfig.prefix + "output.md5");
+		baselineFilesCollector.add("population.xml.gz");
+		//baselineFilesCollector.add("population_attributes.xml.gz");
+		//baselineFilesCollector.add("households.xml.gz");
+		//baselineFilesCollector.add("household_attributes.xml.gz");
+		baselineFilesCollector.add("facilities.xml.gz");
+		baselineFilesCollector.add("network.xml.gz");
+		baselineFilesCollector.add("transit_schedule.xml.gz");
+		baselineFilesCollector.add("transit_vehicles.xml.gz");
+		baselineFilesCollector.add("config.xml");
 
-		Coord bellevue = new Coord(2683253.0, 1246745.0);
-		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), bellevue, 30000.0);
+		Coord cityCenter = new Coord(scenarioConfig.xCoord, scenarioConfig.yCoord);
+		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), cityCenter, scenarioConfig.rangeKm);
 
 		StageActivityTypes stageActivityTypes = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
 		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();
@@ -135,12 +120,14 @@ public class MakeZurichScenario {
 		Link referenceLink = NetworkUtils.getNearestLink(roadNetwork, extent.getReferencePoint());
 
 		// Perform a first rerouting of the whole population
-
 		Config routingConfig = ConfigUtils
-				.loadConfig(new File(baselinePath, "config.xml").getPath());
+				.loadConfig(new File(scenarioConfig.baselinePath + scenarioConfig.config).getPath());
 
 		ModeRoutingParams outsideModeRoutingParams = routingConfig.plansCalcRoute()
-				.getOrCreateModeRoutingParams("outside");
+				//.getOrCreateModeRoutingParams("outside");
+				// TODO Injector error when using outside...
+				.getOrCreateModeRoutingParams("undefined");
+		
 		outsideModeRoutingParams.setBeelineDistanceFactor(1.0);
 		outsideModeRoutingParams.setTeleportedModeSpeed(1e6);
 
@@ -150,7 +137,9 @@ public class MakeZurichScenario {
 					protected void configure() {
 						bind(StageActivityTypes.class).toInstance(stageActivityTypes);
 						bind(MainModeIdentifier.class).toInstance(mainModeIdentifier);
-						bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+						//bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+						// TODO injector error when using SBB with Paris scenario
+						bind(TransitRouter.class).toProvider(TransitRouterImplFactory.class);
 						bind(Config.class).toInstance(routingConfig);
 					}
 				}, new CarRoutingModule(roadNetwork),
@@ -185,11 +174,11 @@ public class MakeZurichScenario {
 
 		new RemoveEmptyPlans().run(scenario.getPopulation());
 
-		PlanConsistencyCheck planConsistencyCheck = new BatchCheck(
-				new ChainStructureCheck(extent, scenario.getNetwork()),
-				new ActivityCheck(scenario.getNetwork(), scenario.getActivityFacilities()));
-		scenario.getPopulation().getPersons().values()
-				.forEach(p -> planConsistencyCheck.run(p.getSelectedPlan().getPlanElements()));
+//		PlanConsistencyCheck planConsistencyCheck = new BatchCheck(
+//				new ChainStructureCheck(extent, scenario.getNetwork()),
+//				new ActivityCheck(scenario.getNetwork(), scenario.getActivityFacilities()));
+//		scenario.getPopulation().getPersons().values()
+//				.forEach(p -> planConsistencyCheck.run(p.getSelectedPlan().getPlanElements()));
 
 		// Rebuild road network, because outside connectors have been added
 
@@ -212,7 +201,8 @@ public class MakeZurichScenario {
 					protected void configure() {
 						bind(StageActivityTypes.class).toInstance(stageActivityTypes);
 						bind(MainModeIdentifier.class).toInstance(mainModeIdentifier);
-						bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+						//bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+						bind(TransitRouter.class).toProvider(TransitRouterImplFactory.class);
 						bind(Config.class).toInstance(routingConfig);
 					}
 				}, new CarRoutingModule(updatedRoadNetwork),
@@ -246,13 +236,13 @@ public class MakeZurichScenario {
 		// Cut attributes
 
 //		Collection<String> householdAttributeNames = new AttributeNamesReader()
-//				.read(new File(baselinePath, baselineConfig.prefix + "household_attributes.xml.gz"));
+//				.read(new File(baselinePath, "household_attributes.xml.gz"));
 //		HouseholdAttributeCleaner householdAttributesCleaner = new HouseholdAttributeCleaner(householdAttributeNames);
 //		ObjectAttributes cleanedHouseholdAttributes = householdAttributesCleaner.run(
 //				scenario.getHouseholds().getHouseholds().values(), scenario.getHouseholds().getHouseholdAttributes());
 //
 //		Collection<String> personAttributeNames = new AttributeNamesReader()
-//				.read(new File(baselinePath, baselineConfig.prefix + "population_attributes.xml.gz"));
+//				.read(new File(baselinePath, "population_attributes.xml.gz"));
 //		AttributeCleaner<Person> personAttributesCleaner = new AttributeCleaner<>(personAttributeNames);
 //		ObjectAttributes cleanedPersonAttributes = personAttributesCleaner
 //				.run(scenario.getPopulation().getPersons().values(), scenario.getPopulation().getPersonAttributes());
@@ -290,8 +280,6 @@ public class MakeZurichScenario {
 				.writeFile(new File(outputPath, scenarioConfig.prefix + "transit_schedule.xml.gz").getPath());
 		new VehicleWriterV1(scenario.getTransitVehicles())
 				.writeFile(new File(outputPath, scenarioConfig.prefix + "transit_vehicles.xml.gz").getPath());
-		json.writeValue(new File(outputPath, scenarioConfig.prefix + "make_config.json"), scenarioConfig);
-		baselineFilesCollector.write(new File(outputPath, scenarioConfig.prefix + "baseline.md5"));
 
 		outputFilesCollector.add(scenarioConfig.prefix + "config.xml");
 		outputFilesCollector.add(scenarioConfig.prefix + "population.xml.gz");
@@ -302,9 +290,8 @@ public class MakeZurichScenario {
 //		outputFilesCollector.add(scenarioConfig.prefix + "household_attributes.xml.gz");
 		outputFilesCollector.add(scenarioConfig.prefix + "transit_schedule.xml.gz");
 		outputFilesCollector.add(scenarioConfig.prefix + "transit_vehicles.xml.gz");
-		outputFilesCollector.add(scenarioConfig.prefix + "make_config.json");
-		outputFilesCollector.add(scenarioConfig.prefix + "baseline.md5");
-
-		outputFilesCollector.write(new File(outputPath, scenarioConfig.prefix + "output.md5"));
+		
+		// Threads are not being closed correctly...
+		System.exit(0);
 	}
 }

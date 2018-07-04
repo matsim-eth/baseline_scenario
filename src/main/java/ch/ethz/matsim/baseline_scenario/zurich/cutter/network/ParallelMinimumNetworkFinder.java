@@ -98,11 +98,11 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 			}, executor).thenAccept(partialSet -> relevantIds.addAll(partialSet)));
 		}
 
-		try {
-			CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()])).get();
-		} catch (InterruptedException | ExecutionException e) {
-			throw new RuntimeException(e);
-		}
+//		try {
+//			CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()])).get();
+//		} catch (InterruptedException | ExecutionException e) {
+//			throw new RuntimeException(e);
+//		}
 
 		return relevantIds;
 	}

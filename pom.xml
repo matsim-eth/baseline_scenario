@@ -29,6 +29,10 @@
 			<id>eth-playgrounds-packagecloud</id>
 			<url>https://packagecloud.io/eth-ivt/playgrounds/maven2</url>
 		</repository>
+<!-- 		<repository> -->
+<!-- 	  	    <id>jitpack.io</id> -->
+<!-- 	  	    <url>https://jitpack.io</url> -->
+<!-- 	  	</repository> -->
 	</repositories>
 
 	<distributionManagement>
@@ -111,6 +115,12 @@
 			<artifactId>matsim-sbb-extension</artifactId>
 			<version>0.10.0-nov17-SNAPSHOT</version>
 		</dependency>
+		
+<!-- 	<dependency> -->
+<!-- 	     <groupId>com.github.SchweizerischeBundesbahnen</groupId> -->
+<!-- 	     <artifactId>matsim-sbb-extensions</artifactId> -->
+<!-- 	     <version>0.10.0</version> -->
+<!-- 	 </dependency> -->
 
 		<dependency>
 			<groupId>ch.ethz.matsim.playgrounds</groupId>
@@ -124,11 +134,11 @@
 			<version>0.10.0-nov17</version>
 		</dependency>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.12</version>
-			<scope>test</scope>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>junit</groupId> -->
+<!-- 			<artifactId>junit</artifactId> -->
+<!-- 			<version>4.12</version> -->
+<!-- 			<scope>test</scope> -->
+<!-- 		</dependency> -->
 	</dependencies>
 </project>

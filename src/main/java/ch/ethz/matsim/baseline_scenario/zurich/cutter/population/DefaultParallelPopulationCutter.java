@@ -64,6 +64,6 @@ public class DefaultParallelPopulationCutter implements ParallelPopulationCutter
 			}, executor));
 		}
 
-		CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()])).get();
+		//CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()])).get();
 	}
 }

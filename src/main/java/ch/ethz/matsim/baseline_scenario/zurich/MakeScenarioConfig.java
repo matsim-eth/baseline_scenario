@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import ch.ethz.matsim.baseline_scenario.config.ZurichScenarioConfig;
 
 @Deprecated
-public class MakeZurichScenarioConfig {
+public class MakeScenarioConfig {
 	static public void main(String[] args) throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper json = new ObjectMapper();
 		json.enable(SerializationFeature.INDENT_OUTPUT);
