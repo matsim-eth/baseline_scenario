@@ -20,5 +20,4 @@ Maintenance: Sebastian Hörl
 
 ## Working with the repository
 
-- The latest changes are in the `master` branch. The version there is always a SNAPSHOT version. If you want to use it, clone the git repository, or use the [packagecloud](https://packagecloud.io/eth-ivt/matsim/packages/java/ch.ethz.matsim/av-0.1.2-SNAPSHOT.jar) repository for Maven packages.
-- Release versions are committed to the respective `v*` branch. Those versions are packaged for Maven on [Bintray](https://bintray.com/matsim-eth/matsim/av).
+The latest changes are in the `master` branch. The version there is always a SNAPSHOT version. If you want to use it, clone the git repository, or use the [packagecloud](https://packagecloud.io/eth-ivt/matsim/packages/java/ch.ethz.matsim/av-0.1.2-SNAPSHOT.jar) repository for Maven packages. Release versions are not offered at the moment as the project is still rather volatile.
