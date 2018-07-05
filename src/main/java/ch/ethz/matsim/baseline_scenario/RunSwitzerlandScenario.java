@@ -16,11 +16,8 @@ public class RunSwitzerlandScenario {
 	static public void main(String[] args) throws ConfigurationException {
 		CommandLine cmd = new CommandLine.Builder(args).build();
 
-		Config config = ConfigUtils.loadConfig(args[0]);
+		Config config = ConfigUtils.loadConfig(cmd.getPositionalArgumentStrict(0));
 		cmd.applyConfiguration(config);
-
-		config.global().setNumberOfThreads(Integer.parseInt(args[1]));
-		config.qsim().setNumberOfThreads(Integer.parseInt(args[2]));
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
 		scenario.getPopulation().getFactory().getRouteFactories().setRouteFactory(DefaultEnrichedTransitRoute.class,

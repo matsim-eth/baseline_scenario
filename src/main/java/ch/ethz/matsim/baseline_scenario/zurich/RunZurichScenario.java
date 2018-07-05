@@ -17,7 +17,7 @@ public class RunZurichScenario {
 	static public void main(String[] args) throws ConfigurationException {
 		CommandLine cmd = new CommandLine.Builder(args).build();
 
-		Config config = ConfigUtils.loadConfig(args[0]);
+		Config config = ConfigUtils.loadConfig(cmd.getPositionalArgumentStrict(0));
 		cmd.applyConfiguration(config);
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
