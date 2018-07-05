@@ -1,6 +1,7 @@
 package ch.ethz.matsim.baseline_scenario.zurich;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -9,6 +10,7 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
@@ -27,6 +29,9 @@ import org.matsim.households.HouseholdsWriterV10;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.router.TransitRouter;
 import org.matsim.pt.router.TransitRouterImplFactory;
+import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
+import org.matsim.utils.objectattributes.ObjectAttributes;
+import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 import org.matsim.vehicles.VehicleWriterV1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +41,10 @@ import com.google.inject.Guice;
 import com.google.inject.name.Names;
 
 import ch.ethz.matsim.baseline_scenario.config.ScenarioConfig;
+import ch.ethz.matsim.baseline_scenario.utils.AttributeCleaner;
 import ch.ethz.matsim.baseline_scenario.utils.HomeFacilitiesCleaner;
+import ch.ethz.matsim.baseline_scenario.utils.HouseholdAttributeCleaner;
+import ch.ethz.matsim.baseline_scenario.utils.HouseholdsCleaner;
 import ch.ethz.matsim.baseline_scenario.utils.consistency.MD5Collector;
 import ch.ethz.matsim.baseline_scenario.zurich.consistency.ActivityCheck;
 import ch.ethz.matsim.baseline_scenario.zurich.consistency.BatchCheck;
@@ -69,6 +77,7 @@ import ch.ethz.matsim.baseline_scenario.zurich.router.modules.PublicTransitRouti
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.WalkRoutingModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.parallel.ParallelPopulationRouter;
 import ch.ethz.matsim.baseline_scenario.zurich.utils.AdjustLinkLengths;
+import ch.ethz.matsim.baseline_scenario.zurich.utils.AttributeNamesReader;
 import ch.ethz.matsim.baseline_scenario.zurich.utils.OutsideAttributeSetter;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
 
@@ -77,7 +86,7 @@ public class RunScenarioCutter {
 		ObjectMapper json = new ObjectMapper();
 		json.enable(SerializationFeature.INDENT_OUTPUT);
 		
-		// Provide: <PATH TO CONFIG>		
+		// Provide: <PATH TO CUTTING CONFIG>		
 		ScenarioConfig scenarioConfig = json.readValue(new File(args[0]), ScenarioConfig.class);	
 
 		File baselinePath = new File(scenarioConfig.baselinePath);
@@ -99,13 +108,20 @@ public class RunScenarioCutter {
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 
 		baselineFilesCollector.add("population.xml.gz");
-		//baselineFilesCollector.add("population_attributes.xml.gz");
-		//baselineFilesCollector.add("households.xml.gz");
-		//baselineFilesCollector.add("household_attributes.xml.gz");
-		baselineFilesCollector.add("facilities.xml.gz");
-		baselineFilesCollector.add("network.xml.gz");
-		baselineFilesCollector.add("transit_schedule.xml.gz");
-		baselineFilesCollector.add("transit_vehicles.xml.gz");
+		if(scenarioConfig.cutPopulationAttributes)
+			baselineFilesCollector.add("population_attributes.xml.gz");
+		if(scenarioConfig.cutHouseholds)
+			baselineFilesCollector.add("households.xml.gz");
+		if(scenarioConfig.cutHouseholdAttributes)
+			baselineFilesCollector.add("household_attributes.xml.gz");
+		if(scenarioConfig.cutFacilities)
+			baselineFilesCollector.add("facilities.xml.gz");
+		if(scenarioConfig.cutNetwork)
+			baselineFilesCollector.add("network.xml.gz");
+		if(scenarioConfig.cutTransit) {
+			baselineFilesCollector.add("transit_schedule.xml.gz");
+			baselineFilesCollector.add("transit_vehicles.xml.gz");
+		}
 		baselineFilesCollector.add("config.xml");
 
 		Coord cityCenter = new Coord(scenarioConfig.xCoord, scenarioConfig.yCoord);
@@ -137,9 +153,10 @@ public class RunScenarioCutter {
 					protected void configure() {
 						bind(StageActivityTypes.class).toInstance(stageActivityTypes);
 						bind(MainModeIdentifier.class).toInstance(mainModeIdentifier);
-						//bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
-						// TODO injector error when using SBB with Paris scenario
-						bind(TransitRouter.class).toProvider(TransitRouterImplFactory.class);
+						if(scenarioConfig.useSwissRailRaptor)
+							bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+						else
+							bind(TransitRouter.class).toProvider(TransitRouterImplFactory.class);
 						bind(Config.class).toInstance(routingConfig);
 					}
 				}, new CarRoutingModule(roadNetwork),
@@ -152,7 +169,6 @@ public class RunScenarioCutter {
 		populationRouter.run(scenario.getPopulation(), mainExecutor);
 
 		// Cut the population at the border
-
 		PlanCutter planCutter = Guice
 				.createInjector(new PlanCutterModule(scenario.getTransitSchedule()), new AbstractModule() {
 					@Override
@@ -174,6 +190,7 @@ public class RunScenarioCutter {
 
 		new RemoveEmptyPlans().run(scenario.getPopulation());
 
+		// TODO re-enable and check workings
 //		PlanConsistencyCheck planConsistencyCheck = new BatchCheck(
 //				new ChainStructureCheck(extent, scenario.getNetwork()),
 //				new ActivityCheck(scenario.getNetwork(), scenario.getActivityFacilities()));
@@ -181,28 +198,29 @@ public class RunScenarioCutter {
 //				.forEach(p -> planConsistencyCheck.run(p.getSelectedPlan().getPlanElements()));
 
 		// Rebuild road network, because outside connectors have been added
-
 		Network updatedRoadNetwork = NetworkUtils.createNetwork();
 		new TransportModeNetworkFilter(scenario.getNetwork()).filter(updatedRoadNetwork, Collections.singleton("car"));
 		referenceLink = NetworkUtils.getNearestLink(updatedRoadNetwork, extent.getReferencePoint());
 
 		// Cut the public transit supply
-
-		StopSequenceCrossingPointFinder stopSequenceCrossingPointFinder = new DefaultStopSequenceCrossingPointFinder(
-				extent);
-		new TransitScheduleCutter(extent, stopSequenceCrossingPointFinder).run(scenario.getTransitSchedule());
-		new TransitVehiclesCutter(scenario.getTransitSchedule()).run(scenario.getTransitVehicles());
+		if(scenarioConfig.cutTransit) {
+			StopSequenceCrossingPointFinder stopSequenceCrossingPointFinder = new DefaultStopSequenceCrossingPointFinder(
+					extent);
+			new TransitScheduleCutter(extent, stopSequenceCrossingPointFinder).run(scenario.getTransitSchedule());
+			new TransitVehiclesCutter(scenario.getTransitSchedule()).run(scenario.getTransitVehicles());
+		}
 
 		// Reroute the cut population
-
 		populationRouter = Guice.createInjector(
 				new ParallelRouterModule(numberOfThreads, scenario.getActivityFacilities()), new AbstractModule() {
 					@Override
 					protected void configure() {
 						bind(StageActivityTypes.class).toInstance(stageActivityTypes);
 						bind(MainModeIdentifier.class).toInstance(mainModeIdentifier);
-						//bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
-						bind(TransitRouter.class).toProvider(TransitRouterImplFactory.class);
+						if(scenarioConfig.useSwissRailRaptor)
+							bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+						else
+							bind(TransitRouter.class).toProvider(TransitRouterImplFactory.class);
 						bind(Config.class).toInstance(routingConfig);
 					}
 				}, new CarRoutingModule(updatedRoadNetwork),
@@ -215,44 +233,54 @@ public class RunScenarioCutter {
 		populationRouter.run(scenario.getPopulation(), mainExecutor);
 
 		// Cut the network
+		if(scenarioConfig.cutNetwork) {
+			MinimumNetworkFinder minimumNetworkFinder = new ParallelMinimumNetworkFinder(mainExecutor, numberOfThreads,
+					updatedRoadNetwork, referenceLink);
 
-		MinimumNetworkFinder minimumNetworkFinder = new ParallelMinimumNetworkFinder(mainExecutor, numberOfThreads,
-				updatedRoadNetwork, referenceLink);
+			if (scenarioConfig.useMinimumNetworkCache) {
+				minimumNetworkFinder = new CachedMinimumNetworkFinder(new File(outputPath, "minimum_network.cache"),
+						minimumNetworkFinder);
+			}
 
-		if (scenarioConfig.useMinimumNetworkCache) {
-			minimumNetworkFinder = new CachedMinimumNetworkFinder(new File(outputPath, "minimum_network.cache"),
-					minimumNetworkFinder);
+			new NetworkCutter(extent, minimumNetworkFinder).run(scenario.getPopulation(), scenario.getTransitSchedule(),
+					scenario.getNetwork());
+
+			new AdjustLinkLengths(10.0).run(scenario.getNetwork());
 		}
 
-		new NetworkCutter(extent, minimumNetworkFinder).run(scenario.getPopulation(), scenario.getTransitSchedule(),
-				scenario.getNetwork());
-
-		new AdjustLinkLengths(10.0).run(scenario.getNetwork());
 
 		// Cut households
+		if(scenarioConfig.cutHouseholds)
+			new HouseholdsCleaner(scenario.getPopulation().getPersons().keySet()).run(scenario.getHouseholds());
 
-//		new HouseholdsCleaner(scenario.getPopulation().getPersons().keySet()).run(scenario.getHouseholds());
+		// Cut household attributes
+		ObjectAttributes cleanedHouseholdAttributes = new ObjectAttributes();
+		if(scenarioConfig.cutHouseholdAttributes) {
+			Collection<String> householdAttributeNames = new AttributeNamesReader()
+					.read(new File(baselinePath, "household_attributes.xml.gz"));
+			HouseholdAttributeCleaner householdAttributesCleaner = new HouseholdAttributeCleaner(householdAttributeNames);
+			cleanedHouseholdAttributes = householdAttributesCleaner.run(
+					scenario.getHouseholds().getHouseholds().values(), scenario.getHouseholds().getHouseholdAttributes());
+		}
 
-		// Cut attributes
+		// Cut population attributes
+		ObjectAttributes cleanedPersonAttributes = new ObjectAttributes();
+		if(scenarioConfig.cutPopulationAttributes) {
+			Collection<String> personAttributeNames = new AttributeNamesReader()
+					.read(new File(baselinePath, "population_attributes.xml.gz"));
+			AttributeCleaner<Person> personAttributesCleaner = new AttributeCleaner<>(personAttributeNames);
+			cleanedPersonAttributes = personAttributesCleaner
+					.run(scenario.getPopulation().getPersons().values(), scenario.getPopulation().getPersonAttributes());
+		}
 
-//		Collection<String> householdAttributeNames = new AttributeNamesReader()
-//				.read(new File(baselinePath, "household_attributes.xml.gz"));
-//		HouseholdAttributeCleaner householdAttributesCleaner = new HouseholdAttributeCleaner(householdAttributeNames);
-//		ObjectAttributes cleanedHouseholdAttributes = householdAttributesCleaner.run(
-//				scenario.getHouseholds().getHouseholds().values(), scenario.getHouseholds().getHouseholdAttributes());
-//
-//		Collection<String> personAttributeNames = new AttributeNamesReader()
-//				.read(new File(baselinePath, "population_attributes.xml.gz"));
-//		AttributeCleaner<Person> personAttributesCleaner = new AttributeCleaner<>(personAttributeNames);
-//		ObjectAttributes cleanedPersonAttributes = personAttributesCleaner
-//				.run(scenario.getPopulation().getPersons().values(), scenario.getPopulation().getPersonAttributes());
 
 		// Cut facilities
-
-		new HomeFacilitiesCleaner(scenario.getHouseholds().getHouseholds().keySet(),
-				scenario.getPopulation().getPersons().values()).run(scenario.getActivityFacilities());
-		new FacilitiesCutter(extent, scenario.getPopulation().getPersons().values())
-				.run(scenario.getActivityFacilities(), false);
+		if(scenarioConfig.cutFacilities) {
+			new HomeFacilitiesCleaner(scenario.getHouseholds().getHouseholds().keySet(),
+					scenario.getPopulation().getPersons().values()).run(scenario.getActivityFacilities());
+			new FacilitiesCutter(extent, scenario.getPopulation().getPersons().values())
+					.run(scenario.getActivityFacilities(), false);
+		}
 
 		mainExecutor.shutdown();
 
@@ -264,34 +292,44 @@ public class RunScenarioCutter {
 
 		// Write scenario
 		new ConfigWriter(config).write(new File(outputPath, scenarioConfig.prefix + "config.xml").getPath());
-		new PopulationWriter(scenario.getPopulation())
-				.write(new File(outputPath, scenarioConfig.prefix + "population.xml.gz").getPath());
-//		new ObjectAttributesXmlWriter(cleanedPersonAttributes)
-//				.writeFile(new File(outputPath, scenarioConfig.prefix + "population_attributes.xml.gz").getPath());
-		new FacilitiesWriter(scenario.getActivityFacilities())
-				.write(new File(outputPath, scenarioConfig.prefix + "facilities.xml.gz").getPath());
-		new NetworkWriter(scenario.getNetwork())
-				.write(new File(outputPath, scenarioConfig.prefix + "network.xml.gz").getPath());
-		new HouseholdsWriterV10(scenario.getHouseholds())
-//				.writeFile(new File(outputPath, scenarioConfig.prefix + "households.xml.gz").getPath());
-//		new ObjectAttributesXmlWriter(cleanedHouseholdAttributes)
-//				.writeFile(new File(outputPath, scenarioConfig.prefix + "household_attributes.xml.gz").getPath());
-//		new TransitScheduleWriter(scenario.getTransitSchedule())
-				.writeFile(new File(outputPath, scenarioConfig.prefix + "transit_schedule.xml.gz").getPath());
-		new VehicleWriterV1(scenario.getTransitVehicles())
-				.writeFile(new File(outputPath, scenarioConfig.prefix + "transit_vehicles.xml.gz").getPath());
-
 		outputFilesCollector.add(scenarioConfig.prefix + "config.xml");
-		outputFilesCollector.add(scenarioConfig.prefix + "population.xml.gz");
-//		outputFilesCollector.add(scenarioConfig.prefix + "population_attributes.xml.gz");
-		outputFilesCollector.add(scenarioConfig.prefix + "facilities.xml.gz");
-		outputFilesCollector.add(scenarioConfig.prefix + "network.xml.gz");
-//		outputFilesCollector.add(scenarioConfig.prefix + "households.xml.gz");
-//		outputFilesCollector.add(scenarioConfig.prefix + "household_attributes.xml.gz");
-		outputFilesCollector.add(scenarioConfig.prefix + "transit_schedule.xml.gz");
-		outputFilesCollector.add(scenarioConfig.prefix + "transit_vehicles.xml.gz");
 		
-		// Threads are not being closed correctly...
+		outputFilesCollector.add(scenarioConfig.prefix + "population.xml.gz");
+		new PopulationWriter(scenario.getPopulation()).write(new File(outputPath, scenarioConfig.prefix + "population.xml.gz").getPath());
+		
+		if(scenarioConfig.cutPopulationAttributes) {
+			new ObjectAttributesXmlWriter(cleanedPersonAttributes).writeFile(new File(outputPath, scenarioConfig.prefix + "population_attributes.xml.gz").getPath());
+			outputFilesCollector.add(scenarioConfig.prefix + "population_attributes.xml.gz");
+		}
+			
+		if(scenarioConfig.cutHouseholds) {
+			new HouseholdsWriterV10(scenario.getHouseholds()).writeFile(new File(outputPath, scenarioConfig.prefix + "households.xml.gz").getPath());
+			outputFilesCollector.add(scenarioConfig.prefix + "households.xml.gz");
+		}
+			
+		if(scenarioConfig.cutHouseholdAttributes) {
+			new ObjectAttributesXmlWriter(cleanedHouseholdAttributes).writeFile(new File(outputPath, scenarioConfig.prefix + "household_attributes.xml.gz").getPath());
+			outputFilesCollector.add(scenarioConfig.prefix + "household_attributes.xml.gz");
+		}
+			
+		if(scenarioConfig.cutFacilities) {
+			new FacilitiesWriter(scenario.getActivityFacilities()).write(new File(outputPath, scenarioConfig.prefix + "facilities.xml.gz").getPath());
+			outputFilesCollector.add(scenarioConfig.prefix + "facilities.xml.gz");
+		}
+			
+		if(scenarioConfig.cutNetwork) {
+			new NetworkWriter(scenario.getNetwork()).write(new File(outputPath, scenarioConfig.prefix + "network.xml.gz").getPath());
+			outputFilesCollector.add(scenarioConfig.prefix + "network.xml.gz");
+		}
+			
+		if(scenarioConfig.cutTransit) {
+			new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(new File(outputPath, scenarioConfig.prefix + "transit_schedule.xml.gz").getPath());
+			new VehicleWriterV1(scenario.getTransitVehicles()).writeFile(new File(outputPath, scenarioConfig.prefix + "transit_vehicles.xml.gz").getPath());
+			outputFilesCollector.add(scenarioConfig.prefix + "transit_schedule.xml.gz");
+			outputFilesCollector.add(scenarioConfig.prefix + "transit_vehicles.xml.gz");
+		}
+		
+		// TODO Threads are not being closed correctly...
 		System.exit(0);
 	}
 }

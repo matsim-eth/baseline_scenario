@@ -15,4 +15,14 @@ public class ScenarioConfig {
 	public String outputPath;
 
 	public boolean useMinimumNetworkCache = true;
+	
+	public boolean useSwissRailRaptor = true;
+	
+	public boolean cutPopulationAttributes = true;
+	public boolean cutFacilities = true;
+	public boolean cutNetwork = true;
+	public boolean cutHouseholds = true;
+	public boolean cutHouseholdAttributes = true;
+	public boolean cutTransit = true;
+	
 }

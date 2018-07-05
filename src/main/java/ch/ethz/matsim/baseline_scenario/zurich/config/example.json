@@ -1,11 +1,15 @@
 {
-  "numberOfThreads" : 0,
-  "prefix" : "cut_",
-  "useMinimumNetworkCache" : true,
-  "config" : "config.xml",
-  "baselinePath" : "<PATH>",
-  "outputPath" : "<PATH>",
-  "xCoord" : "<X>",
-  "yCoord" : "<Y>",
-  "rangeMeter" : "5000"
+	"numberOfThreads" : 0,
+	"prefix" : "cut_",
+	"useMinimumNetworkCache" : true,
+	"config" : "config.xml",
+	"baselinePath" : "<PATH>",
+	"outputPath" : "<PATH>",
+	"xCoord" : 0.00,
+	"yCoord" : 0.00,
+	"rangeMeter" : 5000,
+	"useSwissRailRaptor" : false,
+	"cutPopulationAttributes" : false,
+	"cutHouseholds" : false,
+	"cutHouseholdAttributes" : false
 }
