@@ -1,0 +1,11 @@
+{
+  "numberOfThreads" : 0,
+  "prefix" : "cut_",
+  "useMinimumNetworkCache" : true,
+  "config" : "config.xml",
+  "baselinePath" : "<PATH>",
+  "outputPath" : "<PATH>",
+  "xCoord" : "<X>",
+  "yCoord" : "<Y>",
+  "rangeKm" : "5000"
+}

@@ -99,7 +99,7 @@ public class MakeZurichScenario {
 		outputPath.mkdirs();
 
 		SwitzerlandConfig baselineConfig = json.readValue(
-				new File(args[1]), SwitzerlandConfig.class);
+				new File(baselinePath, scenarioConfig.baselinePrefix + "make_config.json"), SwitzerlandConfig.class);
 
 		MD5Collector baselineFilesCollector = new MD5Collector(baselinePath);
 		MD5Collector outputFilesCollector = new MD5Collector(outputPath);
@@ -107,13 +107,13 @@ public class MakeZurichScenario {
 		int numberOfThreads = scenarioConfig.numberOfThreads == 0 ? Runtime.getRuntime().availableProcessors()
 				: scenarioConfig.numberOfThreads;
 
-		Config config = ConfigUtils.loadConfig(new File(baselinePath, "config.xml").getPath());
+		Config config = ConfigUtils.loadConfig(new File(baselinePath, baselineConfig.prefix + "config.xml").getPath());
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 
 		baselineFilesCollector.add(baselineConfig.prefix + "population.xml.gz");
-//		baselineFilesCollector.add(baselineConfig.prefix + "population_attributes.xml.gz");
-//		baselineFilesCollector.add(baselineConfig.prefix + "households.xml.gz");
-//		baselineFilesCollector.add(baselineConfig.prefix + "household_attributes.xml.gz");
+		baselineFilesCollector.add(baselineConfig.prefix + "population_attributes.xml.gz");
+		baselineFilesCollector.add(baselineConfig.prefix + "households.xml.gz");
+		baselineFilesCollector.add(baselineConfig.prefix + "household_attributes.xml.gz");
 		baselineFilesCollector.add(baselineConfig.prefix + "facilities.xml.gz");
 		baselineFilesCollector.add(baselineConfig.prefix + "network.xml.gz");
 		baselineFilesCollector.add(baselineConfig.prefix + "transit_schedule.xml.gz");
@@ -137,7 +137,7 @@ public class MakeZurichScenario {
 		// Perform a first rerouting of the whole population
 
 		Config routingConfig = ConfigUtils
-				.loadConfig(new File(baselinePath, "config.xml").getPath());
+				.loadConfig(new File(baselinePath, baselineConfig.prefix + "config.xml").getPath());
 
 		ModeRoutingParams outsideModeRoutingParams = routingConfig.plansCalcRoute()
 				.getOrCreateModeRoutingParams("outside");
@@ -241,21 +241,21 @@ public class MakeZurichScenario {
 
 		// Cut households
 
-//		new HouseholdsCleaner(scenario.getPopulation().getPersons().keySet()).run(scenario.getHouseholds());
+		new HouseholdsCleaner(scenario.getPopulation().getPersons().keySet()).run(scenario.getHouseholds());
 
 		// Cut attributes
 
-//		Collection<String> householdAttributeNames = new AttributeNamesReader()
-//				.read(new File(baselinePath, baselineConfig.prefix + "household_attributes.xml.gz"));
-//		HouseholdAttributeCleaner householdAttributesCleaner = new HouseholdAttributeCleaner(householdAttributeNames);
-//		ObjectAttributes cleanedHouseholdAttributes = householdAttributesCleaner.run(
-//				scenario.getHouseholds().getHouseholds().values(), scenario.getHouseholds().getHouseholdAttributes());
-//
-//		Collection<String> personAttributeNames = new AttributeNamesReader()
-//				.read(new File(baselinePath, baselineConfig.prefix + "population_attributes.xml.gz"));
-//		AttributeCleaner<Person> personAttributesCleaner = new AttributeCleaner<>(personAttributeNames);
-//		ObjectAttributes cleanedPersonAttributes = personAttributesCleaner
-//				.run(scenario.getPopulation().getPersons().values(), scenario.getPopulation().getPersonAttributes());
+		Collection<String> householdAttributeNames = new AttributeNamesReader()
+				.read(new File(baselinePath, baselineConfig.prefix + "household_attributes.xml.gz"));
+		HouseholdAttributeCleaner householdAttributesCleaner = new HouseholdAttributeCleaner(householdAttributeNames);
+		ObjectAttributes cleanedHouseholdAttributes = householdAttributesCleaner.run(
+				scenario.getHouseholds().getHouseholds().values(), scenario.getHouseholds().getHouseholdAttributes());
+
+		Collection<String> personAttributeNames = new AttributeNamesReader()
+				.read(new File(baselinePath, baselineConfig.prefix + "population_attributes.xml.gz"));
+		AttributeCleaner<Person> personAttributesCleaner = new AttributeCleaner<>(personAttributeNames);
+		ObjectAttributes cleanedPersonAttributes = personAttributesCleaner
+				.run(scenario.getPopulation().getPersons().values(), scenario.getPopulation().getPersonAttributes());
 
 		// Cut facilities
 
@@ -276,17 +276,17 @@ public class MakeZurichScenario {
 		new ConfigWriter(config).write(new File(outputPath, scenarioConfig.prefix + "config.xml").getPath());
 		new PopulationWriter(scenario.getPopulation())
 				.write(new File(outputPath, scenarioConfig.prefix + "population.xml.gz").getPath());
-//		new ObjectAttributesXmlWriter(cleanedPersonAttributes)
-//				.writeFile(new File(outputPath, scenarioConfig.prefix + "population_attributes.xml.gz").getPath());
+		new ObjectAttributesXmlWriter(cleanedPersonAttributes)
+				.writeFile(new File(outputPath, scenarioConfig.prefix + "population_attributes.xml.gz").getPath());
 		new FacilitiesWriter(scenario.getActivityFacilities())
 				.write(new File(outputPath, scenarioConfig.prefix + "facilities.xml.gz").getPath());
 		new NetworkWriter(scenario.getNetwork())
 				.write(new File(outputPath, scenarioConfig.prefix + "network.xml.gz").getPath());
 		new HouseholdsWriterV10(scenario.getHouseholds())
-//				.writeFile(new File(outputPath, scenarioConfig.prefix + "households.xml.gz").getPath());
-//		new ObjectAttributesXmlWriter(cleanedHouseholdAttributes)
-//				.writeFile(new File(outputPath, scenarioConfig.prefix + "household_attributes.xml.gz").getPath());
-//		new TransitScheduleWriter(scenario.getTransitSchedule())
+				.writeFile(new File(outputPath, scenarioConfig.prefix + "households.xml.gz").getPath());
+		new ObjectAttributesXmlWriter(cleanedHouseholdAttributes)
+				.writeFile(new File(outputPath, scenarioConfig.prefix + "household_attributes.xml.gz").getPath());
+		new TransitScheduleWriter(scenario.getTransitSchedule())
 				.writeFile(new File(outputPath, scenarioConfig.prefix + "transit_schedule.xml.gz").getPath());
 		new VehicleWriterV1(scenario.getTransitVehicles())
 				.writeFile(new File(outputPath, scenarioConfig.prefix + "transit_vehicles.xml.gz").getPath());
@@ -295,11 +295,11 @@ public class MakeZurichScenario {
 
 		outputFilesCollector.add(scenarioConfig.prefix + "config.xml");
 		outputFilesCollector.add(scenarioConfig.prefix + "population.xml.gz");
-//		outputFilesCollector.add(scenarioConfig.prefix + "population_attributes.xml.gz");
+		outputFilesCollector.add(scenarioConfig.prefix + "population_attributes.xml.gz");
 		outputFilesCollector.add(scenarioConfig.prefix + "facilities.xml.gz");
 		outputFilesCollector.add(scenarioConfig.prefix + "network.xml.gz");
-//		outputFilesCollector.add(scenarioConfig.prefix + "households.xml.gz");
-//		outputFilesCollector.add(scenarioConfig.prefix + "household_attributes.xml.gz");
+		outputFilesCollector.add(scenarioConfig.prefix + "households.xml.gz");
+		outputFilesCollector.add(scenarioConfig.prefix + "household_attributes.xml.gz");
 		outputFilesCollector.add(scenarioConfig.prefix + "transit_schedule.xml.gz");
 		outputFilesCollector.add(scenarioConfig.prefix + "transit_vehicles.xml.gz");
 		outputFilesCollector.add(scenarioConfig.prefix + "make_config.json");

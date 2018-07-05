@@ -71,7 +71,7 @@ public class MakeSwitzerlandScenario {
 
 		SwitzerlandConfig baselineConfig = json.readValue(new File(args[0]), SwitzerlandConfig.class);
 
-		File inputPath = new File(baselineConfig.baselinePath);
+		File inputPath = new File(baselineConfig.inputPath);
 		File outputPath = new File(baselineConfig.outputPath);
 
 		if (!inputPath.exists()) {
