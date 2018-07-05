@@ -109,7 +109,7 @@ public class RunScenarioCutter {
 		baselineFilesCollector.add("config.xml");
 
 		Coord cityCenter = new Coord(scenarioConfig.xCoord, scenarioConfig.yCoord);
-		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), cityCenter, scenarioConfig.rangeKm);
+		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), cityCenter, scenarioConfig.rangeMeter);
 
 		StageActivityTypes stageActivityTypes = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
 		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();

@@ -7,5 +7,5 @@
   "outputPath" : "<PATH>",
   "xCoord" : "<X>",
   "yCoord" : "<Y>",
-  "rangeKm" : "5000"
+  "rangeMeter" : "5000"
 }

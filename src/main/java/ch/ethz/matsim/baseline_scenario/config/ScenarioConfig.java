@@ -7,7 +7,7 @@ public class ScenarioConfig {
 	public String config;
 	public Double xCoord;
 	public Double yCoord;
-	public Double rangeKm;
+	public Double rangeMeter;
 	
 	public int numberOfThreads = 0;
 
