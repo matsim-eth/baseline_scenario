@@ -7,16 +7,18 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import ch.ethz.matsim.baseline_scenario.BaselineModule;
+import ch.ethz.matsim.baseline_scenario.config.CommandLine;
+import ch.ethz.matsim.baseline_scenario.config.CommandLine.ConfigurationException;
 import ch.ethz.matsim.baseline_scenario.transit.BaselineTransitModule;
 import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRoute;
 import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRouteFactory;
 
 public class RunZurichScenario {
-	static public void main(String[] args) {
-		Config config = ConfigUtils.loadConfig(args[0]);
+	static public void main(String[] args) throws ConfigurationException {
+		CommandLine cmd = new CommandLine.Builder(args).build();
 
-		config.global().setNumberOfThreads(Integer.parseInt(args[1]));
-		config.qsim().setNumberOfThreads(Integer.parseInt(args[2]));
+		Config config = ConfigUtils.loadConfig(args[0]);
+		cmd.applyConfiguration(config);
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
 		scenario.getPopulation().getFactory().getRouteFactories().setRouteFactory(DefaultEnrichedTransitRoute.class,
