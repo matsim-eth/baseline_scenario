@@ -3,6 +3,7 @@ package ch.ethz.matsim.baseline_scenario.analysis.counts.run;
 import java.io.IOException;
 import java.util.Collection;
 
+import ch.ethz.matsim.baseline_scenario.analysis.counts.writers.CSVHourlyCountsWriter;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
@@ -17,6 +18,6 @@ public class WriteHourlyReference {
 		new MatsimNetworkReader(network).readFile(args[0]);
 		
 		Collection<HourlyCountItem> items = new DeprecatedHourlyReferenceCountsReader(network).read(args[1]);
-		new MATSimHourlyReferenceWriter(items).write(args[2]);
+		new CSVHourlyCountsWriter(items).write(args[2]);
 	}
 }
