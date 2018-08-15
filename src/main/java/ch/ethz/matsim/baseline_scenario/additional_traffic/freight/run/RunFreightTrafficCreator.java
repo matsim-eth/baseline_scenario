@@ -6,16 +6,12 @@ import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.Freight
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.CumulativeDepartureProbabilityReader;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.FreightTrafficODReader;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.ZoneReader;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.DepartureTimeGenerator;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.FreightFacilitySelector;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.writers.FreightFacilitiesWriter;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.writers.FreightPopulationWriter;
-import ch.ethz.matsim.baseline_scenario.additional_traffic.utils.DepartureTimeGenerator;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
-import org.matsim.facilities.FacilitiesReaderMatsimV1;
-import org.matsim.facilities.FacilitiesUtils;
 
 import java.util.*;
 
