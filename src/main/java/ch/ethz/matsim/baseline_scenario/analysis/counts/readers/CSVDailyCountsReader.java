@@ -30,6 +30,7 @@ public class CSVDailyCountsReader {
 			if (header == null) {
 				header = row;
 			} else {
+				String countStationId = row.get(header.indexOf("countStationId"));
 				Id<Link> linkId = Id.createLinkId(row.get(header.indexOf("link")));
 				int referenceCount = Integer.parseInt(row.get(header.indexOf("reference_count")));
 				int simulationCount = Integer.parseInt(row.get(header.indexOf("simulation_count")));
@@ -37,7 +38,7 @@ public class CSVDailyCountsReader {
 				double y = Double.parseDouble(row.get(header.indexOf("location_y")));
 				Coord location = new Coord(x, y);
 
-				DailyCountItem item = new DailyCountItem(linkId, referenceCount, location);
+				DailyCountItem item = new DailyCountItem(linkId, referenceCount, location, countStationId);
 				item.simulation = simulationCount;
 
 				items.add(item);

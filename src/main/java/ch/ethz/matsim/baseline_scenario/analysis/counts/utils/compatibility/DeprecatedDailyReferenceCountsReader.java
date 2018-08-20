@@ -47,11 +47,12 @@ public class DeprecatedDailyReferenceCountsReader {
 				if (header == null) {
 					header = row;
 				} else {
+					String countStationId = row.get(header.indexOf("countStationId"));
 					Id<Link> linkId = Id.createLinkId(row.get(header.indexOf("linkId")));
 
 					if (network.getLinks().containsKey(linkId)) {
 						int reference = Integer.parseInt(row.get(header.indexOf("counts")));
-						counts.add(new DailyCountItem(linkId, reference, network.getLinks().get(linkId).getCoord()));
+						counts.add(new DailyCountItem(linkId, reference, network.getLinks().get(linkId).getCoord(), countStationId));
 					} else {
 						logger.warn(String.format("Link %s for \"%s\" not found in network", linkId.toString(),
 								row.get(header.indexOf("direction"))));

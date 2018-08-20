@@ -7,12 +7,10 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,7 +38,7 @@ public class CountNetworkMapperTest {
 
         List<CountItem> countItems = new LinkedList<>();
         for (int hour=0; hour<24; hour++) {
-            countItems.add(new HourlyCountItem(Id.create( "oldLinkId", Link.class), hour, 10, new Coord(0.0, 0.0)));
+            countItems.add(new HourlyCountItem(Id.create( "oldLinkId", Link.class), hour, 10, new Coord(0.0, 0.0), "station1"));
         }
 
         new CountNetworkMapper(oldNetwork, newNetwork).run(countItems);

@@ -32,12 +32,13 @@ public class CSVDailyCountsWriter {
 	
 	private String formatHeader() {
 		return String.join(";", new String[] {
-			"link", "location_x", "location_y", "reference_count", "simulation_count"
+			"countStationId", "link", "location_x", "location_y", "reference_count", "simulation_count"
 		});
 	}
 	
 	private String formatItem(DailyCountItem item) {
 		return String.join(";", new String[] {
+				item.countStationId,
 				item.link.toString(),
 				String.valueOf(item.location.getX()),
 				String.valueOf(item.location.getY()),
