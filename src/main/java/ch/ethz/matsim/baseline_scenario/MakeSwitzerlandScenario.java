@@ -1,13 +1,15 @@
 package ch.ethz.matsim.baseline_scenario;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.FreightTrafficCreator;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.FreightTrafficODItem;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.CumulativeDepartureProbabilityReader;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.FreightTrafficODReader;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.ZoneReader;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.DepartureTimeGenerator;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.FreightFacilitySelector;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -26,6 +28,7 @@ import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.households.HouseholdsReaderV10;
@@ -114,6 +117,30 @@ public class MakeSwitzerlandScenario {
 		inputFilesCollector.add("household_attributes.xml.gz");
 		inputFilesCollector.add("transit_schedule.xml.gz");
 		inputFilesCollector.add("transit_vehicles.xml.gz");
+
+		// ADD FREIGHT TRAFFIC
+		DepartureTimeGenerator freightDepartureTimeGenerator = new DepartureTimeGenerator(random,
+				(new CumulativeDepartureProbabilityReader()
+						.read(new File(inputPath, "freight/cumulative_probability_freight_departure_time.csv").getPath())));
+
+		Map<Integer, Set<ActivityFacility>> zone2facilities = new ZoneReader(scenario.getActivityFacilities(), 1000)
+				.read("freight/switzerland_zone_coordinates.csv");
+
+		FreightFacilitySelector freightFacilitySelector = new FreightFacilitySelector(zone2facilities, random);
+
+		FreightTrafficODReader freightTrafficODReader = new FreightTrafficODReader();
+		List<FreightTrafficODItem> freightTrafficODItems = new LinkedList<>();
+		freightTrafficODItems.addAll(freightTrafficODReader
+				.read("UtilityVehicle", "freight/utility_vehicles.csv"));
+		freightTrafficODItems.addAll(freightTrafficODReader
+				.read("Truck", "freight/truckes.csv"));
+		freightTrafficODItems.addAll(freightTrafficODReader
+				.read("TractorTrailer", "freight/tractor_trailers.csv"));
+
+		new FreightTrafficCreator(random, 1,
+				freightTrafficODItems, freightFacilitySelector, freightDepartureTimeGenerator)
+				.run(scenario.getPopulation(), scenario.getActivityFacilities());
+
 
 		// Debug: Scale down for testing purposes already in the beginning (or for 25%
 		// scenario)
