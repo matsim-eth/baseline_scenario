@@ -57,9 +57,6 @@ public class FreightTrafficCreator {
     private FreightFacilitySelector freightFacilitySelector;
     private DepartureTimeGenerator departureTimeGenerator;
 
-
-    private int personIndex = 0;
-
     public FreightTrafficCreator(Random random, double scalingFactor,
                                  List<FreightTrafficODItem> freightTrafficODItems,
                                  FreightFacilitySelector freightFacilitySelector,
@@ -79,11 +76,8 @@ public class FreightTrafficCreator {
     }
 
 
-    public FreightTraffic create() {
-        // TODO: HOW THE HELL DO YOU INITIALIZED A POPULATION OTHERWISE WITHOUT GOING BY SCENARIO?
-        // PATRICK USED PopulationUtils.getEmptyPopulation(); but that no longer exits
-        Population freightPopulation = ScenarioUtils.createScenario(ConfigUtils.createConfig()).getPopulation();
-        ActivityFacilities freightFacilities = FacilitiesUtils.createActivityFacilities();
+    public void run(Population population, ActivityFacilities activityFacilities) {
+        int personIndex = 0;
 
         for (FreightTrafficODItem freightTrafficODItem : freightTrafficODItems) {
             for (int i = 0; i < roundNumberOfTrips(freightTrafficODItem.getNumberOfTrips()); i++) {
@@ -98,13 +92,12 @@ public class FreightTrafficCreator {
                             TransportMode.car, startFacility, endFacility);
                     Person person = SingleFreightTripUtils.createSingleTripAgent(personId, freightTrafficODItem.getFreightType(), plan);
 
-                    freightPopulation.addPerson(person);
-                    freightFacilities.addActivityFacility(startFacility);
-                    freightFacilities.addActivityFacility(endFacility);
+                    population.addPerson(person);
+                    activityFacilities.addActivityFacility(startFacility);
+                    activityFacilities.addActivityFacility(endFacility);
                 }
             }
         }
-        return new FreightTraffic(freightPopulation, freightFacilities);
     }
 
     private int roundNumberOfTrips(double numberOfTrips) {
