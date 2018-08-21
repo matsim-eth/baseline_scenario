@@ -122,10 +122,8 @@ public class MakeSwitzerlandScenario {
 		DepartureTimeGenerator freightDepartureTimeGenerator = new DepartureTimeGenerator(random,
 				(new CumulativeDepartureProbabilityReader()
 						.read(new File(inputPath, "freight/cumulative_probability_freight_departure_time.csv").getPath())));
-
 		Map<Integer, Set<ActivityFacility>> zone2facilities = new ZoneReader(scenario.getActivityFacilities(), 1000)
 				.read("freight/switzerland_zone_coordinates.csv");
-
 		FreightFacilitySelector freightFacilitySelector = new FreightFacilitySelector(zone2facilities, random);
 
 		FreightTrafficODReader freightTrafficODReader = new FreightTrafficODReader();
@@ -133,7 +131,7 @@ public class MakeSwitzerlandScenario {
 		freightTrafficODItems.addAll(freightTrafficODReader
 				.read("UtilityVehicle", "freight/utility_vehicles.csv"));
 		freightTrafficODItems.addAll(freightTrafficODReader
-				.read("Truck", "freight/truckes.csv"));
+				.read("Truck", "freight/trucks.csv"));
 		freightTrafficODItems.addAll(freightTrafficODReader
 				.read("TractorTrailer", "freight/tractor_trailers.csv"));
 
