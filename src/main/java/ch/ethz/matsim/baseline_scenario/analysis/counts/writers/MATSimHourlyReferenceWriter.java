@@ -23,10 +23,12 @@ public class MATSimHourlyReferenceWriter {
 		counts.setYear(2017);
 		
 		for (HourlyCountItem item : items) {
-			Count<Link> count = counts.createAndAddCount(item.link, item.link.toString());
-			
-			if (count == null) {
+
+			Count<Link> count;
+			if (counts.getCounts().containsKey(item.link)) {
 				count = counts.getCount(item.link);
+			} else {
+				count = counts.createAndAddCount(item.link, item.link.toString());
 			}
 			
 			count.setCoord(item.location);
