@@ -31,11 +31,8 @@ import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
-import org.matsim.facilities.FacilitiesUtils;
 
 import java.util.List;
 import java.util.Random;
@@ -50,29 +47,18 @@ import java.util.Random;
  */
 public class FreightTrafficCreator {
     private final Random random;
-    private final double percentage;
-    private final double scalingFactor;
-
     private List<FreightTrafficODItem> freightTrafficODItems;
     private FreightFacilitySelector freightFacilitySelector;
     private DepartureTimeGenerator departureTimeGenerator;
 
-    public FreightTrafficCreator(Random random, double scalingFactor,
-                                 List<FreightTrafficODItem> freightTrafficODItems,
+    public FreightTrafficCreator(List<FreightTrafficODItem> freightTrafficODItems,
                                  FreightFacilitySelector freightFacilitySelector,
-                                 DepartureTimeGenerator departureTimeGenerator) {
-        this.random = random;
+                                 DepartureTimeGenerator departureTimeGenerator,
+                                 Random random) {
         this.freightTrafficODItems = freightTrafficODItems;
         this.freightFacilitySelector = freightFacilitySelector;
         this.departureTimeGenerator = departureTimeGenerator;
-
-        if (scalingFactor <= 1.0) {
-            this.percentage = scalingFactor;
-            this.scalingFactor = 1.0;
-        } else {
-            this.percentage = 1.0;
-            this.scalingFactor = scalingFactor;
-        }
+        this.random = random;
     }
 
 
@@ -81,32 +67,27 @@ public class FreightTrafficCreator {
 
         for (FreightTrafficODItem freightTrafficODItem : freightTrafficODItems) {
             for (int i = 0; i < roundNumberOfTrips(freightTrafficODItem.getNumberOfTrips()); i++) {
-                if (random.nextDouble() <= percentage) {
+                Id<Person> personId = Id.createPersonId(AdditionalTrafficType.FREIGHT.toString() + "_" + Integer.toString(++personIndex));
+                ActivityFacility startFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getOriginZone());
+                ActivityFacility endFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getDestinationZone());
 
-                    Id<Person> personId = Id.createPersonId(AdditionalTrafficType.FREIGHT.toString() + "_" + Integer.toString(++personIndex));
-                    ActivityFacility startFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getOriginZone());
-                    ActivityFacility endFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getDestinationZone());
+                double departureTime = departureTimeGenerator.getDepartureTime();
+                Plan plan = SingleFreightTripUtils.createSingleTripPlan(departureTime, AdditionalTrafficType.FREIGHT.toString(),
+                        TransportMode.car, startFacility, endFacility);
+                Person person = SingleFreightTripUtils.createSingleTripAgent(personId, freightTrafficODItem.getFreightType(), plan);
 
-                    double departureTime = departureTimeGenerator.getDepartureTime();
-                    Plan plan = SingleFreightTripUtils.createSingleTripPlan(departureTime, AdditionalTrafficType.FREIGHT.toString(),
-                            TransportMode.car, startFacility, endFacility);
-                    Person person = SingleFreightTripUtils.createSingleTripAgent(personId, freightTrafficODItem.getFreightType(), plan);
-
-                    population.addPerson(person);
-                    activityFacilities.addActivityFacility(startFacility);
-                    activityFacilities.addActivityFacility(endFacility);
-                }
+                population.addPerson(person);
+                activityFacilities.addActivityFacility(startFacility);
+                activityFacilities.addActivityFacility(endFacility);
             }
         }
     }
 
     private int roundNumberOfTrips(double numberOfTrips) {
-        // first scale number of trips
-        double scaledNumberOfTrips = this.scalingFactor * numberOfTrips;
         // first all full trips for this OD-relationship
-        int totalNumberOfTrips = (int)Math.floor(scaledNumberOfTrips);
+        int totalNumberOfTrips = (int)Math.floor(numberOfTrips);
         // then - if chance allows - another trip
-        double residualTrips = scaledNumberOfTrips - totalNumberOfTrips;
+        double residualTrips = numberOfTrips - totalNumberOfTrips;
         if (random.nextDouble() <= residualTrips) {
             totalNumberOfTrips++;
         }

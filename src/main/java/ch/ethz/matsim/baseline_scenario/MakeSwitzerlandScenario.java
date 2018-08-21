@@ -137,8 +137,7 @@ public class MakeSwitzerlandScenario {
 		freightTrafficODItems.addAll(freightTrafficODReader
 				.read("TractorTrailer", "freight/tractor_trailers.csv"));
 
-		new FreightTrafficCreator(random, 1,
-				freightTrafficODItems, freightFacilitySelector, freightDepartureTimeGenerator)
+		new FreightTrafficCreator(freightTrafficODItems, freightFacilitySelector, freightDepartureTimeGenerator, random)
 				.run(scenario.getPopulation(), scenario.getActivityFacilities());
 
 
