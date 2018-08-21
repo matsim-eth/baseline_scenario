@@ -1,11 +1,6 @@
 package ch.ethz.matsim.baseline_scenario.analysis.counts.utils.compatibility;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -33,16 +28,22 @@ public class CountNetworkMapper {
 	}
 
 	public void run(Collection<? extends CountItem> countItems) {
-		double maximumDistance = 100.0;
+		double maximumDistance = 500.0;
 
 		Iterator<? extends CountItem> iterator = countItems.iterator();
-		Set<Link> assigned = new HashSet<>();
+		Map<Link, Link> assigned = new HashMap<>();
 
 		while (iterator.hasNext()) {
 			CountItem item = iterator.next();
 
-			Coord referenceFromCoord = deprecatedNetwork.getLinks().get(item.link).getFromNode().getCoord();
-			Coord referenceToCoord = deprecatedNetwork.getLinks().get(item.link).getToNode().getCoord();
+			Link deprecatedLink = deprecatedNetwork.getLinks().get(item.link);
+			if (assigned.containsKey(deprecatedLink)) {
+				item.link = assigned.get(deprecatedLink).getId();
+				continue;
+			}
+
+			Coord referenceFromCoord = deprecatedLink.getFromNode().getCoord();
+			Coord referenceToCoord = deprecatedLink.getToNode().getCoord();
 			double referenceAngle = Math.atan2(referenceToCoord.getY() - referenceFromCoord.getY(),
 					referenceToCoord.getX() - referenceFromCoord.getX());
 
@@ -73,10 +74,10 @@ public class CountNetworkMapper {
 
 				Link candidate = candidates.get(bestIndex);
 
-				if (!assigned.contains(candidate)) {
-					logger.info("Update " + item.link.toString() + " -> " + candidate.getId().toString());
+				if (!assigned.containsValue(candidate)) {
+					logger.info("Update " + deprecatedLink.getId().toString() + " -> " + candidate.getId().toString());
 					item.link = candidate.getId();
-					assigned.add(candidate);
+					assigned.putIfAbsent(deprecatedLink, candidate);
 				} else {
 					logger.warn("Best candidate for " + item.link.toString() + " is already assigned.");
 					iterator.remove();

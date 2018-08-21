@@ -19,7 +19,7 @@ public class HourlyCountsAggregator {
 			DailyCountItem dailyItem = dailyItems.get(hourlyItem.link);
 			
 			if (dailyItem == null) {
-				dailyItem = new DailyCountItem(hourlyItem.link, 0, hourlyItem.location);
+				dailyItem = new DailyCountItem(hourlyItem.link, 0, hourlyItem.location, hourlyItem.countStationId);
 				dailyItems.put(dailyItem.link, dailyItem);
 			}
 			

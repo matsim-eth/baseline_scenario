@@ -32,12 +32,12 @@ public class CSVHourlyCountsWriter {
 
 	private String formatHeader() {
 		return String.join(";",
-				new String[] { "link", "hour", "location_x", "location_y", "reference_count", "simulation_count" });
+				new String[] { "countStationId", "link", "hour", "location_x", "location_y", "reference_count", "simulation_count" });
 	}
 
 	private String formatItem(HourlyCountItem item) {
 		return String.join(";",
-				new String[] { item.link.toString(), String.valueOf(item.hour), String.valueOf(item.location.getX()),
+				new String[] { item.countStationId ,item.link.toString(), String.valueOf(item.hour), String.valueOf(item.location.getX()),
 						String.valueOf(item.location.getY()), String.valueOf(item.reference),
 						String.valueOf(item.simulation) });
 	}
