@@ -30,6 +30,7 @@ public class CSVHourlyCountsReader {
 			if (header == null) {
 				header = row;
 			} else {
+				String countStationId = row.get(header.indexOf("countStationId"));
 				Id<Link> linkId = Id.createLinkId(row.get(header.indexOf("link")));
 				int referenceCount = Integer.parseInt(row.get(header.indexOf("reference_count")));
 				int simulationCount = Integer.parseInt(row.get(header.indexOf("simulation_count")));
@@ -38,7 +39,7 @@ public class CSVHourlyCountsReader {
 				Coord location = new Coord(x, y);
 				int hour = Integer.parseInt(row.get(header.indexOf("hour")));
 
-				HourlyCountItem item = new HourlyCountItem(linkId, hour, referenceCount, location);
+				HourlyCountItem item = new HourlyCountItem(linkId, hour, referenceCount, location, countStationId);
 				item.simulation = simulationCount;
 
 				items.add(item);

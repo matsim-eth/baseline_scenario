@@ -28,7 +28,7 @@ public class CountNetworkMapper {
 	}
 
 	public void run(Collection<? extends CountItem> countItems) {
-		double maximumDistance = 100.0;
+		double maximumDistance = 500.0;
 
 		Iterator<? extends CountItem> iterator = countItems.iterator();
 		Map<Link, Link> assigned = new HashMap<>();
