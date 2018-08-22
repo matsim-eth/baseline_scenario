@@ -21,7 +21,7 @@ public class FreightFacilitySelector {
         Optional<ActivityFacility> facility = Optional.empty();
         while (!facility.isPresent()) {
             facility = facilityList.stream()
-                    .skip(random.nextInt(facilityList.size() - 1))
+                    .skip(random.nextInt(facilityList.size()))
                     .findFirst();
         }
         Id<ActivityFacility> facilityId = Id.create(AdditionalTrafficType.FREIGHT.toString()
