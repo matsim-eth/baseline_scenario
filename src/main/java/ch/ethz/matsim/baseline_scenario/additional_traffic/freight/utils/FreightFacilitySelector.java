@@ -20,7 +20,9 @@ public class FreightFacilitySelector {
         Set<ActivityFacility> facilityList = zone2facilities.get(zoneId);
         Optional<ActivityFacility> facility = Optional.empty();
         while (!facility.isPresent()) {
-            facility = facilityList.stream().skip(random.nextInt(facilityList.size())).findFirst();
+            facility = facilityList.stream()
+                    .skip(random.nextInt(facilityList.size() - 1))
+                    .findFirst();
         }
         Id<ActivityFacility> facilityId = Id.create(AdditionalTrafficType.FREIGHT.toString()
                 + "_" + (int)facility.get().getCoord().getX() + "_" + (int)facility.get().getCoord().getY(), ActivityFacility.class);
