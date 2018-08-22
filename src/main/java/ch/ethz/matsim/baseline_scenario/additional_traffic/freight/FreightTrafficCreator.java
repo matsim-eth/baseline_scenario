@@ -26,6 +26,7 @@ import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.Freight
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.FreightFacilitySelector;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.SingleFreightTripUtils;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.DepartureTimeGenerator;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Person;
@@ -46,6 +47,7 @@ import java.util.Random;
  *
  */
 public class FreightTrafficCreator {
+    private static final Logger log = Logger.getLogger(FreightTrafficCreator.class);
     private final Random random;
     private List<FreightTrafficODItem> freightTrafficODItems;
     private FreightFacilitySelector freightFacilitySelector;
@@ -63,6 +65,7 @@ public class FreightTrafficCreator {
 
 
     public void run(Population population, ActivityFacilities activityFacilities) {
+        log.info("adding freight population and activity facilities");
         int personIndex = 0;
 
         for (FreightTrafficODItem freightTrafficODItem : freightTrafficODItems) {

@@ -1,6 +1,7 @@
 package ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers;
 
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.FreightTrafficODItem;
+import org.apache.log4j.Logger;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Counter;
 
@@ -11,9 +12,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class FreightTrafficODReader {
+    private static final Logger log = Logger.getLogger(FreightTrafficODReader.class);
     private final static String DELIMITER = ";";
 
     public Collection<FreightTrafficODItem> read(String freightType, String ODfile) {
+        log.info("Trying to load " + ODfile);
         List<FreightTrafficODItem> freightTrafficODItems = new LinkedList<>();
 
         Counter counter = new Counter(" OD-relationship # ");

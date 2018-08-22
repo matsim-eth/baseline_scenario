@@ -1,6 +1,7 @@
 package ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers;
 
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.Zone2FacilitiesAssigner;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ZoneReader {
+    private static final Logger log = Logger.getLogger(ZoneReader.class);
     private final static String DELIMITER = ";";
     private final static CoordinateTransformation transformation = new CH1903LV03toCH1903LV03Plus();
     private ActivityFacilities facilities;
@@ -29,6 +31,7 @@ public class ZoneReader {
     }
 
     public Map<Integer, Set<ActivityFacility>> read(String zoneCoordFile) {
+        log.info("Trying to load " + zoneCoordFile);
         Map<Integer, Set<ActivityFacility>> zone2facilities = new HashMap<>();
         Zone2FacilitiesAssigner zone2FacilitiesAssigner = new Zone2FacilitiesAssigner(facilities);
 
