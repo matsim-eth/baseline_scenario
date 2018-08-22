@@ -2,7 +2,9 @@ package ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items;
 
 public class FreightTrafficODItem {
     int originZone;
+    String originName;
     int destinationZone;
+    String destinationName;
     double numberOfTrips;
     String freightType;
 
@@ -17,8 +19,16 @@ public class FreightTrafficODItem {
         return originZone;
     }
 
+    public String getOriginName() {
+        return originName;
+    }
+
     public int getDestinationZone() {
         return destinationZone;
+    }
+
+    public String getDestinationName() {
+        return destinationName;
     }
 
     public double getNumberOfTrips() {
