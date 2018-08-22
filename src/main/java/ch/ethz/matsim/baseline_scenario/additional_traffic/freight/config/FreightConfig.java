@@ -6,7 +6,8 @@ import java.util.Map;
 public class FreightConfig {
     public int randomSeed = 0;
     public String cumulativeDepartureProbabilityPath;
-    public String zoneCoordinatesPath;
+    public String zoneCentroidsPath;
+    public String borderFacilitiesPath;
     public int zoneRadius = 1000;
     public Map<String, String> freightVehiclesPaths = createDefault();
 

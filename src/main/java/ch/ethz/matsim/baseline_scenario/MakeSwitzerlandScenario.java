@@ -5,9 +5,10 @@ import java.util.*;
 
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.FreightTrafficCreator;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.FreightTrafficODItem;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.BorderFacilityReader;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.CumulativeDepartureProbabilityReader;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.FreightTrafficODReader;
-import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.ZoneReader;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.ZoneCentroidReader;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.DepartureTimeGenerator;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.FreightFacilitySelector;
 import org.matsim.api.core.v01.Id;
@@ -124,8 +125,11 @@ public class MakeSwitzerlandScenario {
 			DepartureTimeGenerator freightDepartureTimeGenerator = new DepartureTimeGenerator(freightRandom,
 					(new CumulativeDepartureProbabilityReader()
 							.read(new File(baselineConfig.freightConfig.cumulativeDepartureProbabilityPath).getPath())));
-			Map<Integer, Set<ActivityFacility>> zone2facilities = new ZoneReader(scenario.getActivityFacilities(), baselineConfig.freightConfig.zoneRadius)
-					.read(new File(baselineConfig.freightConfig.zoneCoordinatesPath).getPath());
+			Map<Integer, Set<ActivityFacility>> zone2facilities = new HashMap<>();
+			zone2facilities.putAll(new ZoneCentroidReader(scenario.getActivityFacilities(), baselineConfig.freightConfig.zoneRadius)
+					.read(new File(baselineConfig.freightConfig.zoneCentroidsPath).getPath()));
+			zone2facilities.putAll(new BorderFacilityReader(scenario.getActivityFacilities())
+					.read(new File(baselineConfig.freightConfig.borderFacilitiesPath).getPath()));
 			FreightFacilitySelector freightFacilitySelector = new FreightFacilitySelector(zone2facilities, freightRandom);
 
 			FreightTrafficODReader freightTrafficODReader = new FreightTrafficODReader();

@@ -73,8 +73,6 @@ public class FreightTrafficCreator {
 
         for (FreightTrafficODItem freightTrafficODItem : freightTrafficODItems) {
             for (int i = 0; i < roundNumberOfTrips(freightTrafficODItem.getNumberOfTrips()); i++) {
-                counter.incCounter();
-
                 Id<Person> personId = Id.createPersonId(AdditionalTrafficType.FREIGHT.toString() + "_" + Integer.toString(++personIndex));
                 ActivityFacility startFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getOriginZone());
                 ActivityFacility endFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getDestinationZone());
@@ -91,6 +89,8 @@ public class FreightTrafficCreator {
                 if (!activityFacilities.getFacilities().containsKey(endFacility.getId())){
                     activityFacilities.addActivityFacility(endFacility);
                 }
+
+                counter.incCounter();
             }
         }
         counter.printCounter();

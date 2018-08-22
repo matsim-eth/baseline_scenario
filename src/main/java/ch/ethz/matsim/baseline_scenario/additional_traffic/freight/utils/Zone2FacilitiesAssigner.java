@@ -18,6 +18,7 @@ public class Zone2FacilitiesAssigner {
     public Set<ActivityFacility> assign(Coord coord, final int radius) {
         Set<ActivityFacility> facilitiesWithinRadius = new HashSet<>();
 
+        // TODO : Simply get all activity facilities within zone using a QuadTree?
         for (ActivityFacility facility : facilities.getFacilities().values()) {
             if (facility.getActivityOptions().keySet().contains("work")
                     && CoordUtils.calcEuclideanDistance(facility.getCoord(), coord) <= radius) {
