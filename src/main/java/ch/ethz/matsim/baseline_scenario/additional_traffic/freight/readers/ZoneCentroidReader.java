@@ -1,6 +1,7 @@
 package ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers;
 
-import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.Zone2FacilitiesAssigner;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.ZoneItem;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.FacilityToZoneAssigner;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
@@ -20,17 +21,14 @@ public class ZoneCentroidReader {
     private final static String DELIMITER = ";";
     private final static CoordinateTransformation transformation = new CH1903LV03toCH1903LV03Plus();
     private ActivityFacilities facilities;
-    private int radius;
 
-    public ZoneCentroidReader(ActivityFacilities facilities, int radius) {
+    public ZoneCentroidReader(ActivityFacilities facilities) {
         this.facilities = facilities;
-        this.radius = radius;
     }
 
-    public Map<Integer, Set<ActivityFacility>> read(String path) throws IOException {
+    public Map<Integer, ZoneItem> read(String path) throws IOException {
         log.info("Trying to load zone centroids for national zones from" + path);
-        Map<Integer, Set<ActivityFacility>> zone2facilities = new HashMap<>();
-        Zone2FacilitiesAssigner zone2FacilitiesAssigner = new Zone2FacilitiesAssigner(facilities);
+        Map<Integer, ZoneItem> zoneItems = new HashMap<>();
 
         // read zone centroids and assign all facilities close to centroid
         Counter counter = new Counter(" zone # ");
@@ -46,10 +44,11 @@ public class ZoneCentroidReader {
                 header = row;
             } else {
                 int zoneId = Integer.parseInt(row.get(header.indexOf("zone_id")));
+                String name = row.get(header.indexOf("name"));
                 double x = Double.parseDouble(row.get(header.indexOf("x")));
                 double y = Double.parseDouble(row.get(header.indexOf("y")));
                 Coord coord = transformation.transform(new Coord(x, y));
-                zone2facilities.putIfAbsent(zoneId, zone2FacilitiesAssigner.assign(coord, radius));
+                zoneItems.putIfAbsent(zoneId, new ZoneItem(zoneId, name, coord, new HashSet<ActivityFacility>()));
 
                 counter.incCounter();
             }
@@ -58,6 +57,9 @@ public class ZoneCentroidReader {
         reader.close();
         counter.printCounter();
 
-        return zone2facilities;
+        // assign facilities to zones
+        new FacilityToZoneAssigner(zoneItems).assign(facilities);
+
+        return zoneItems;
     }
 }

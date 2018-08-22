@@ -1,23 +1,27 @@
 package ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils;
 
 import ch.ethz.matsim.baseline_scenario.additional_traffic.AdditionalTrafficType;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.ZoneItem;
 import org.matsim.api.core.v01.Id;
 import org.matsim.facilities.*;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
 
 public class FreightFacilitySelector {
-    private final Map<Integer, Set<ActivityFacility>> zone2facilities;
+    private final Map<Integer, ZoneItem> zoneItems;
     private final ActivityFacilitiesFactory activityFacilitiesFactory = new ActivityFacilitiesFactoryImpl();
     private final Random random;
 
-    public FreightFacilitySelector(Map<Integer, Set<ActivityFacility>> zone2facilities, Random random) {
-        this.zone2facilities = zone2facilities;
+    public FreightFacilitySelector(Map<Integer, ZoneItem> zoneItems, Random random) {
+        this.zoneItems = zoneItems;
         this.random = random;
     }
 
     public ActivityFacility getFreightFacility(int zoneId) {
-        Set<ActivityFacility> facilityList = zone2facilities.get(zoneId);
+        Set<ActivityFacility> facilityList = zoneItems.get(zoneId).getFacilities();
         Optional<ActivityFacility> facility = Optional.empty();
         while (!facility.isPresent()) {
             facility = facilityList.stream()

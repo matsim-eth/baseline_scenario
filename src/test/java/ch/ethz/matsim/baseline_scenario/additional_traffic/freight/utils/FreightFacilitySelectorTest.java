@@ -1,6 +1,6 @@
 package ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils;
 
-import ch.ethz.matsim.baseline_scenario.additional_traffic.AdditionalTrafficType;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.ZoneItem;
 import org.junit.Test;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -8,25 +8,32 @@ import org.matsim.facilities.ActivityFacilitiesFactory;
 import org.matsim.facilities.ActivityFacilitiesFactoryImpl;
 import org.matsim.facilities.ActivityFacility;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Random;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 public class FreightFacilitySelectorTest {
 
     @Test
     public void getFreightFacility() {
 
-        Map<Integer, Set<ActivityFacility>> zone2facilities = new HashMap<>();
+        Map<Integer, ZoneItem> zone2facilities = new HashMap<>();
 
-        zone2facilities.putIfAbsent(0, new HashSet<>());
+        int zoneId = 0;
+        String name = "zone";
+        Coord coord = new Coord(0.0, 0.0);
+        zone2facilities.put(zoneId, new ZoneItem(zoneId, name, coord, new HashSet<>()));
+
         ActivityFacilitiesFactory activityFacilitiesFactory = new ActivityFacilitiesFactoryImpl();
         for (int i=0; i<100; i++) {
             Id<ActivityFacility> facilityId = Id.create("facility_" + Integer.toString(i), ActivityFacility.class);
             ActivityFacility facility = activityFacilitiesFactory.createActivityFacility(facilityId,
-                    new Coord(0.0, 0.0),
+                    coord,
                     Id.createLinkId("link"));
-            zone2facilities.get(0).add(facility);
+            zone2facilities.get(zoneId).getFacilities().add(facility);
         }
 
         Random random = new Random(0);

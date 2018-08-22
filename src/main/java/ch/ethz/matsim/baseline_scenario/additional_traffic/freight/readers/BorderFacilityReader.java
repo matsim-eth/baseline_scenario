@@ -1,6 +1,8 @@
 package ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers;
 
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.ZoneItem;
 import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.core.utils.misc.Counter;
 import org.matsim.facilities.ActivityFacilities;
@@ -21,9 +23,9 @@ public class BorderFacilityReader {
         this.facilities = facilities;
     }
 
-    public Map<Integer, Set<ActivityFacility>> read(String path) throws IOException {
+    public Map<Integer, ZoneItem> read(String path) throws IOException {
         log.info("Trying to load border facilities for international zones from " + path);
-        Map<Integer, Set<ActivityFacility>> borderFacilities = new HashMap<>();
+        Map<Integer, ZoneItem> borderFacilities = new HashMap<>();
 
         // these are the international zones without centroids;
         // the id of the appropriate border facility is specified.
@@ -40,9 +42,15 @@ public class BorderFacilityReader {
                 header = row;
             } else {
                 int zoneId = Integer.parseInt(row.get(header.indexOf("zone_id")));
-                borderFacilities.putIfAbsent(zoneId, new HashSet<>());
-                borderFacilities.get(zoneId).add(facilities.getFacilities()
-                        .get(Id.create(row.get(header.indexOf("border_facility_id")), ActivityFacility.class)));
+                String name = row.get(header.indexOf("name"));
+                ActivityFacility facility = facilities.getFacilities()
+                        .get(Id.create(row.get(header.indexOf("facility_id")), ActivityFacility.class));
+                Coord coord = facility.getCoord();
+
+                Set<ActivityFacility> facilities = new HashSet<>();
+                facilities.add(facility);
+
+                borderFacilities.putIfAbsent(zoneId, new ZoneItem(zoneId, name, coord, facilities));
                 counter.incCounter();
             }
         }
