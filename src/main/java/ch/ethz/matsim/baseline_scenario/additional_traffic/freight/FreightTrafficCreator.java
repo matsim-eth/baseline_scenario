@@ -80,8 +80,12 @@ public class FreightTrafficCreator {
                 Person person = SingleFreightTripUtils.createSingleTripAgent(personId, freightTrafficODItem.getFreightType(), plan);
 
                 population.addPerson(person);
-                activityFacilities.addActivityFacility(startFacility);
-                activityFacilities.addActivityFacility(endFacility);
+                if (!activityFacilities.getFacilities().containsKey(startFacility.getId())){
+                    activityFacilities.addActivityFacility(startFacility);
+                }
+                if (!activityFacilities.getFacilities().containsKey(endFacility.getId())){
+                    activityFacilities.addActivityFacility(endFacility);
+                }
             }
         }
     }
