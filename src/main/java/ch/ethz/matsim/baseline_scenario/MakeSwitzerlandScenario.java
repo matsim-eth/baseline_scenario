@@ -119,25 +119,24 @@ public class MakeSwitzerlandScenario {
 		inputFilesCollector.add("transit_vehicles.xml.gz");
 
 		// ADD FREIGHT TRAFFIC
-		DepartureTimeGenerator freightDepartureTimeGenerator = new DepartureTimeGenerator(random,
-				(new CumulativeDepartureProbabilityReader()
-						.read(new File(inputPath, "freight/cumulative_probability_freight_departure_time.csv").getPath())));
-		Map<Integer, Set<ActivityFacility>> zone2facilities = new ZoneReader(scenario.getActivityFacilities(), 1000)
-				.read("freight/switzerland_zone_coordinates.csv");
-		FreightFacilitySelector freightFacilitySelector = new FreightFacilitySelector(zone2facilities, random);
+		if (baselineConfig.includeFreight) {
+			Random freightRandom = new Random(baselineConfig.freightConfig.randomSeed);
+			DepartureTimeGenerator freightDepartureTimeGenerator = new DepartureTimeGenerator(freightRandom,
+					(new CumulativeDepartureProbabilityReader()
+							.read(new File(baselineConfig.freightConfig.cumulativeDepartureProbabilityPath).getPath())));
+			Map<Integer, Set<ActivityFacility>> zone2facilities = new ZoneReader(scenario.getActivityFacilities(), baselineConfig.freightConfig.zoneRadius)
+					.read(new File(baselineConfig.freightConfig.zoneCoordinatesPath).getPath());
+			FreightFacilitySelector freightFacilitySelector = new FreightFacilitySelector(zone2facilities, freightRandom);
 
-		FreightTrafficODReader freightTrafficODReader = new FreightTrafficODReader();
-		List<FreightTrafficODItem> freightTrafficODItems = new LinkedList<>();
-		freightTrafficODItems.addAll(freightTrafficODReader
-				.read("UtilityVehicle", "freight/utility_vehicles.csv"));
-		freightTrafficODItems.addAll(freightTrafficODReader
-				.read("Truck", "freight/trucks.csv"));
-		freightTrafficODItems.addAll(freightTrafficODReader
-				.read("TractorTrailer", "freight/tractor_trailers.csv"));
-
-		new FreightTrafficCreator(freightTrafficODItems, freightFacilitySelector, freightDepartureTimeGenerator, random)
-				.run(scenario.getPopulation(), scenario.getActivityFacilities());
-
+			FreightTrafficODReader freightTrafficODReader = new FreightTrafficODReader();
+			List<FreightTrafficODItem> freightTrafficODItems = new LinkedList<>();
+			for (String freightType : baselineConfig.freightConfig.freightVehiclesPaths.keySet()) {
+				freightTrafficODItems.addAll(freightTrafficODReader
+						.read(freightType, new File(baselineConfig.freightConfig.freightVehiclesPaths.get(freightType)).getPath()));
+			}
+			new FreightTrafficCreator(freightTrafficODItems, freightFacilitySelector, freightDepartureTimeGenerator, freightRandom)
+					.run(scenario.getPopulation(), scenario.getActivityFacilities());
+		}
 
 		// Debug: Scale down for testing purposes already in the beginning (or for 25%
 		// scenario)
