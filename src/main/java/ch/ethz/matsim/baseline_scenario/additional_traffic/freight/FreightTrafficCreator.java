@@ -32,6 +32,7 @@ import org.matsim.api.core.v01.TransportMode;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.utils.misc.Counter;
 import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
 
@@ -68,8 +69,12 @@ public class FreightTrafficCreator {
         log.info("adding freight population and activity facilities");
         int personIndex = 0;
 
+        Counter counter = new Counter(" freight trip # ");
+
         for (FreightTrafficODItem freightTrafficODItem : freightTrafficODItems) {
             for (int i = 0; i < roundNumberOfTrips(freightTrafficODItem.getNumberOfTrips()); i++) {
+                counter.incCounter();
+
                 Id<Person> personId = Id.createPersonId(AdditionalTrafficType.FREIGHT.toString() + "_" + Integer.toString(++personIndex));
                 ActivityFacility startFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getOriginZone());
                 ActivityFacility endFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getDestinationZone());
@@ -88,6 +93,7 @@ public class FreightTrafficCreator {
                 }
             }
         }
+        counter.printCounter();
     }
 
     private int roundNumberOfTrips(double numberOfTrips) {
