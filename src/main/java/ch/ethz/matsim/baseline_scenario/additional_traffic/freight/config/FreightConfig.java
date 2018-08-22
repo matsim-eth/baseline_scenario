@@ -8,7 +8,6 @@ public class FreightConfig {
     public String cumulativeDepartureProbabilityPath;
     public String zoneCentroidsPath;
     public String borderFacilitiesPath;
-    public int zoneRadius = 1000;
     public Map<String, String> freightVehiclesPaths = createDefault();
 
     private Map<String, String> createDefault() {
