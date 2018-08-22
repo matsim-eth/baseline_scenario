@@ -39,6 +39,6 @@ public class FreightTrafficODReader {
         }
         counter.printCounter();
 
-        return null;
+        return freightTrafficODItems;
     }
 }
