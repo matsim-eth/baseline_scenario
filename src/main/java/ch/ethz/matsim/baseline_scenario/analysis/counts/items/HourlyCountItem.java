@@ -7,8 +7,8 @@ import org.matsim.api.core.v01.network.Link;
 public class HourlyCountItem extends CountItem {
 	public int hour;
 	
-	public HourlyCountItem(Id<Link> linkId, int hour, int reference, Coord location) {
-		super(linkId, reference, location);
+	public HourlyCountItem(Id<Link> linkId, int hour, int reference, Coord location, String countStationId) {
+		super(linkId, reference, location, countStationId);
 		this.hour = hour;
 	}
 }

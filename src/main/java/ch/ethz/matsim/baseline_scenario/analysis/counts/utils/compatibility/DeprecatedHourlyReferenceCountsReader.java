@@ -46,6 +46,7 @@ public class DeprecatedHourlyReferenceCountsReader {
 			if (header == null) {
 				header = row;
 			} else {
+				String countStationId = row.get(header.indexOf("countStationId"));
 				Id<Link> linkId = Id.createLinkId(row.get(header.indexOf("linkId")));
 				int midnightIndex = header.indexOf("count");
 				if (midnightIndex == -1)
@@ -55,7 +56,7 @@ public class DeprecatedHourlyReferenceCountsReader {
 					for (int i = 0; i < 24; i++) {
 						int reference = Integer.parseInt(row.get(midnightIndex + i));
 						counts.add(
-								new HourlyCountItem(linkId, i, reference, network.getLinks().get(linkId).getCoord()));
+								new HourlyCountItem(linkId, i, reference, network.getLinks().get(linkId).getCoord(), countStationId));
 					}
 				} else {
 					logger.warn(String.format("Link %s for \"%s\" not found in network", linkId.toString(),
