@@ -19,7 +19,7 @@
  * *********************************************************************** *
  */
 
-package ch.ethz.matsim.ivt_baseline.preparation.crossborderCreation;
+package ch.ethz.matsim.baseline_scenario.additional_traffic.crossborder;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Activity;
@@ -29,7 +29,6 @@ import org.matsim.core.utils.collections.Tuple;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Counter;
 import org.matsim.facilities.ActivityFacility;
-import ch.ethz.matsim.ivt_baseline.preparation.secondaryFacilityCreation.CreationOfCrossBorderFacilities;
 
 import java.io.BufferedReader;
 import java.io.IOException;

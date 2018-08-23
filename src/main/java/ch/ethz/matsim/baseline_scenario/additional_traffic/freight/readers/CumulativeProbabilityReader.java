@@ -6,8 +6,8 @@ import org.matsim.core.utils.io.IOUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-public class CumulativeDepartureProbabilityReader {
-    private static final Logger log = Logger.getLogger(CumulativeDepartureProbabilityReader.class);
+public class CumulativeProbabilityReader {
+    private static final Logger log = Logger.getLogger(CumulativeProbabilityReader.class);
     private final static String DELIMITER = ";";
 
     public double[] read(String cumulativeProbabilityFreightDeparturesFile) {

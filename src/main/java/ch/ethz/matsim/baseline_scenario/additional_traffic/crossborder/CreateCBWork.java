@@ -19,7 +19,7 @@
  * *********************************************************************** *
  */
 
-package ch.ethz.matsim.ivt_baseline.preparation.crossborderCreation;
+package ch.ethz.matsim.baseline_scenario.additional_traffic.crossborder;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -33,15 +33,12 @@ import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.ActivityOption;
 import org.matsim.facilities.ActivityOptionImpl;
 import org.matsim.facilities.OpeningTimeImpl;
-import ch.ethz.matsim.ivt_baseline.lib.CSVReader;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ch.ethz.matsim.ivt_baseline.preparation.IVTConfigCreator.*;
-import static ch.ethz.matsim.ivt_baseline.preparation.IVTConfigCreator.WORK;
 
 /**
  * Implementation of the trunk class CreateCBsubpop for the creation of single-trip work cb-agents.
@@ -56,6 +53,9 @@ public class CreateCBWork extends CreateSingleTripPopulation {
 	private final List<Tuple<Double, Coord>> cumProbWorkFromF = new ArrayList<>();
 	private final List<Tuple<Double, Coord>> cumProbWorkFromI = new ArrayList<>();
 	private final Map<String, List<ActivityFacility>> communities = new HashMap<>();
+
+
+	public static final String WORK = "work";
 
 	public CreateCBWork(CreateSingleTripPopulationConfigGroup configGroup) {
 		super(configGroup);

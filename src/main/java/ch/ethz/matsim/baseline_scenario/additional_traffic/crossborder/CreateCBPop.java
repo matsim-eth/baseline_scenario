@@ -19,7 +19,7 @@
  * *********************************************************************** *
  */
 
-package ch.ethz.matsim.ivt_baseline.preparation.crossborderCreation;
+package ch.ethz.matsim.baseline_scenario.additional_traffic.crossborder;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Population;
@@ -34,7 +34,6 @@ import org.matsim.facilities.FacilitiesUtils;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
-import ch.ethz.matsim.ivt_baseline.lib.FacilityUtils;
 
 /**
  * Unifies the creations of CB-Sub-Population to the creation of a single CB-Population.

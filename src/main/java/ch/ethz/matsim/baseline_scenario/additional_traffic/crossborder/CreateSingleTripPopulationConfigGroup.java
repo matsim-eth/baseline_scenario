@@ -19,7 +19,7 @@
  * *********************************************************************** *
  */
 
-package ch.ethz.matsim.ivt_baseline.preparation.crossborderCreation;
+package ch.ethz.matsim.baseline_scenario.additional_traffic.crossborder;
 
 import org.matsim.core.config.ReflectiveConfigGroup;
 

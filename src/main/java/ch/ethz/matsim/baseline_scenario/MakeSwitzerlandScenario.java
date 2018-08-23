@@ -7,7 +7,7 @@ import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.FreightTraffi
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.FreightTrafficODItem;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.ZoneItem;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.BorderFacilityReader;
-import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.CumulativeDepartureProbabilityReader;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.CumulativeProbabilityReader;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.FreightTrafficODReader;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.ZoneCentroidReader;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.DepartureTimeGenerator;
@@ -39,7 +39,6 @@ import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.households.HouseholdsReaderV10;
@@ -111,7 +110,7 @@ public class MakeSwitzerlandScenario {
 		if (baselineConfig.includeFreight) {
 			Random freightRandom = new Random(baselineConfig.freightConfig.randomSeed);
 			DepartureTimeGenerator freightDepartureTimeGenerator = new DepartureTimeGenerator(freightRandom,
-					(new CumulativeDepartureProbabilityReader()
+					(new CumulativeProbabilityReader()
 							.read(new File(baselineConfig.freightConfig.cumulativeDepartureProbabilityPath).getPath())));
 			Map<Integer, ZoneItem> zone2facilities = new HashMap<>();
 			zone2facilities.putAll(new ZoneCentroidReader(scenario.getActivityFacilities())

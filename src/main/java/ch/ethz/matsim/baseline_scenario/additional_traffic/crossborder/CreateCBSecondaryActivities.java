@@ -19,7 +19,7 @@
  * *********************************************************************** *
  */
 
-package ch.ethz.matsim.ivt_baseline.preparation.crossborderCreation;
+package ch.ethz.matsim.baseline_scenario.additional_traffic.crossborder;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Activity;
@@ -36,9 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ch.ethz.matsim.ivt_baseline.preparation.IVTConfigCreator.*;
-import static ch.ethz.matsim.ivt_baseline.preparation.secondaryFacilityCreation.CreationOfCrossBorderFacilities.*;
-import static ch.ethz.matsim.ivt_baseline.preparation.secondaryFacilityCreation.CreationOfCrossBorderFacilities.BC_TAG;
+import static ch.ethz.matsim.baseline_scenario.additional_traffic.crossborder.CreationOfCrossBorderFacilities.*;
 
 /**
  * Implementation of the trunk class CreateCBsubpop for the creation of secondary activity single-trip cb-agents.
