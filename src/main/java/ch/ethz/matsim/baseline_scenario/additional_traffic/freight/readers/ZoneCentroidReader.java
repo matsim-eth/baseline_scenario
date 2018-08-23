@@ -27,7 +27,7 @@ public class ZoneCentroidReader {
     }
 
     public Map<Integer, ZoneItem> read(String path) throws IOException {
-        log.info("Trying to load zone centroids for national zones from" + path);
+        log.info("Trying to load zone centroids for national zones from " + path);
         Map<Integer, ZoneItem> zoneItems = new HashMap<>();
 
         // read zone centroids and assign all facilities close to centroid

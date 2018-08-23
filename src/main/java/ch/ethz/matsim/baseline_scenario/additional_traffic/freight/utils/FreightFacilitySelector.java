@@ -23,6 +23,9 @@ public class FreightFacilitySelector {
     public ActivityFacility getFreightFacility(int zoneId) {
         Set<ActivityFacility> facilityList = zoneItems.get(zoneId).getFacilities();
         Optional<ActivityFacility> facility = Optional.empty();
+
+        System.out.println("Zone : " + Integer.toString(zoneId) + " , # facilities : " + facilityList.size());
+
         while (!facility.isPresent()) {
             facility = facilityList.stream()
                     .skip(random.nextInt(facilityList.size()))
