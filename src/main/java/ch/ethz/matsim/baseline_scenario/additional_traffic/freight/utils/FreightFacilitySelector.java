@@ -2,15 +2,18 @@ package ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils;
 
 import ch.ethz.matsim.baseline_scenario.additional_traffic.AdditionalTrafficType;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.ZoneItem;
+import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.facilities.*;
 
+import javax.swing.text.html.Option;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 
 public class FreightFacilitySelector {
+    private static final Logger log = Logger.getLogger(FreightFacilitySelector.class);
     private final Map<Integer, ZoneItem> zoneItems;
     private final ActivityFacilitiesFactory activityFacilitiesFactory = new ActivityFacilitiesFactoryImpl();
     private final Random random;
@@ -20,17 +23,22 @@ public class FreightFacilitySelector {
         this.random = random;
     }
 
-    public ActivityFacility getFreightFacility(int zoneId) {
+    public Optional<ActivityFacility> getFreightFacility(int zoneId) {
         Set<ActivityFacility> facilityList = zoneItems.get(zoneId).getFacilities();
+
+        if (facilityList.size() == 0) {
+            log.warn("No facilities assigned to zone " + Integer.toString(zoneId) +
+                    " (" + zoneItems.get(zoneId).getName() + ")");
+            return Optional.empty();
+        }
+
         Optional<ActivityFacility> facility = Optional.empty();
-
-        System.out.println("Zone : " + Integer.toString(zoneId) + " , # facilities : " + facilityList.size());
-
         while (!facility.isPresent()) {
             facility = facilityList.stream()
                     .skip(random.nextInt(facilityList.size()))
                     .findFirst();
         }
+
         Id<ActivityFacility> facilityId = Id.create(AdditionalTrafficType.FREIGHT.toString()
                 + "_" + (int)facility.get().getCoord().getX() + "_" + (int)facility.get().getCoord().getY(), ActivityFacility.class);
         ActivityFacility freightFacility = activityFacilitiesFactory.createActivityFacility(facilityId,
@@ -41,6 +49,6 @@ public class FreightFacilitySelector {
         OpeningTime openingTime = new OpeningTimeImpl(0.0 * 3600.0, 24.0 * 3600.0);
         freightFacility.getActivityOptions().get(AdditionalTrafficType.FREIGHT.toString()).addOpeningTime(openingTime);
 
-        return freightFacility;
+        return Optional.of(freightFacility);
     }
 }

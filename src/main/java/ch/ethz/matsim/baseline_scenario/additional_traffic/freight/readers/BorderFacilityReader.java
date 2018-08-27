@@ -43,8 +43,13 @@ public class BorderFacilityReader {
             } else {
                 int zoneId = Integer.parseInt(row.get(header.indexOf("zone_id")));
                 String name = row.get(header.indexOf("name"));
-                ActivityFacility facility = facilities.getFacilities()
-                        .get(Id.create(row.get(header.indexOf("facility_id")), ActivityFacility.class));
+                Id<ActivityFacility> facilityId = Id.create(row.get(header.indexOf("facility_id")), ActivityFacility.class);
+                if (!facilities.getFacilities().containsKey(facilityId)) {
+                    log.error("Facilities does not contain " + facilityId.toString() +
+                            " Make sure that facilities include border facilities!");
+                }
+
+                ActivityFacility facility = facilities.getFacilities().get(facilityId);
                 Coord coord = facility.getCoord();
 
                 Set<ActivityFacility> facilities = new HashSet<>();

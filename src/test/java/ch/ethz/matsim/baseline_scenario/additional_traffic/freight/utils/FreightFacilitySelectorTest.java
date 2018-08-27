@@ -8,12 +8,10 @@ import org.matsim.facilities.ActivityFacilitiesFactory;
 import org.matsim.facilities.ActivityFacilitiesFactoryImpl;
 import org.matsim.facilities.ActivityFacility;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class FreightFacilitySelectorTest {
 
@@ -39,8 +37,8 @@ public class FreightFacilitySelectorTest {
         Random random = new Random(0);
         FreightFacilitySelector freightFacilitySelector = new FreightFacilitySelector(zone2facilities, random);
         for (int i=0; i<100000; i++) {
-            ActivityFacility facility = freightFacilitySelector.getFreightFacility(0);
-            assertNotNull(facility);
+            Optional<ActivityFacility> facility = freightFacilitySelector.getFreightFacility(0);
+            assertTrue(facility.isPresent());
         }
 
     }

@@ -37,6 +37,7 @@ import org.matsim.facilities.ActivityFacilities;
 import org.matsim.facilities.ActivityFacility;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -74,20 +75,26 @@ public class FreightTrafficCreator {
         for (FreightTrafficODItem freightTrafficODItem : freightTrafficODItems) {
             for (int i = 0; i < roundNumberOfTrips(freightTrafficODItem.getNumberOfTrips()); i++) {
                 Id<Person> personId = Id.createPersonId(AdditionalTrafficType.FREIGHT.toString() + "_" + Integer.toString(++personIndex));
-                ActivityFacility startFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getOriginZone());
-                ActivityFacility endFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getDestinationZone());
+                Optional<ActivityFacility> startFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getOriginZone());
+                Optional<ActivityFacility> endFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getDestinationZone());
+
+                if (!startFacility.isPresent() || !endFacility.isPresent()) {
+                    log.warn("Ignoring OD pair from " + freightTrafficODItem.getOriginName() +
+                            " to " + freightTrafficODItem.getDestinationName());
+                    continue;
+                }
 
                 double departureTime = departureTimeGenerator.getDepartureTime();
                 Plan plan = SingleFreightTripUtils.createSingleTripPlan(departureTime, AdditionalTrafficType.FREIGHT.toString(),
-                        TransportMode.car, startFacility, endFacility);
+                        TransportMode.car, startFacility.get(), endFacility.get());
                 Person person = SingleFreightTripUtils.createSingleTripAgent(personId, freightTrafficODItem.getFreightType(), plan);
 
                 population.addPerson(person);
-                if (!activityFacilities.getFacilities().containsKey(startFacility.getId())){
-                    activityFacilities.addActivityFacility(startFacility);
+                if (!activityFacilities.getFacilities().containsKey(startFacility.get().getId())){
+                    activityFacilities.addActivityFacility(startFacility.get());
                 }
-                if (!activityFacilities.getFacilities().containsKey(endFacility.getId())){
-                    activityFacilities.addActivityFacility(endFacility);
+                if (!activityFacilities.getFacilities().containsKey(endFacility.get().getId())){
+                    activityFacilities.addActivityFacility(endFacility.get());
                 }
 
                 counter.incCounter();
