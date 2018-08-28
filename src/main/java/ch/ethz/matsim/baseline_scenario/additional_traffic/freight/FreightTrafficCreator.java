@@ -70,7 +70,9 @@ public class FreightTrafficCreator {
         log.info("adding freight population and activity facilities");
         int personIndex = 0;
 
-        Counter counter = new Counter(" freight trip # ");
+        Counter tripCounter = new Counter(" freight trip # ");
+        Counter planCounter = new Counter(" freight plan # ");
+        Counter facilityCounter = new Counter(" freight facility # ");
 
         for (FreightTrafficODItem freightTrafficODItem : freightTrafficODItems) {
             for (int i = 0; i < roundNumberOfTrips(freightTrafficODItem.getNumberOfTrips()); i++) {
@@ -90,17 +92,23 @@ public class FreightTrafficCreator {
                 Person person = SingleFreightTripUtils.createSingleTripAgent(personId, freightTrafficODItem.getFreightType(), plan);
 
                 population.addPerson(person);
+                planCounter.incCounter();
+
                 if (!activityFacilities.getFacilities().containsKey(startFacility.get().getId())){
                     activityFacilities.addActivityFacility(startFacility.get());
+                    facilityCounter.incCounter();
                 }
                 if (!activityFacilities.getFacilities().containsKey(endFacility.get().getId())){
                     activityFacilities.addActivityFacility(endFacility.get());
+                    facilityCounter.incCounter();
                 }
 
-                counter.incCounter();
+                tripCounter.incCounter();
             }
         }
-        counter.printCounter();
+        tripCounter.printCounter();
+        planCounter.printCounter();
+        facilityCounter.printCounter();
     }
 
     private int roundNumberOfTrips(double numberOfTrips) {
