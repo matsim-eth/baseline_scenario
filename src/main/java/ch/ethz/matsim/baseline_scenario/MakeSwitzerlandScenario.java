@@ -107,6 +107,8 @@ public class MakeSwitzerlandScenario {
 		inputFilesCollector.add("transit_schedule.xml.gz");
 		inputFilesCollector.add("transit_vehicles.xml.gz");
 
+		// TODO : collect freight input files!
+
 		// ADD FREIGHT TRAFFIC
 		if (baselineConfig.includeFreight) {
 			Random freightRandom = new Random(baselineConfig.freightConfig.randomSeed);
@@ -166,17 +168,20 @@ public class MakeSwitzerlandScenario {
 
 		// Add missing activity types to facilities (escort, ...) and remove opening
 		// times from "home"
+		// TODO : SHOULD WE BE ADDING FREIGHT ACTIVITIES HERE?
 		new FixFacilityActivityTypes().run(scenario.getActivityFacilities());
 
 		// Some shop activities are named "shopping" ... change that!
 		new FixShopActivities().apply(scenario.getPopulation());
 
 		// Remove invalid plans (not starting or ending with "home", zero durations)
+		// TODO : THIS CANNOT APPLY TO FREIGHT OR CROSSBORDER TRAFIC! HOW DO WE DEAL WITH THIS?
 		new RemoveInvalidPlans().apply(scenario.getPopulation());
 
 		// DEPATURE TIMES
 
 		// Dilute departure times
+		// TODO : THIS IS IN PLAYGROUNDS. SHOULD IT NOT BE MOVED SOMEWHERE ELSE?
 		new ShiftTimes(1800.0, random, false).apply(scenario.getPopulation());
 
 		// LOCATION CHOICE
