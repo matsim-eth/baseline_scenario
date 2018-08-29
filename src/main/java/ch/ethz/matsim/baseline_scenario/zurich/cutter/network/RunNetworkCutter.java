@@ -39,6 +39,7 @@ public class RunNetworkCutter {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkInputPath);
 
+		// TODO rework this literals
 		Coord bellevue = new Coord(2683253.0, 1246745.0);
 		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), bellevue, 30000.0);
 
