@@ -28,14 +28,6 @@ public class CarTripProcessor implements TripProcessor {
 		Leg leg = (Leg) trip.get(0);
 		NetworkRoute route = (NetworkRoute) leg.getRoute();
 
-		if (firstActivity.getType().equals("work_1") && secondActivity.getType().equals("home_1")) {
-			if (route.getStartLinkId().toString().equals("234839")) {
-				if (route.getEndLinkId().toString().equals("641520")) {
-					System.err.println("HERE");
-				}
-			}
-		}
-
 		return process(route, leg.getDepartureTime(),
 				!extent.isInside(firstActivity.getCoord()) && !extent.isInside(secondActivity.getCoord()));
 	}
