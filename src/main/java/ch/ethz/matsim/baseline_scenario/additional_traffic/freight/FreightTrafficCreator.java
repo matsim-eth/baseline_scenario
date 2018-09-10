@@ -21,7 +21,6 @@
 
 package ch.ethz.matsim.baseline_scenario.additional_traffic.freight;
 
-import ch.ethz.matsim.baseline_scenario.additional_traffic.AdditionalTrafficType;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.FreightTrafficODItem;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.DepartureTimeGenerator;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.FreightFacilitySelector;

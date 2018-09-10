@@ -1,12 +1,10 @@
 package ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils;
 
-import ch.ethz.matsim.baseline_scenario.additional_traffic.AdditionalTrafficType;
 import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.ZoneItem;
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.facilities.*;
 
-import javax.swing.text.html.Option;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
