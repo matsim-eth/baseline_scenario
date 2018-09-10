@@ -97,6 +97,12 @@ public class MakeSwitzerlandScenario {
 		new VehicleReaderV1(scenario.getTransitVehicles())
 				.readFile(new File(inputPath, "transit_vehicles.xml.gz").getPath());
 
+		// Valid start and end activities
+		Set<String> validFirstActivityTypes = new HashSet<>();
+		Set<String> validLastActivityTypes = new HashSet<>();
+		validFirstActivityTypes.add("home");
+		validLastActivityTypes.add("home");
+
 		inputFilesCollector.add("population.xml.gz");
 		inputFilesCollector.add("population_attributes.xml.gz");
 		inputFilesCollector.add("facilities.xml.gz");
@@ -111,6 +117,10 @@ public class MakeSwitzerlandScenario {
 
 		// ADD FREIGHT TRAFFIC
 		if (baselineConfig.includeFreight) {
+
+			validFirstActivityTypes.add("freight");
+			validLastActivityTypes.add("freight");
+
 			Random freightRandom = new Random(baselineConfig.freightConfig.randomSeed);
 			DepartureTimeGenerator freightDepartureTimeGenerator = new DepartureTimeGenerator(freightRandom,
 					(new CumulativeDepartureProbabilityReader()
@@ -168,15 +178,13 @@ public class MakeSwitzerlandScenario {
 
 		// Add missing activity types to facilities (escort, ...) and remove opening
 		// times from "home"
-		// TODO : SHOULD WE BE ADDING FREIGHT ACTIVITIES HERE?
 		new FixFacilityActivityTypes().run(scenario.getActivityFacilities());
 
 		// Some shop activities are named "shopping" ... change that!
 		new FixShopActivities().apply(scenario.getPopulation());
 
-		// Remove invalid plans (not starting or ending with "home", zero durations)
-		// TODO : THIS CANNOT APPLY TO FREIGHT OR CROSSBORDER TRAFIC! HOW DO WE DEAL WITH THIS?
-		new RemoveInvalidPlans().apply(scenario.getPopulation());
+		// Remove invalid plans (not starting or ending with "home", zero/negative durations)
+		new RemoveInvalidPlans(validFirstActivityTypes, validLastActivityTypes).apply(scenario.getPopulation());
 
 		// DEPATURE TIMES
 

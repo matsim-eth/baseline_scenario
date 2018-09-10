@@ -11,7 +11,7 @@ import org.matsim.facilities.ActivityFacility;
 public class SingleFreightTripUtils {
     public static Person createSingleTripAgent(Id id, String freight_type, Plan plan) {
         Person person = PopulationUtils.getFactory().createPerson(Id.create(id, Person.class));
-        person.getAttributes().putAttribute( "subpopulation", AdditionalTrafficType.FREIGHT.toString());
+        person.getAttributes().putAttribute( "subpopulation", "freight");
         person.getAttributes().putAttribute( "freight_type", freight_type);
         person.addPlan(plan);
         return person;

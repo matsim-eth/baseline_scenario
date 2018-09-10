@@ -76,7 +76,7 @@ public class FreightTrafficCreator {
 
         for (FreightTrafficODItem freightTrafficODItem : freightTrafficODItems) {
             for (int i = 0; i < roundNumberOfTrips(freightTrafficODItem.getNumberOfTrips()); i++) {
-                Id<Person> personId = Id.createPersonId(AdditionalTrafficType.FREIGHT.toString() + "_" + Integer.toString(++personIndex));
+                Id<Person> personId = Id.createPersonId("freight" + "_" + Integer.toString(++personIndex));
                 Optional<ActivityFacility> startFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getOriginZone());
                 Optional<ActivityFacility> endFacility = freightFacilitySelector.getFreightFacility(freightTrafficODItem.getDestinationZone());
 
@@ -87,7 +87,7 @@ public class FreightTrafficCreator {
                 }
 
                 double departureTime = departureTimeGenerator.getDepartureTime();
-                Plan plan = SingleFreightTripUtils.createSingleTripPlan(departureTime, AdditionalTrafficType.FREIGHT.toString(),
+                Plan plan = SingleFreightTripUtils.createSingleTripPlan(departureTime, "freight",
                         TransportMode.car, startFacility.get(), endFacility.get());
                 Person person = SingleFreightTripUtils.createSingleTripAgent(personId, freightTrafficODItem.getFreightType(), plan);
 

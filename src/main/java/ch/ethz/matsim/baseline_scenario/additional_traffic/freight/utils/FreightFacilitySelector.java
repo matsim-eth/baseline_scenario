@@ -39,15 +39,15 @@ public class FreightFacilitySelector {
                     .findFirst();
         }
 
-        Id<ActivityFacility> facilityId = Id.create(AdditionalTrafficType.FREIGHT.toString()
-                + "_" + (int)facility.get().getCoord().getX() + "_" + (int)facility.get().getCoord().getY(), ActivityFacility.class);
+        Id<ActivityFacility> facilityId = Id.create("freight" + "_" +
+                (int)facility.get().getCoord().getX() + "_" + (int)facility.get().getCoord().getY(), ActivityFacility.class);
         ActivityFacility freightFacility = activityFacilitiesFactory.createActivityFacility(facilityId,
                 facility.get().getCoord(), facility.get().getLinkId());
 
         // add freight activity to facility
-        freightFacility.addActivityOption(new ActivityOptionImpl(AdditionalTrafficType.FREIGHT.toString()));
+        freightFacility.addActivityOption(new ActivityOptionImpl("freight"));
         OpeningTime openingTime = new OpeningTimeImpl(0.0 * 3600.0, 24.0 * 3600.0);
-        freightFacility.getActivityOptions().get(AdditionalTrafficType.FREIGHT.toString()).addOpeningTime(openingTime);
+        freightFacility.getActivityOptions().get("freight").addOpeningTime(openingTime);
 
         return Optional.of(freightFacility);
     }
