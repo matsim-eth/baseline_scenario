@@ -122,8 +122,8 @@ public class MakeZurichScenario {
 		baselineFilesCollector.add(baselineConfig.prefix + "input.md5");
 		baselineFilesCollector.add(baselineConfig.prefix + "output.md5");
 
-		Coord bellevue = new Coord(2683253.0, 1246745.0);
-		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), bellevue, 30000.0);
+		Coord bellevue = new Coord(scenarioConfig.centerX, scenarioConfig.centerY);
+		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), bellevue, scenarioConfig.radius);
 
 		StageActivityTypes stageActivityTypes = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
 		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();
