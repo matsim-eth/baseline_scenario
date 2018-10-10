@@ -23,12 +23,19 @@ public class Downsample {
 	public void run(Population population) {
 		Iterator<? extends Person> personIterator = population.getPersons().values().iterator();
 
+		long numberOfPersons = population.getPersons().size();
+		long numberOfProcessedPersons = 0;
+
 		while (personIterator.hasNext()) {
 			personIterator.next();
 
 			if (random.nextDouble() >= probability) {
 				personIterator.remove();
 			}
+
+			numberOfProcessedPersons++;
+			System.out.println(String.format("Downsampling ... %d/%d (%.2f%%)", numberOfProcessedPersons,
+					numberOfPersons, 100.0 * numberOfProcessedPersons / numberOfPersons));
 		}
 	}
 
