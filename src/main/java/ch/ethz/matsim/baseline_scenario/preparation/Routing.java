@@ -1,6 +1,7 @@
 package ch.ethz.matsim.baseline_scenario.preparation;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -134,9 +135,10 @@ public class Routing {
 		TeleportationRoutingModule ptRoutingModule = new TeleportationRoutingModule("pt", populationFactory,
 				ptParams.getTeleportedModeSpeed(), ptParams.getBeelineDistanceFactor());
 		tripRouterBuilder.putRoutingModule("pt", new RoutingModuleProvider(ptRoutingModule));
-
-		TripRouter.Builder.class.getMethod("builder").setAccessible(true);
-		return (TripRouter) TripRouter.Builder.class.getMethod("builder").invoke(tripRouterBuilder);
+		
+		Method method = TripRouter.Builder.class.getDeclaredMethod("builder");
+		method.setAccessible(true);
+		return (TripRouter) method.invoke(tripRouterBuilder);
 	}
 
 	static public class RoutingModuleProvider implements Provider<RoutingModule> {
