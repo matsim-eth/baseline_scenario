@@ -17,8 +17,10 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.ModeRoutingParams;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
+import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.population.algorithms.XY2Links;
+import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.MainModeIdentifier;
@@ -41,10 +43,15 @@ public class Routing {
 	static public void main(String[] args) throws SecurityException, NoSuchMethodException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, InterruptedException {
 		String configPath = args[0];
-		String outputPath = args[1];
+		String networkPath = args[1];
+		String inputPopulationPath = args[2];
+		String outputPopulationPath = args[3];
 
 		Config config = ConfigUtils.loadConfig(configPath);
-		Scenario scenario = ScenarioUtils.loadScenario(config);
+		Scenario scenario = ScenarioUtils.createScenario(config);
+
+		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkPath);
+		new PopulationReader(scenario).readFile(inputPopulationPath);
 
 		Network carNetwork = NetworkUtils.createNetwork();
 		new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton("car"));
@@ -69,7 +76,7 @@ public class Routing {
 			thread.join();
 		}
 
-		new PopulationWriter(scenario.getPopulation()).write(outputPath);
+		new PopulationWriter(scenario.getPopulation()).write(outputPopulationPath);
 	}
 
 	static public class RoutingRunner implements Runnable {
