@@ -1,13 +1,26 @@
 package ch.ethz.matsim.baseline_scenario;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-
+import ch.ethz.ivt.matsim.playgrounds.sebhoerl.locations.RunParallelSampler;
+import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.Downsample;
+import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.ShiftTimes;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.FreightTrafficCreator;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.FreightTrafficODItem;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.items.ZoneItem;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.BorderFacilityReader;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.CumulativeDepartureProbabilityReader;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.FreightTrafficODReader;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.readers.ZoneCentroidReader;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.DepartureTimeGenerator;
+import ch.ethz.matsim.baseline_scenario.additional_traffic.freight.utils.FreightFacilitySelector;
+import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
+import ch.ethz.matsim.baseline_scenario.analysis.counts.utils.compatibility.DeprecatedDailyReferenceCountsReader;
+import ch.ethz.matsim.baseline_scenario.config.SwitzerlandConfig;
+import ch.ethz.matsim.baseline_scenario.utils.*;
+import ch.ethz.matsim.baseline_scenario.utils.consistency.MD5Collector;
+import ch.ethz.matsim.baseline_scenario.utils.counts.TrafficCountPlanSelector;
+import ch.ethz.matsim.baseline_scenario.utils.routing.BestResponseCarRouting;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -26,6 +39,7 @@ import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.facilities.ActivityFacility;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.households.HouseholdsReaderV10;
@@ -38,30 +52,8 @@ import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 import org.matsim.vehicles.VehicleReaderV1;
 import org.matsim.vehicles.VehicleWriterV1;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
-import ch.ethz.ivt.matsim.playgrounds.sebhoerl.locations.RunParallelSampler;
-import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.Downsample;
-import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.ShiftTimes;
-import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
-import ch.ethz.matsim.baseline_scenario.analysis.counts.utils.compatibility.DeprecatedDailyReferenceCountsReader;
-import ch.ethz.matsim.baseline_scenario.config.SwitzerlandConfig;
-import ch.ethz.matsim.baseline_scenario.utils.AdaptConfig;
-import ch.ethz.matsim.baseline_scenario.utils.AttributeCleaner;
-import ch.ethz.matsim.baseline_scenario.utils.FixFacilityActivityTypes;
-import ch.ethz.matsim.baseline_scenario.utils.FixLinkIds;
-import ch.ethz.matsim.baseline_scenario.utils.FixShopActivities;
-import ch.ethz.matsim.baseline_scenario.utils.HomeFacilitiesCleaner;
-import ch.ethz.matsim.baseline_scenario.utils.HouseholdAttributeCleaner;
-import ch.ethz.matsim.baseline_scenario.utils.HouseholdsCleaner;
-import ch.ethz.matsim.baseline_scenario.utils.MergeSecondaryFacilities;
-import ch.ethz.matsim.baseline_scenario.utils.RemoveInvalidPlans;
-import ch.ethz.matsim.baseline_scenario.utils.TypicalDurationForActivityTypes;
-import ch.ethz.matsim.baseline_scenario.utils.UnselectedPlanRemoval;
-import ch.ethz.matsim.baseline_scenario.utils.consistency.MD5Collector;
-import ch.ethz.matsim.baseline_scenario.utils.counts.TrafficCountPlanSelector;
-import ch.ethz.matsim.baseline_scenario.utils.routing.BestResponseCarRouting;
+import java.io.File;
+import java.util.*;
 
 public class MakeSwitzerlandScenario {
 	static public void main(String args[]) throws Exception {
@@ -105,6 +97,12 @@ public class MakeSwitzerlandScenario {
 		new VehicleReaderV1(scenario.getTransitVehicles())
 				.readFile(new File(inputPath, "transit_vehicles.xml.gz").getPath());
 
+		// Valid start and end activities
+		Set<String> validFirstActivityTypes = new HashSet<>();
+		Set<String> validLastActivityTypes = new HashSet<>();
+		validFirstActivityTypes.add("home");
+		validLastActivityTypes.add("home");
+
 		inputFilesCollector.add("population.xml.gz");
 		inputFilesCollector.add("population_attributes.xml.gz");
 		inputFilesCollector.add("facilities.xml.gz");
@@ -114,6 +112,35 @@ public class MakeSwitzerlandScenario {
 		inputFilesCollector.add("household_attributes.xml.gz");
 		inputFilesCollector.add("transit_schedule.xml.gz");
 		inputFilesCollector.add("transit_vehicles.xml.gz");
+
+		// TODO : collect freight input files!
+
+		// ADD FREIGHT TRAFFIC
+		if (baselineConfig.includeFreight) {
+
+			validFirstActivityTypes.add("freight");
+			validLastActivityTypes.add("freight");
+
+			Random freightRandom = new Random(baselineConfig.freightConfig.randomSeed);
+			DepartureTimeGenerator freightDepartureTimeGenerator = new DepartureTimeGenerator(freightRandom,
+					(new CumulativeDepartureProbabilityReader()
+							.read(new File(baselineConfig.freightConfig.cumulativeDepartureProbabilityPath).getPath())));
+			Map<Integer, ZoneItem> zone2facilities = new HashMap<>();
+			zone2facilities.putAll(new ZoneCentroidReader(scenario.getActivityFacilities())
+					.read(new File(baselineConfig.freightConfig.zoneCentroidsPath).getPath()));
+			zone2facilities.putAll(new BorderFacilityReader(scenario.getActivityFacilities())
+					.read(new File(baselineConfig.freightConfig.borderFacilitiesPath).getPath()));
+			FreightFacilitySelector freightFacilitySelector = new FreightFacilitySelector(zone2facilities, freightRandom);
+
+			FreightTrafficODReader freightTrafficODReader = new FreightTrafficODReader();
+			List<FreightTrafficODItem> freightTrafficODItems = new LinkedList<>();
+			for (String freightType : baselineConfig.freightConfig.freightVehiclesPaths.keySet()) {
+				freightTrafficODItems.addAll(freightTrafficODReader
+						.read(freightType, new File(baselineConfig.freightConfig.freightVehiclesPaths.get(freightType)).getPath()));
+			}
+			new FreightTrafficCreator(freightTrafficODItems, freightFacilitySelector, freightDepartureTimeGenerator, freightRandom)
+					.run(scenario.getPopulation(), scenario.getActivityFacilities());
+		}
 
 		// Debug: Scale down for testing purposes already in the beginning (or for 25%
 		// scenario)
@@ -156,12 +183,13 @@ public class MakeSwitzerlandScenario {
 		// Some shop activities are named "shopping" ... change that!
 		new FixShopActivities().apply(scenario.getPopulation());
 
-		// Remove invalid plans (not starting or ending with "home", zero durations)
-		new RemoveInvalidPlans().apply(scenario.getPopulation());
+		// Remove invalid plans (not starting or ending with "home", zero/negative durations)
+		new RemoveInvalidPlans(validFirstActivityTypes, validLastActivityTypes).apply(scenario.getPopulation());
 
 		// DEPATURE TIMES
 
 		// Dilute departure times
+		// TODO : THIS IS IN PLAYGROUNDS. SHOULD IT NOT BE MOVED SOMEWHERE ELSE?
 		new ShiftTimes(1800.0, random, false).apply(scenario.getPopulation());
 
 		// LOCATION CHOICE

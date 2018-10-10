@@ -1,16 +1,15 @@
 package ch.ethz.matsim.baseline_scenario;
 
-import org.matsim.api.core.v01.Scenario;
-import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.controler.Controler;
-import org.matsim.core.scenario.ScenarioUtils;
-
 import ch.ethz.matsim.baseline_scenario.config.CommandLine;
 import ch.ethz.matsim.baseline_scenario.config.CommandLine.ConfigurationException;
 import ch.ethz.matsim.baseline_scenario.transit.BaselineTransitModule;
 import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRoute;
 import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRouteFactory;
+import org.matsim.api.core.v01.Scenario;
+import org.matsim.core.config.Config;
+import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.controler.Controler;
+import org.matsim.core.scenario.ScenarioUtils;
 
 public class RunSwitzerlandScenario {
 	static public void main(String[] args) throws ConfigurationException {

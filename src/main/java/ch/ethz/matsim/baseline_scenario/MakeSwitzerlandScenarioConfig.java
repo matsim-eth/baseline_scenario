@@ -1,14 +1,13 @@
 package ch.ethz.matsim.baseline_scenario;
 
-import java.io.File;
-import java.io.IOException;
-
+import ch.ethz.matsim.baseline_scenario.config.SwitzerlandConfig;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import ch.ethz.matsim.baseline_scenario.config.SwitzerlandConfig;
+import java.io.File;
+import java.io.IOException;
 
 public class MakeSwitzerlandScenarioConfig {
 	static public void main(String[] args) throws JsonGenerationException, JsonMappingException, IOException {
