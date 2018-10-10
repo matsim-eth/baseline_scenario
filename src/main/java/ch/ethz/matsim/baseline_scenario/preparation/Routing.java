@@ -135,8 +135,8 @@ public class Routing {
 				ptParams.getTeleportedModeSpeed(), ptParams.getBeelineDistanceFactor());
 		tripRouterBuilder.putRoutingModule("pt", new RoutingModuleProvider(ptRoutingModule));
 
-		TripRouter.class.getMethod("build").setAccessible(true);
-		return (TripRouter) TripRouter.class.getMethod("build").invoke(tripRouterBuilder);
+		TripRouter.Builder.class.getMethod("build").setAccessible(true);
+		return (TripRouter) TripRouter.Builder.class.getMethod("build").invoke(tripRouterBuilder);
 	}
 
 	static public class RoutingModuleProvider implements Provider<RoutingModule> {
