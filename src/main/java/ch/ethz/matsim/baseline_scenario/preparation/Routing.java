@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
@@ -17,6 +18,7 @@ import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.ModeRoutingParams
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.population.PopulationUtils;
+import org.matsim.core.population.algorithms.PersonPrepareForSim;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.MainModeIdentifier;
@@ -48,12 +50,15 @@ public class Routing {
 		new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton("car"));
 
 		Iterator<? extends Person> personIterator = scenario.getPopulation().getPersons().values().iterator();
+		AtomicLong numberOfProcessedPersons = new AtomicLong(0);
+		long numberOfPersons = scenario.getPopulation().getPersons().size();
 
 		int numberOfThreads = config.global().getNumberOfThreads();
 		List<Thread> threads = new LinkedList<>();
 
 		for (int i = 0; i < numberOfThreads; i++) {
-			threads.add(new Thread(new RoutingRunner(config, carNetwork, personIterator)));
+			threads.add(new Thread(new RoutingRunner(config, scenario, carNetwork, personIterator,
+					numberOfProcessedPersons, numberOfPersons)));
 		}
 
 		for (Thread thread : threads) {
@@ -70,18 +75,26 @@ public class Routing {
 	static public class RoutingRunner implements Runnable {
 		private final Config config;
 		private final Network carNetwork;
+		private final Scenario scenario;
 		private final Iterator<? extends Person> personIterator;
+		private final AtomicLong numberOfProcessedPersons;
+		private final long numberOfPersons;
 
-		public RoutingRunner(Config config, Network carNetwork, Iterator<? extends Person> personIterator) {
+		public RoutingRunner(Config config, Scenario scenario, Network carNetwork,
+				Iterator<? extends Person> personIterator, AtomicLong numberOfProcessedPersons, long numberOfPersons) {
 			this.config = config;
+			this.scenario = scenario;
 			this.carNetwork = carNetwork;
 			this.personIterator = personIterator;
+			this.numberOfProcessedPersons = numberOfProcessedPersons;
+			this.numberOfPersons = numberOfPersons;
 		}
 
 		@Override
 		public void run() {
 			try {
 				PlanRouter planRouter = new PlanRouter(createRouter(config, carNetwork));
+				PersonPrepareForSim algorithm = new PersonPrepareForSim(planRouter, scenario);
 
 				while (true) {
 					Person person = null;
@@ -94,7 +107,11 @@ public class Routing {
 						}
 					}
 
-					planRouter.run(person);
+					algorithm.run(person);
+
+					long processed = numberOfProcessedPersons.incrementAndGet();
+					System.out.println(String.format("Routing... %d / %d (%.2f%%)", processed, numberOfPersons,
+							100.0 * processed / numberOfPersons));
 				}
 
 			} catch (SecurityException | NoSuchMethodException | IllegalAccessException | IllegalArgumentException
@@ -135,7 +152,7 @@ public class Routing {
 		TeleportationRoutingModule ptRoutingModule = new TeleportationRoutingModule("pt", populationFactory,
 				ptParams.getTeleportedModeSpeed(), ptParams.getBeelineDistanceFactor());
 		tripRouterBuilder.putRoutingModule("pt", new RoutingModuleProvider(ptRoutingModule));
-		
+
 		Method method = TripRouter.Builder.class.getDeclaredMethod("builder");
 		method.setAccessible(true);
 		return (TripRouter) method.invoke(tripRouterBuilder);
