@@ -44,8 +44,7 @@ public class BaselineTransitRoutingModule implements RoutingModule {
 			if (leg.getMode().equals("pt")) {
 				EnrichedTransitRoute route = (EnrichedTransitRoute) leg.getRoute();
 
-				currentFacility = transitSchedule.getTransitLines().get(route.getTransitLineId()).getRoutes()
-						.get(route.getTransitRouteId()).getStops().get(route.getEgressStopIndex()).getStopFacility();
+				currentFacility = transitSchedule.getFacilities().get(route.getEgressStopId());
 			}
 		}
 

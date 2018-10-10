@@ -5,6 +5,7 @@ import org.matsim.api.core.v01.population.Route;
 import org.matsim.pt.transitSchedule.api.Departure;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public interface EnrichedTransitRoute extends Route {
 	double getInVehicleTime();
@@ -20,4 +21,8 @@ public interface EnrichedTransitRoute extends Route {
 	int getAccessStopIndex();
 
 	int getEgressStopIndex();
+
+	Id<TransitStopFacility> getAccessStopId();
+
+	Id<TransitStopFacility> getEgressStopId();
 }

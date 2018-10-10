@@ -12,6 +12,7 @@ import org.matsim.pt.transitSchedule.api.TransitRoute;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class DefaultEnrichedTransitRoute extends AbstractRoute implements EnrichedTransitRoute {
 	final public static String ROUTE_TYPE = "enriched_pt";
@@ -23,8 +24,9 @@ public class DefaultEnrichedTransitRoute extends AbstractRoute implements Enrich
 	}
 
 	public DefaultEnrichedTransitRoute(final Id<Link> startLinkId, final Id<Link> endLinkId, double distance,
-			double inVehicleTime, double transferTime, int accessStopIndex, int egressStopIndex,
-			Id<TransitLine> transitLineId, Id<TransitRoute> transitRouteId, Id<Departure> departureId) {
+									   double inVehicleTime, double transferTime, int accessStopIndex, int egressStopIndex,
+									   Id<TransitLine> transitLineId, Id<TransitRoute> transitRouteId, Id<Departure> departureId,
+									   Id<TransitStopFacility> accessStopId, Id<TransitStopFacility> egressStopId) {
 		super(startLinkId, endLinkId);
 
 		setDistance(distance);
@@ -38,6 +40,18 @@ public class DefaultEnrichedTransitRoute extends AbstractRoute implements Enrich
 		routeDescription.transitLineId = transitLineId;
 		routeDescription.transitRouteId = transitRouteId;
 		routeDescription.departureId = departureId;
+		routeDescription.accessStopId = accessStopId;
+		routeDescription.egressStopId = egressStopId;
+	}
+
+	@Override
+	public Id<TransitStopFacility> getAccessStopId()	{
+		return routeDescription.accessStopId;
+	}
+
+	@Override
+	public Id<TransitStopFacility> getEgressStopId()	{
+		return routeDescription.egressStopId;
 	}
 
 	@Override
@@ -102,7 +116,7 @@ public class DefaultEnrichedTransitRoute extends AbstractRoute implements Enrich
 	public DefaultEnrichedTransitRoute clone() {
 		return new DefaultEnrichedTransitRoute(getStartLinkId(), getEndLinkId(), getDistance(), getInVehicleTime(),
 				getWaitingTime(), getAccessStopIndex(), getEgressStopIndex(), getTransitLineId(), getTransitRouteId(),
-				getDepartureId());
+				getDepartureId(), getAccessStopId(), getEgressStopId());
 	}
 
 	public static class RouteDescription {
@@ -115,6 +129,9 @@ public class DefaultEnrichedTransitRoute extends AbstractRoute implements Enrich
 		public Id<TransitLine> transitLineId;
 		public Id<TransitRoute> transitRouteId;
 		public Id<Departure> departureId;
+
+		public Id<TransitStopFacility> accessStopId;
+		public Id<TransitStopFacility> egressStopId;
 
 		@JsonProperty("transitLineId")
 		public String getTransitLineId() {
@@ -144,6 +161,26 @@ public class DefaultEnrichedTransitRoute extends AbstractRoute implements Enrich
 		@JsonProperty("departureId")
 		public void setDepartureId(String departureId) {
 			this.departureId = Id.create(departureId, Departure.class);
+		}
+
+		@JsonProperty("accessStopId")
+		public void setAccessStopId(String id) {
+			accessStopId = Id.create(id, TransitStopFacility.class);
+		}
+
+		@JsonProperty("egressStopId")
+		public void setEgressStopId(String id) {
+			egressStopId = Id.create(id, TransitStopFacility.class);
+		}
+
+		@JsonProperty("accessStopId")
+		public String getAccessStopId() {
+			return accessStopId.toString();
+		}
+
+		@JsonProperty("egressStopId")
+		public String getEgressStopId() {
+			return egressStopId.toString();
 		}
 	}
 }

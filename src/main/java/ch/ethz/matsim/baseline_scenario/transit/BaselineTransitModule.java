@@ -3,6 +3,8 @@ package ch.ethz.matsim.baseline_scenario.transit;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import ch.ethz.matsim.baseline_scenario.population.PPopulationPlugin;
+import ch.sbb.matsim.mobsim.qsim.pt.SBBTransitEnginePlugin;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.config.Config;
@@ -75,9 +77,9 @@ public class BaselineTransitModule extends AbstractModule {
 			plugins.add(new NetworkChangeEventsPlugin(config));
 		}
 
-		plugins.add(new BaselineTransitPlugin(config));
+		plugins.add(new SBBTransitEnginePlugin(config));
 		plugins.add(new TeleportationPlugin(config));
-		plugins.add(new PopulationPlugin(config));
+		plugins.add(new PPopulationPlugin(config));
 
 		return plugins;
 	}

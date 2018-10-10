@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ch.ethz.matsim</groupId>
 	<artifactId>baseline_scenario</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1-minibus</version>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
@@ -92,17 +92,16 @@
 			<version>0.10.0-nov17</version>
 		</dependency>
 
-		<!-- TODO: Remove this dependency, and drag routing stuff in from astra -->
-		<dependency>
-			<groupId>ch.ethz.matsim</groupId>
-			<artifactId>mode_choice</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-
 		<dependency>
 			<groupId>ch.sbb</groupId>
 			<artifactId>matsim-sbb-extension</artifactId>
-			<version>0.10.0-nov17-SNAPSHOT</version>
+			<version>0.10.0-nov17-minibus</version>
+		</dependency>
+
+		<dependency>
+			<groupId>ch.ethz.matsim</groupId>
+			<artifactId>mode_choice</artifactId>
+			<version>0.0.1-v2-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>

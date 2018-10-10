@@ -58,7 +58,7 @@ public class TestDefaultTransitRouteCrossingPointFinder {
 	}
 
 	final private static EnrichedTransitRoute routeMock = new DefaultEnrichedTransitRoute(null, null, 0.0, 0.0, 0.0, 3,
-			6, transitLine.getId(), transitRoute.getId(), departure.getId());
+			6, transitLine.getId(), transitRoute.getId(), departure.getId(), null, null);
 
 	static ScenarioExtent createExtentMock(double... inside) {
 		List<Double> _inside = new LinkedList<>();
