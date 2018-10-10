@@ -18,7 +18,7 @@ import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.ModeRoutingParams
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.population.PopulationUtils;
-import org.matsim.core.population.algorithms.PersonPrepareForSim;
+import org.matsim.core.population.algorithms.XY2Links;
 import org.matsim.core.population.io.PopulationWriter;
 import org.matsim.core.router.DijkstraFactory;
 import org.matsim.core.router.MainModeIdentifier;
@@ -94,7 +94,7 @@ public class Routing {
 		public void run() {
 			try {
 				PlanRouter planRouter = new PlanRouter(createRouter(config, carNetwork));
-				PersonPrepareForSim algorithm = new PersonPrepareForSim(planRouter, scenario);
+				XY2Links xy = new XY2Links(carNetwork, null);
 
 				while (true) {
 					Person person = null;
@@ -107,7 +107,8 @@ public class Routing {
 						}
 					}
 
-					algorithm.run(person);
+					xy.run(person);
+					planRouter.run(person);
 
 					long processed = numberOfProcessedPersons.incrementAndGet();
 					System.out.println(String.format("Routing... %d / %d (%.2f%%)", processed, numberOfPersons,
