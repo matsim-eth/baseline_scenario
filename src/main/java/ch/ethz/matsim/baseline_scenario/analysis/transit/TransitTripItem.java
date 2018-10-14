@@ -10,9 +10,9 @@ public class TransitTripItem {
 
 	public Coord origin = null;
 	public Coord destination = null;
-	public double crowflyDistance;
 
 	public double startTime = 0.0;
+	public double totTripTime = 0.0;
 
 	public double inVehicleTime = 0.0;
 	public double waitingTime = 0.0;
@@ -21,31 +21,21 @@ public class TransitTripItem {
 	public double inVehicleDistance = 0.0;
 	public double inVehicleCrowflyDistance = 0.0;
 
+	public double accessDistance = 0.0;
+	public double egressDistance = 0.0;
+
 	public double transferDistance = 0.0;
-	public double transferCrowflyDistance = 0.0;
 
 	public int numberOfTransfers = -1;
 
 	public double firstWaitingTime = Double.NaN;
 
-	public TransitTripItem() {
-	}
+	public boolean fullMinibusTrip = true;
+	public boolean partMinibusTrip = false;
 
-	public TransitTripItem(Id<Person> personId, int personTripId, Coord origin, Coord destination, double startTime,
-			double inVehicleTime, double waitingTime, double inVehicleDistance, double inVehicleCrowflyDistance,
-			double transferDistance, double transferCrowflyDistance, int numberOfTransfers, double firstWaitingTime) {
-		this.personId = personId;
-		this.personTripId = personTripId;
-		this.origin = origin;
-		this.destination = destination;
-		this.startTime = startTime;
-		this.inVehicleTime = inVehicleTime;
-		this.waitingTime = waitingTime;
-		this.inVehicleDistance = inVehicleDistance;
-		this.inVehicleCrowflyDistance = inVehicleCrowflyDistance;
-		this.transferDistance = transferDistance;
-		this.transferCrowflyDistance = transferCrowflyDistance;
-		this.numberOfTransfers = numberOfTransfers;
-		this.firstWaitingTime = firstWaitingTime;
+	public boolean fullRefTrip = true;
+	public boolean partRefTrip = false;
+
+	public TransitTripItem() {
 	}
 }

@@ -36,20 +36,19 @@ public class CSVTransitTripWriter {
 
 	private String formatHeader() {
 		return String.join(delimiter,
-				new String[] { "person_id", "person_trip_id", "origin_x", "origin_y", "destination_x", "destination_y",
-						"start_time", "in_vehicle_time", "waiting_time", "transfer_time", "in_vehicle_distance",
-						"in_vehicle_crowfly_distance", "transfer_distance", "transfer_crowfly_distance",
-						"number_of_transfers", "crowfly_distance", "first_waiting_time" });
+				new String[] { "person_id", "person_trip_id", "start_time", "trip_time", "first_waiting_time",
+						"waiting_time", "in_vehicle_time", "in_vehicle_distance", "in_vehicle_crowfly_distance",
+						"transfer_time", "transfer_distance", "number_of_transfers", "access_distance",
+						"egress_distance", "fullMinibusTrip", "partMinibusTrip", "fullRefTrip", "partRefTrip"	});
 	}
 
 	private String formatTrip(TransitTripItem trip) {
 		return String.join(delimiter, new String[] { trip.personId.toString(), String.valueOf(trip.personTripId),
-				String.valueOf(trip.origin.getX()), String.valueOf(trip.origin.getY()),
-				String.valueOf(trip.destination.getX()), String.valueOf(trip.destination.getY()),
-				String.valueOf(trip.startTime), String.valueOf(trip.inVehicleTime), String.valueOf(trip.waitingTime),
-				String.valueOf(trip.transferTime), String.valueOf(trip.inVehicleDistance),
-				String.valueOf(trip.inVehicleCrowflyDistance), String.valueOf(trip.transferDistance),
-				String.valueOf(trip.transferCrowflyDistance), String.valueOf(trip.numberOfTransfers),
-				String.valueOf(trip.crowflyDistance), String.valueOf(trip.firstWaitingTime) });
+				String.valueOf(trip.startTime), String.valueOf(trip.totTripTime), String.valueOf(trip.firstWaitingTime),
+				String.valueOf(trip.waitingTime),
+				String.valueOf(trip.inVehicleTime), String.valueOf(trip.inVehicleDistance), String.valueOf(trip.inVehicleCrowflyDistance),
+				String.valueOf(trip.transferTime), String.valueOf(trip.transferDistance), String.valueOf(trip.numberOfTransfers),
+				String.valueOf(trip.accessDistance), String.valueOf(trip.egressDistance), String.valueOf(trip.fullMinibusTrip),
+				String.valueOf(trip.partMinibusTrip), String.valueOf(trip.fullRefTrip), String.valueOf(trip.partRefTrip)	});
 	}
 }

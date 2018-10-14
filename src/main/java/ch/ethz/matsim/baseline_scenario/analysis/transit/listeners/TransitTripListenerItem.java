@@ -6,7 +6,8 @@ import ch.ethz.matsim.baseline_scenario.analysis.transit.TransitTripItem;
 
 public class TransitTripListenerItem extends TransitTripItem {
 	public String mode = "unknown";
-	public Coord intermediateOrigin;
 	public double legDepartureTime;
+	public Coord accessStopCoords;
+	public double vehDepartureTime;
 	public boolean waitingForFirstTransitEvent = true;
 }

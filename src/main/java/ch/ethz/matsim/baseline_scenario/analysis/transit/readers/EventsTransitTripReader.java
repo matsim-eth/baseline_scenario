@@ -23,7 +23,7 @@ public class EventsTransitTripReader {
 		eventsManager.addHandler(tripListener);
 
 		EventsReaderXMLv1 reader = new EventsReaderXMLv1(eventsManager);
-		reader.addCustomEventMapper(PublicTransitEvent.TYPE, new PublicTransitEventMapper());
+		//reader.addCustomEventMapper(PublicTransitEvent.TYPE, new PublicTransitEventMapper());
 		reader.readFile(eventsPath);
 
 		return tripListener.getTransitTripItems();
