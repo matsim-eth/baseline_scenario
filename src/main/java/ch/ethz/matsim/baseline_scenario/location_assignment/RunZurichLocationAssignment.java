@@ -4,9 +4,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -41,9 +43,9 @@ public class RunZurichLocationAssignment {
 		String distributionsPath = args[3];
 		String outputPath = args[4];
 		String statisticsOutputPath = args[5];
+		int numberOfThreads = Integer.parseInt(args[6]);
 
-		Set<String> relevantActivityTypes = new HashSet<>(
-				Arrays.asList("leisure", "shop", "service"));
+		Set<String> relevantActivityTypes = new HashSet<>(Arrays.asList("leisure", "shop", "service"));
 
 		Map<String, Double> discretizationThresholds = new HashMap<>();
 		discretizationThresholds.put("car", 200.0);
@@ -97,9 +99,35 @@ public class RunZurichLocationAssignment {
 
 		// loop population
 
-		scenario.getPopulation().getPersons().values().stream().parallel().map(Person::getSelectedPlan)
-				.map(solver::createProblems).flatMap(Collection::stream).map(solver::solveProblem)
-				.map(zurichStatistics::process).forEach(new LocationAssignmentPlanAdapter());
+		Iterator<? extends Person> personIterator = scenario.getPopulation().getPersons().values().iterator();
+		List<Thread> threads = new LinkedList<>();
+
+		for (int i = 0; i < numberOfThreads; i++) {
+			threads.add(new Thread(() -> {
+				while (true) {
+					Person person = null;
+
+					synchronized (personIterator) {
+						if (personIterator.hasNext()) {
+							person = personIterator.next();
+						} else {
+							return;
+						}
+					}
+
+					solver.createProblems(person.getSelectedPlan()).stream().map(solver::solveProblem)
+							.map(zurichStatistics::process).forEach(new LocationAssignmentPlanAdapter());
+				}
+			}));
+		}
+
+		/*
+		 * scenario.getPopulation().getPersons().values().stream().parallel().map(Person
+		 * ::getSelectedPlan)
+		 * .map(solver::createProblems).flatMap(Collection::stream).map(solver::
+		 * solveProblem) .map(zurichStatistics::process).forEach(new
+		 * LocationAssignmentPlanAdapter());
+		 */
 
 		new PopulationWriter(scenario.getPopulation()).write(outputPath);
 		statisticsStream.close();
