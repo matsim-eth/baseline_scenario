@@ -120,6 +120,12 @@ public class RunZurichLocationAssignment {
 				}
 			}));
 		}
+		
+		threads.forEach(Thread::start);
+		
+		for (Thread thread : threads) {
+			thread.join();
+		}
 
 		/*
 		 * scenario.getPopulation().getPersons().values().stream().parallel().map(Person
