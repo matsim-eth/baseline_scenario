@@ -44,6 +44,7 @@ public class RunZurichLocationAssignment {
 		String outputPath = args[4];
 		String statisticsOutputPath = args[5];
 		int numberOfThreads = Integer.parseInt(args[6]);
+		int discretizationIterations = Integer.parseInt(args[7]);
 
 		Set<String> relevantActivityTypes = new HashSet<>(Arrays.asList("leisure", "shop", "service"));
 
@@ -94,6 +95,8 @@ public class RunZurichLocationAssignment {
 		builder.setDiscretizerProvider(zurichProblemProvider);
 		builder.setDistanceSamplerProvider(zurichProblemProvider);
 		builder.setDiscretizationThresholdProvider(zurichProblemProvider);
+		
+		builder.setMaximumDiscretizationIterations(discretizationIterations);
 
 		MATSimAssignmentSolver solver = builder.build();
 
