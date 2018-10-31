@@ -85,15 +85,15 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>ch.ethz.matsim</groupId>
-			<artifactId>location_assignment</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
 			<version>0.10.1</version>
+		</dependency>
+	
+		<dependency>
+			<groupId>ch.ethz.matsim</groupId>
+			<artifactId>location_assignment</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>

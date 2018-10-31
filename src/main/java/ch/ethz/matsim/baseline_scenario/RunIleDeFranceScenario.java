@@ -11,6 +11,7 @@ import ch.ethz.matsim.baseline_scenario.config.CommandLine.ConfigurationExceptio
 import ch.ethz.matsim.baseline_scenario.transit.BaselineTransitModule;
 import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRoute;
 import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRouteFactory;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 
 public class RunIleDeFranceScenario {
 	static public void main(String[] args) throws ConfigurationException {
@@ -27,6 +28,7 @@ public class RunIleDeFranceScenario {
 		Controler controler = new Controler(scenario);
 
 		// controler.addOverridingModule(new BaselineModule());
+		controler.addOverridingModule(new SwissRailRaptorModule());
 		controler.addOverridingModule(new BaselineTransitModule());
 
 		controler.run();

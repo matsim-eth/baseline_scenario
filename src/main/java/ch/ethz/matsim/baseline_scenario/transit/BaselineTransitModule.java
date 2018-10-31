@@ -30,12 +30,13 @@ import ch.ethz.matsim.baseline_scenario.transit.routing.EnrichedTransitRouter;
 import ch.ethz.matsim.baseline_scenario.transit.simulation.BaselineTransitPlugin;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DefaultDepartureFinder;
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DepartureFinder;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
 
 public class BaselineTransitModule extends AbstractModule {
 	@Override
 	public void install() {
-		bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+		bind(TransitRouter.class).to(SwissRailRaptor.class);
 		addRoutingModuleBinding("pt").to(BaselineTransitRoutingModule.class);
 	}
 
