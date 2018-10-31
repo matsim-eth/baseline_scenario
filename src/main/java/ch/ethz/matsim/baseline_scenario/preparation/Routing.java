@@ -29,6 +29,7 @@ import org.matsim.core.router.NetworkRoutingModule;
 import org.matsim.core.router.PlanRouter;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.TeleportationRoutingModule;
+import org.matsim.core.router.TransitRouterWrapper;
 import org.matsim.core.router.TripRouter;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.LeastCostPathCalculator;
@@ -36,8 +37,13 @@ import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
+import org.matsim.pt.router.TransitRouter;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import com.google.inject.Provider;
+
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
 
 public class Routing {
 	static public void main(String[] args) throws SecurityException, NoSuchMethodException, IllegalAccessException,
@@ -45,13 +51,15 @@ public class Routing {
 		String configPath = args[0];
 		String networkPath = args[1];
 		String inputPopulationPath = args[2];
-		String outputPopulationPath = args[3];
+		String inputSchedulePath = args[3];
+		String outputPopulationPath = args[4];
 
 		Config config = ConfigUtils.loadConfig(configPath);
 		Scenario scenario = ScenarioUtils.createScenario(config);
 
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkPath);
 		new PopulationReader(scenario).readFile(inputPopulationPath);
+		new TransitScheduleReader(scenario).readFile(inputSchedulePath);
 
 		Network carNetwork = NetworkUtils.createNetwork();
 		new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton("car"));
@@ -100,7 +108,8 @@ public class Routing {
 		@Override
 		public void run() {
 			try {
-				PlanRouter planRouter = new PlanRouter(createRouter(config, carNetwork));
+				PlanRouter planRouter = new PlanRouter(
+						createRouter(config, carNetwork, scenario.getNetwork(), scenario.getTransitSchedule()));
 				XY2Links xy = new XY2Links(carNetwork, null);
 
 				while (true) {
@@ -129,8 +138,9 @@ public class Routing {
 		}
 	}
 
-	static public TripRouter createRouter(Config config, Network carNetwork) throws SecurityException,
-			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	static public TripRouter createRouter(Config config, Network carNetwork, Network fullNetwork,
+			TransitSchedule schedule) throws SecurityException, NoSuchMethodException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException {
 		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();
 		PopulationFactory populationFactory = PopulationUtils.getFactory();
 
@@ -156,9 +166,9 @@ public class Routing {
 				bikeParams.getTeleportedModeSpeed(), bikeParams.getBeelineDistanceFactor());
 		tripRouterBuilder.putRoutingModule("bike", new RoutingModuleProvider(bikeRoutingModule));
 
-		ModeRoutingParams ptParams = config.plansCalcRoute().getModeRoutingParams().get("pt");
-		TeleportationRoutingModule ptRoutingModule = new TeleportationRoutingModule("pt", populationFactory,
-				ptParams.getTeleportedModeSpeed(), ptParams.getBeelineDistanceFactor());
+		TransitRouter transitRouter = new SwissRailRaptorFactory(schedule, config).get();
+		TransitRouterWrapper ptRoutingModule = new TransitRouterWrapper(transitRouter, schedule, fullNetwork,
+				walkRoutingModule);
 		tripRouterBuilder.putRoutingModule("pt", new RoutingModuleProvider(ptRoutingModule));
 
 		Method method = TripRouter.Builder.class.getDeclaredMethod("builder");
