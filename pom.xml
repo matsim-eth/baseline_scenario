@@ -19,8 +19,8 @@
 			<url>http://download.osgeo.org/webdav/geotools</url>
 		</repository>
 		<repository>
-			<id>matsim-eth</id>
-			<url>http://dl.bintray.com/matsim-eth/matsim</url>
+			<id>matsim</id>
+			<url>http://dl.bintray.com/matsim/matsim</url>
 		</repository>
 		<repository>
 			<id>matsim-eth-packagecloud</id>
@@ -29,6 +29,10 @@
 		<repository>
 			<id>eth-playgrounds-packagecloud</id>
 			<url>https://packagecloud.io/eth-ivt/playgrounds/maven2</url>
+		</repository>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 
@@ -85,17 +89,17 @@
 			<artifactId>location_assignment</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.10.0-nov17</version>
+			<version>0.10.1</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>dvrp</artifactId>
-			<version>0.10.0-nov17</version>
+			<version>0.10.1</version>
 		</dependency>
 
 		<!-- TODO: Remove this dependency, and drag routing stuff in from astra -->
@@ -106,9 +110,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>ch.sbb</groupId>
-			<artifactId>matsim-sbb-extension</artifactId>
-			<version>0.10.0-nov17-SNAPSHOT</version>
+			<groupId>com.github.SchweizerischeBundesbahnen</groupId>
+			<artifactId>matsim-sbb-extensions</artifactId>
+			<version>0.10.1</version>
 		</dependency>
 
 		<dependency>
@@ -120,7 +124,7 @@
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.10.0-nov17</version>
+			<version>0.10.1</version>
 		</dependency>
 
 		<dependency>

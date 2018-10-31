@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -29,7 +30,6 @@ import org.matsim.core.router.NetworkRoutingModule;
 import org.matsim.core.router.PlanRouter;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.TeleportationRoutingModule;
-import org.matsim.core.router.TransitRouterWrapper;
 import org.matsim.core.router.TripRouter;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.LeastCostPathCalculator;
@@ -37,12 +37,25 @@ import org.matsim.core.router.util.TravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
-import org.matsim.pt.router.TransitRouter;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 
 import com.google.inject.Provider;
 
+import ch.ethz.matsim.baseline_scenario.transit.connection.DefaultTransitConnectionFinder;
+import ch.ethz.matsim.baseline_scenario.transit.connection.TransitConnectionFinder;
+import ch.ethz.matsim.baseline_scenario.transit.routing.BaselineTransitRoutingModule;
+import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRouter;
+import ch.ethz.matsim.baseline_scenario.transit.routing.EnrichedTransitRouter;
+import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DefaultDepartureFinder;
+import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DepartureFinder;
+import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorIntermodalAccessEgress;
+import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorParametersForPerson;
+import ch.sbb.matsim.routing.pt.raptor.LeastCostRaptorRouteSelector;
+import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
+import ch.sbb.matsim.routing.pt.raptor.RaptorParametersForPerson;
+import ch.sbb.matsim.routing.pt.raptor.RaptorRouteSelector;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
 
 public class Routing {
@@ -108,8 +121,8 @@ public class Routing {
 		@Override
 		public void run() {
 			try {
-				PlanRouter planRouter = new PlanRouter(
-						createRouter(config, carNetwork, scenario.getNetwork(), scenario.getTransitSchedule()));
+				PlanRouter planRouter = new PlanRouter(createRouter(config, carNetwork, scenario.getNetwork(),
+						scenario.getTransitSchedule(), scenario.getPopulation()));
 				XY2Links xy = new XY2Links(carNetwork, null);
 
 				while (true) {
@@ -139,8 +152,8 @@ public class Routing {
 	}
 
 	static public TripRouter createRouter(Config config, Network carNetwork, Network fullNetwork,
-			TransitSchedule schedule) throws SecurityException, NoSuchMethodException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException {
+			TransitSchedule schedule, Population population) throws SecurityException, NoSuchMethodException,
+			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();
 		PopulationFactory populationFactory = PopulationUtils.getFactory();
 
@@ -166,9 +179,17 @@ public class Routing {
 				bikeParams.getTeleportedModeSpeed(), bikeParams.getBeelineDistanceFactor());
 		tripRouterBuilder.putRoutingModule("bike", new RoutingModuleProvider(bikeRoutingModule));
 
-		TransitRouter transitRouter = new SwissRailRaptorFactory(schedule, config).get();
-		TransitRouterWrapper ptRoutingModule = new TransitRouterWrapper(transitRouter, schedule, fullNetwork,
-				walkRoutingModule);
+		RaptorParametersForPerson parametersForPerson = new DefaultRaptorParametersForPerson(config);
+		RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
+		RaptorIntermodalAccessEgress accessEgress = new DefaultRaptorIntermodalAccessEgress();
+
+		SwissRailRaptor raptor = new SwissRailRaptorFactory(schedule, config, fullNetwork, parametersForPerson,
+				routeSelector, accessEgress, config.plans(), population, Collections.emptyMap()).get();
+		DepartureFinder departureFinder = new DefaultDepartureFinder();
+		TransitConnectionFinder connectionFinder = new DefaultTransitConnectionFinder(departureFinder);
+		EnrichedTransitRouter transitRouter = new DefaultEnrichedTransitRouter(raptor, schedule, connectionFinder,
+				fullNetwork, walkParams.getBeelineDistanceFactor(), config.transitRouter().getAdditionalTransferTime());
+		RoutingModule ptRoutingModule = new BaselineTransitRoutingModule(transitRouter, schedule);
 		tripRouterBuilder.putRoutingModule("pt", new RoutingModuleProvider(ptRoutingModule));
 
 		Method method = TripRouter.Builder.class.getDeclaredMethod("builder");
