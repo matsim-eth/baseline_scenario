@@ -84,9 +84,17 @@ public class Routing {
 		int numberOfThreads = config.global().getNumberOfThreads();
 		List<Thread> threads = new LinkedList<>();
 
+		RaptorParametersForPerson parametersForPerson = new DefaultRaptorParametersForPerson(config);
+		RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
+		RaptorIntermodalAccessEgress accessEgress = new DefaultRaptorIntermodalAccessEgress();
+
+		SwissRailRaptorFactory factory = new SwissRailRaptorFactory(scenario.getTransitSchedule(), config,
+				scenario.getNetwork(), parametersForPerson, routeSelector, accessEgress, config.plans(),
+				scenario.getPopulation(), Collections.emptyMap());
+
 		for (int i = 0; i < numberOfThreads; i++) {
 			threads.add(new Thread(new RoutingRunner(config, scenario, carNetwork, personIterator,
-					numberOfProcessedPersons, numberOfPersons)));
+					numberOfProcessedPersons, numberOfPersons, factory)));
 		}
 
 		for (Thread thread : threads) {
@@ -107,22 +115,25 @@ public class Routing {
 		private final Iterator<? extends Person> personIterator;
 		private final AtomicLong numberOfProcessedPersons;
 		private final long numberOfPersons;
+		private final SwissRailRaptorFactory factory;
 
 		public RoutingRunner(Config config, Scenario scenario, Network carNetwork,
-				Iterator<? extends Person> personIterator, AtomicLong numberOfProcessedPersons, long numberOfPersons) {
+				Iterator<? extends Person> personIterator, AtomicLong numberOfProcessedPersons, long numberOfPersons,
+				SwissRailRaptorFactory factory) {
 			this.config = config;
 			this.scenario = scenario;
 			this.carNetwork = carNetwork;
 			this.personIterator = personIterator;
 			this.numberOfProcessedPersons = numberOfProcessedPersons;
 			this.numberOfPersons = numberOfPersons;
+			this.factory = factory;
 		}
 
 		@Override
 		public void run() {
 			try {
 				PlanRouter planRouter = new PlanRouter(createRouter(config, carNetwork, scenario.getNetwork(),
-						scenario.getTransitSchedule(), scenario.getPopulation()));
+						scenario.getTransitSchedule(), scenario.getPopulation(), factory));
 				XY2Links xy = new XY2Links(carNetwork, null);
 
 				while (true) {
@@ -152,8 +163,8 @@ public class Routing {
 	}
 
 	static public TripRouter createRouter(Config config, Network carNetwork, Network fullNetwork,
-			TransitSchedule schedule, Population population) throws SecurityException, NoSuchMethodException,
-			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+			TransitSchedule schedule, Population population, SwissRailRaptorFactory factory) throws SecurityException,
+			NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();
 		PopulationFactory populationFactory = PopulationUtils.getFactory();
 
@@ -179,12 +190,7 @@ public class Routing {
 				bikeParams.getTeleportedModeSpeed(), bikeParams.getBeelineDistanceFactor());
 		tripRouterBuilder.putRoutingModule("bike", new RoutingModuleProvider(bikeRoutingModule));
 
-		RaptorParametersForPerson parametersForPerson = new DefaultRaptorParametersForPerson(config);
-		RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
-		RaptorIntermodalAccessEgress accessEgress = new DefaultRaptorIntermodalAccessEgress();
-
-		SwissRailRaptor raptor = new SwissRailRaptorFactory(schedule, config, fullNetwork, parametersForPerson,
-				routeSelector, accessEgress, config.plans(), population, Collections.emptyMap()).get();
+		SwissRailRaptor raptor = factory.get();
 		DepartureFinder departureFinder = new DefaultDepartureFinder();
 		TransitConnectionFinder connectionFinder = new DefaultTransitConnectionFinder(departureFinder);
 		EnrichedTransitRouter transitRouter = new DefaultEnrichedTransitRouter(raptor, schedule, connectionFinder,

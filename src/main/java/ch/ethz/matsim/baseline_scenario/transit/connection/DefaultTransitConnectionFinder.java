@@ -49,8 +49,11 @@ public class DefaultTransitConnectionFinder implements TransitConnectionFinder {
 			}
 		}
 
+		TransitRouteStop initialStop = transitRoute.getStops().get(minimumIndex);
+
 		throw new IllegalStateException("Cannot find stop facility " + stopFacilityId + " on route "
-				+ transitRoute.getId() + " after " + Time.writeTime(minimumDepartureTime));
+				+ transitRoute.getId() + " after " + Time.writeTime(minimumDepartureTime) + " and stop facility "
+				+ initialStop.getStopFacility().getId() + " (Index " + minimumIndex + ")");
 	}
 
 	@Override
@@ -91,7 +94,7 @@ public class DefaultTransitConnectionFinder implements TransitConnectionFinder {
 				// Compute waiting time
 				inVehicleTime = egressStop.getArrivalOffset() - accessStop.getDepartureOffset();
 				waitingTime = totalTravelTime - inVehicleTime;
-				
+
 				while (waitingTime < 0.0) {
 					// It may happen that the route has a loop. A good indicator for that is that
 					// the waiting time is negative. In that case we can try to recover the actual
