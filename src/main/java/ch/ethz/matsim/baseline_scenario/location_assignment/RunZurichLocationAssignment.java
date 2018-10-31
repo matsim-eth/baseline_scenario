@@ -76,9 +76,14 @@ public class RunZurichLocationAssignment {
 
 		// set up zurich specifics
 
-		OutputStream statisticsStream = new FileOutputStream(statisticsOutputPath);
+		Optional<OutputStream> statisticsStream = Optional.empty();
+
+		if (statisticsOutputPath != "none") {
+			statisticsStream = Optional.of(new FileOutputStream(statisticsOutputPath));
+		}
+
 		ZurichStatistics zurichStatistics = new ZurichStatistics(scenario.getPopulation().getPersons().size(),
-				Optional.of(statisticsStream));
+				statisticsStream);
 		ZurichProblemProvider zurichProblemProvider = new ZurichProblemProvider(distanceSamplerFactory,
 				discretizerFactory, discretizationThresholds);
 
@@ -125,6 +130,9 @@ public class RunZurichLocationAssignment {
 				.map(zurichStatistics::process).forEach(new LocationAssignmentPlanAdapter());
 
 		new PopulationWriter(scenario.getPopulation()).write(outputPath);
-		statisticsStream.close();
+
+		if (statisticsStream.isPresent()) {
+			statisticsStream.get().close();
+		}
 	}
 }
