@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -25,9 +26,11 @@ import org.matsim.core.router.MainModeIdentifierImpl;
 import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.StageActivityTypesImpl;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.misc.Time;
 import org.matsim.facilities.MatsimFacilitiesReader;
 import org.matsim.pt.PtConstants;
 
+import ch.ethz.matsim.location_assignment.matsim.MATSimAssignmentProblem;
 import ch.ethz.matsim.location_assignment.matsim.discretizer.FacilityTypeDiscretizerFactory;
 import ch.ethz.matsim.location_assignment.matsim.solver.MATSimAssignmentSolver;
 import ch.ethz.matsim.location_assignment.matsim.solver.MATSimAssignmentSolverBuilder;
@@ -84,8 +87,9 @@ public class RunZurichLocationAssignment {
 			statisticsStream = Optional.of(new FileOutputStream(statisticsOutputPath));
 		}
 
-		ZurichStatistics zurichStatistics = new ZurichStatistics(scenario.getPopulation().getPersons().size(),
-				statisticsStream);
+		// ZurichStatistics zurichStatistics = new
+		// ZurichStatistics(scenario.getPopulation().getPersons().size(),
+		// statisticsStream);
 		ZurichProblemProvider zurichProblemProvider = new ZurichProblemProvider(distanceSamplerFactory,
 				discretizerFactory, discretizationThresholds);
 
@@ -105,6 +109,9 @@ public class RunZurichLocationAssignment {
 
 		MATSimAssignmentSolver solver = builder.build();
 
+		long totalNumberOfPersons = scenario.getPopulation().getPersons().size();
+		AtomicLong processedNumberOfPersons = new AtomicLong(0);
+
 		// loop population
 
 		Iterator<? extends Person> personIterator = scenario.getPopulation().getPersons().values().iterator();
@@ -113,6 +120,8 @@ public class RunZurichLocationAssignment {
 
 		for (int i = 0; i < numberOfThreads; i++) {
 			threads.add(new Thread(() -> {
+				LocationAssignmentPlanAdapter adapter = new LocationAssignmentPlanAdapter();
+
 				while (true) {
 					List<Person> queue = new LinkedList<>();
 
@@ -127,18 +136,41 @@ public class RunZurichLocationAssignment {
 					}
 
 					for (Person person : queue) {
-						solver.createProblems(person.getSelectedPlan()).stream().map(solver::solveProblem)
-								.map(zurichStatistics::process).forEach(new LocationAssignmentPlanAdapter());
+						for (MATSimAssignmentProblem problem : solver.createProblems(person.getSelectedPlan())) {
+							adapter.accept(solver.solveProblem(problem));
+						}
+
+						processedNumberOfPersons.incrementAndGet();
 					}
 				}
 			}));
 		}
 
+		long startTime = System.nanoTime();
 		threads.forEach(Thread::start);
+
+		Thread infoThread = new Thread(() -> {
+			do {
+				long currentTime = System.nanoTime();
+				long currentlyProcessedNumberOfPersons = processedNumberOfPersons.get();
+
+				double deltaTime_seconds = 1e-9 * (currentTime - startTime);
+				double rate = currentlyProcessedNumberOfPersons / deltaTime_seconds;
+				double expectedTime = Math.ceil((totalNumberOfPersons - currentlyProcessedNumberOfPersons) / rate);
+
+				System.out.println(
+						String.format("Location assignment: %d/%d (%.2f%%), ETA: %s", currentlyProcessedNumberOfPersons,
+								totalNumberOfPersons, 100.0 * currentlyProcessedNumberOfPersons / totalNumberOfPersons,
+								Time.writeTime(expectedTime)));
+			} while (processedNumberOfPersons.get() < totalNumberOfPersons);
+		});
+		infoThread.start();
 
 		for (Thread thread : threads) {
 			thread.join();
 		}
+
+		infoThread.join();
 
 		/*
 		 * scenario.getPopulation().getPersons().values().stream().parallel().map(Person
