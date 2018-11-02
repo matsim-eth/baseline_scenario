@@ -146,17 +146,37 @@ public class RunZurichLocationAssignment {
 			}));
 		}
 
-		long startTime = System.nanoTime();
 		threads.forEach(Thread::start);
 
+		double startTime = 1e-9 * System.nanoTime();
+		double estimationInterval = 10.0;
+
 		Thread infoThread = new Thread(() -> {
+			long lastEstimationCount = 0;
+			double lastEstimationTime = startTime;
+			double estimatedRate = 1.0;
+
 			do {
-				long currentTime = System.nanoTime();
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					return;
+				}
+
+				double currentTime = 1e-9 * System.nanoTime();
 				long currentlyProcessedNumberOfPersons = processedNumberOfPersons.get();
 
-				double deltaTime_seconds = 1e-9 * (currentTime - startTime);
-				double rate = currentlyProcessedNumberOfPersons / deltaTime_seconds;
-				double expectedTime = Math.ceil((totalNumberOfPersons - currentlyProcessedNumberOfPersons) / rate);
+				if (lastEstimationTime + estimationInterval <= currentTime) {
+					double deltaTime = currentTime - lastEstimationTime;
+					long deltaCount = currentlyProcessedNumberOfPersons - lastEstimationCount;
+					estimatedRate = deltaCount / deltaTime;
+
+					lastEstimationCount = currentlyProcessedNumberOfPersons;
+					lastEstimationTime = currentTime;
+				}
+
+				double expectedTime = Math
+						.ceil((totalNumberOfPersons - currentlyProcessedNumberOfPersons) / estimatedRate);
 
 				System.out.println(
 						String.format("Location assignment: %d/%d (%.2f%%), ETA: %s", currentlyProcessedNumberOfPersons,
