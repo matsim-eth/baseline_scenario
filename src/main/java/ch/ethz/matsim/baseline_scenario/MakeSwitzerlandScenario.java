@@ -8,14 +8,10 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
@@ -44,6 +40,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.utils.compatibility.DeprecatedDailyReferenceCountsReader;
 import ch.ethz.matsim.baseline_scenario.config.SwitzerlandConfig;
+import ch.ethz.matsim.baseline_scenario.location_assignment.BaselineLocationAssignment;
 import ch.ethz.matsim.baseline_scenario.utils.AdaptConfig;
 import ch.ethz.matsim.baseline_scenario.utils.AttributeCleaner;
 import ch.ethz.matsim.baseline_scenario.utils.Downsample;
@@ -165,25 +162,12 @@ public class MakeSwitzerlandScenario {
 
 		// LOCATION CHOICE
 
-		inputFilesCollector.add("microcensus.csv");
-		Set<Id<Person>> failedIds = RunParallelSampler.run(numberOfThreads,
-				new File(inputPath, "microcensus.csv").getPath(), scenario.getPopulation(),
-				scenario.getActivityFacilities(), baselineConfig.performIterativeLocationChoice ? 20 : 1);
-		failedIds.forEach(id -> scenario.getPopulation().getPersons().remove(id));
+		inputFilesCollector.add("quantiles.dat");
+		inputFilesCollector.add("distributions.dat");
 
-		for (Person person : scenario.getPopulation().getPersons().values()) {
-			for (Plan plan : person.getPlans()) {
-				for (PlanElement element : plan.getPlanElements()) {
-					if (element instanceof Leg) {
-						Leg leg = (Leg) element;
-
-						if (leg.getRoute() != null && leg.getRoute().getRouteType().equals("DebugInformation")) {
-							leg.setRoute(null);
-						}
-					}
-				}
-			}
-		}
+		new BaselineLocationAssignment().run(scenario.getPopulation(), scenario.getActivityFacilities(),
+				new File(inputPath, "quantiles.dat").getPath(), new File(inputPath, "distributions.dat").getPath(),
+				numberOfThreads);
 
 		// SCORING
 
