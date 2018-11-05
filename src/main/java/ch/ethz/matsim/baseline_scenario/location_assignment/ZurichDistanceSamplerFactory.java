@@ -82,4 +82,9 @@ public class ZurichDistanceSamplerFactory {
 
 		reader.close();
 	}
+	
+	public void duplicateDistribution(String sourceDistribution, String targetDistribution) {
+		distributions.put(targetDistribution, distributions.get(sourceDistribution));
+		quantiles.put(targetDistribution, quantiles.get(sourceDistribution));
+	}
 }

@@ -1,7 +1,6 @@
 package ch.ethz.matsim.baseline_scenario.location_assignment;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,7 +8,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -21,8 +19,6 @@ import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.population.io.PopulationWriter;
-import org.matsim.core.router.MainModeIdentifier;
-import org.matsim.core.router.MainModeIdentifierImpl;
 import org.matsim.core.router.StageActivityTypes;
 import org.matsim.core.router.StageActivityTypesImpl;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -64,7 +60,8 @@ public class BaselineLocationAssignment {
 
 		int discretizationIterations = 1000;
 
-		Set<String> relevantActivityTypes = new HashSet<>(Arrays.asList("leisure", "shop", "service"));
+		Set<String> relevantActivityTypes = new HashSet<>(
+				Arrays.asList("leisure", "shop", "escort_other", "escort_kids", "remote_work", "remote_home"));
 
 		Map<String, Double> discretizationThresholds = new HashMap<>();
 		discretizationThresholds.put("car", 200.0);
@@ -75,9 +72,10 @@ public class BaselineLocationAssignment {
 		// LOAD POPULATION & FACILITIES
 
 		StageActivityTypes stageActivityTypes = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
-		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();
+		// MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();
 
-		new ZurichPopulationCleaner().run(population, stageActivityTypes, mainModeIdentifier);
+		// new ZurichPopulationCleaner().run(population, stageActivityTypes,
+		// mainModeIdentifier);
 
 		Random random = new Random(0);
 
@@ -91,7 +89,7 @@ public class BaselineLocationAssignment {
 
 		// set up zurich specifics
 
-		Optional<OutputStream> statisticsStream = Optional.empty();
+		// Optional<OutputStream> statisticsStream = Optional.empty();
 
 		// ZurichStatistics zurichStatistics = new
 		// ZurichStatistics(scenario.getPopulation().getPersons().size(),

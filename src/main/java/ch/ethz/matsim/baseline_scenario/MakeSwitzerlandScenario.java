@@ -181,13 +181,13 @@ public class MakeSwitzerlandScenario {
 		// Do best response routing with free-flow travel times
 		new BestResponseCarRouting(numberOfThreads, roadNetwork).run(scenario.getPopulation());
 
-		if (baselineConfig.performIterativeLocationChoice) {
+		/*if (baselineConfig.performIterativeLocationChoice) {
 			// Select plans to fit counts
 			new TrafficCountPlanSelector(roadNetwork, countItems, baselineConfig.outputScenarioScale, 0.01,
 					numberOfThreads, new File(outputPath, "counts_locchoice.txt").getPath(), 20)
 							.run(scenario.getPopulation());
 			new UnselectedPlanRemoval().run(scenario.getPopulation());
-		}
+		}*/
 
 		// Here we get some nice pre-initialized routes for free, because
 		// the TrafficCountPlanSelector already estimates them using BPR
