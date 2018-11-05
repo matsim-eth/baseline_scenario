@@ -7,6 +7,6 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.facilities.Facility;
 
 public interface EnrichedTransitRouter {
-	List<Leg> calculateRoute(final Facility<?> fromFacility, final Facility<?> toFacility, final double departureTime,
+	List<Leg> calculateRoute(final Facility fromFacility, final Facility toFacility, final double departureTime,
 			final Person person);
 }

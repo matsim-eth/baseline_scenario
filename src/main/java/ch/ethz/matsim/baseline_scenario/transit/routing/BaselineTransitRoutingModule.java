@@ -25,12 +25,12 @@ public class BaselineTransitRoutingModule implements RoutingModule {
 	}
 
 	@Override
-	public List<? extends PlanElement> calcRoute(Facility<?> fromFacility, Facility<?> toFacility, double departureTime,
+	public List<? extends PlanElement> calcRoute(Facility fromFacility, Facility toFacility, double departureTime,
 			Person person) {
 		List<Leg> legs = transitRouter.calculateRoute(fromFacility, toFacility, departureTime, person);
 		List<PlanElement> trip = new LinkedList<>();
 
-		Facility<?> currentFacility = fromFacility;
+		Facility currentFacility = fromFacility;
 
 		for (Leg leg : legs.subList(0, legs.size() - 1)) {
 			trip.add(leg);

@@ -12,6 +12,8 @@ import ch.ethz.matsim.baseline_scenario.config.CommandLine.ConfigurationExceptio
 import ch.ethz.matsim.baseline_scenario.transit.BaselineTransitModule;
 import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRoute;
 import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRouteFactory;
+import ch.ethz.matsim.baseline_scenario.transit.simulation.BaselineTransitQSimModule;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 
 public class RunZurichScenario {
 	static public void main(String[] args) throws ConfigurationException {
@@ -27,9 +29,11 @@ public class RunZurichScenario {
 
 		Controler controler = new Controler(scenario);
 
+		controler.addOverridingModule(new SwissRailRaptorModule());
 		controler.addOverridingModule(new BaselineModule());
 		controler.addOverridingModule(new BaselineTransitModule());
 		controler.addOverridingModule(new ZurichModule());
+		controler.configureQSimComponents(BaselineTransitQSimModule::configureComponents);
 
 		controler.run();
 	}

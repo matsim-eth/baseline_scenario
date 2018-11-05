@@ -27,7 +27,8 @@ public class MergeSecondaryFacilities {
 	final private double probability;
 	final private Random random;
 
-	public MergeSecondaryFacilities(Random random, String activityType, String sourcePath, double probability, Network network) {
+	public MergeSecondaryFacilities(Random random, String activityType, String sourcePath, double probability,
+			Network network) {
 		this.activityType = activityType;
 		this.sourcePath = sourcePath;
 		this.network = network;
@@ -51,14 +52,15 @@ public class MergeSecondaryFacilities {
 				Coord coord = new Coord(Double.parseDouble(row[1]), Double.parseDouble(row[2]));
 				double capacity = Double.parseDouble(row[6]);
 				OpeningTime openingTime = new OpeningTimeImpl(Double.parseDouble(row[7]), Double.parseDouble(row[8]));
-	
+
 				Link link = NetworkUtils.getNearestLink(network, coord);
-				ActivityFacility facility = facilities.getFactory().createActivityFacility(facilityId, coord, link.getId());
-	
+				ActivityFacility facility = facilities.getFactory().createActivityFacility(facilityId, coord,
+						link.getId());
+
 				ActivityOption activityOption = new ActivityOptionImpl(activityType);
 				activityOption.setCapacity(capacity);
 				activityOption.addOpeningTime(openingTime);
-	
+
 				facility.addActivityOption(activityOption);
 				facilities.addActivityFacility(facility);
 			}

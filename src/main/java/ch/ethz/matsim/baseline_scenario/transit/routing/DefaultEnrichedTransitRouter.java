@@ -38,7 +38,7 @@ public class DefaultEnrichedTransitRouter implements EnrichedTransitRouter {
 	}
 
 	@Override
-	public List<Leg> calculateRoute(Facility<?> fromFacility, Facility<?> toFacility, double departureTime,
+	public List<Leg> calculateRoute(Facility fromFacility, Facility toFacility, double departureTime,
 			Person person) {
 		List<Leg> legs = delegate.calcRoute(fromFacility, toFacility, departureTime, person);
 		double currentTime = departureTime;
