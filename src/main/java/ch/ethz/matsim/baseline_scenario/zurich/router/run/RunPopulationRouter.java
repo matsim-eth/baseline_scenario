@@ -30,7 +30,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.Downsample;
+import ch.ethz.matsim.baseline_scenario.utils.Downsample;
 import ch.ethz.matsim.baseline_scenario.zurich.router.PopulationRouter;
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.BikeRoutingModule;
 import ch.ethz.matsim.baseline_scenario.zurich.router.modules.CarRoutingModule;
