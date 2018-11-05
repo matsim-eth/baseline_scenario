@@ -1,11 +1,18 @@
 package ch.ethz.matsim.baseline_scenario.zurich.router.modules;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
+import javax.inject.Provider;
+
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.ModeRoutingParams;
+import org.matsim.core.router.RoutingModule;
+import org.matsim.core.router.TeleportationRoutingModule;
 import org.matsim.pt.config.TransitRouterConfigGroup;
 import org.matsim.pt.router.TransitRouter;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
@@ -24,6 +31,11 @@ import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DefaultDepartureFind
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DepartureFinder;
 import ch.ethz.matsim.baseline_scenario.zurich.router.trip.PublicTransitTripRouter;
 import ch.ethz.matsim.baseline_scenario.zurich.router.trip.TripRouter;
+import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorParametersForPerson;
+import ch.sbb.matsim.routing.pt.raptor.LeastCostRaptorRouteSelector;
+import ch.sbb.matsim.routing.pt.raptor.RaptorParametersForPerson;
+import ch.sbb.matsim.routing.pt.raptor.RaptorRouteSelector;
+import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
 
 public class PublicTransitRoutingModule extends AbstractModule {
 	final private Optional<Network> network;
@@ -55,6 +67,33 @@ public class PublicTransitRoutingModule extends AbstractModule {
 		if (transitSchedule.isPresent()) {
 			bind(TransitSchedule.class).toInstance(transitSchedule.get());
 		}
+
+		bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+	}
+
+	@Provides
+	@Singleton
+	public RaptorParametersForPerson provideRaptorParametersPerPerson(Config config) {
+		return new DefaultRaptorParametersForPerson(config);
+	}
+
+	@Provides
+	@Singleton
+	public RaptorRouteSelector provideRaptorRouteSelector() {
+		return new LeastCostRaptorRouteSelector();
+	}
+
+	@Provides
+	@Singleton
+	public Map<String, Provider<RoutingModule>> provideRaptorRoutingModules(
+			@Named("transit_walk") ModeRoutingParams params, Population population) {
+		return Collections.singletonMap("walk", new Provider<RoutingModule>() {
+			@Override
+			public RoutingModule get() {
+				return new TeleportationRoutingModule("walk", population.getFactory(), params.getTeleportedModeSpeed(),
+						params.getBeelineDistanceFactor());
+			}
+		});
 	}
 
 	@Provides

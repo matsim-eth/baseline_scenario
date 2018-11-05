@@ -19,21 +19,14 @@
 			<url>http://download.osgeo.org/webdav/geotools</url>
 		</repository>
 		<repository>
-			<id>matsim-eth</id>
-			<url>http://dl.bintray.com/matsim-eth/matsim</url>
+			<id>matsim</id>
+			<url>http://dl.bintray.com/matsim/matsim</url>
 		</repository>
 		<repository>
-			<id>matsim-eth-packagecloud</id>
-			<url>https://packagecloud.io/eth-ivt/matsim/maven2</url>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
-
-	<distributionManagement>
-		<snapshotRepository>
-			<id>packagecloud-eth-ivt</id>
-			<url>packagecloud+https://packagecloud.io/eth-ivt/matsim</url>
-		</snapshotRepository>
-	</distributionManagement>
 
 	<build>
 		<extensions>
@@ -48,6 +41,10 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>3.0.2</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
@@ -79,31 +76,25 @@
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.10.0-nov17</version>
+			<version>0.10.0</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>dvrp</artifactId>
-			<version>0.10.0-nov17</version>
+			<version>0.10.0</version>
 		</dependency>
 
 		<dependency>
-			<groupId>ch.ethz.matsim</groupId>
+			<groupId>com.github.matsim-eth</groupId>
 			<artifactId>location_assignment</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>master</version>
 		</dependency>
 
 		<dependency>
-			<groupId>ch.sbb</groupId>
-			<artifactId>matsim-sbb-extension</artifactId>
-			<version>0.10.0-nov17-SNAPSHOT</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.matsim</groupId>
-			<artifactId>matsim</artifactId>
-			<version>0.10.0-nov17</version>
+			<groupId>com.github.SchweizerischeBundesbahnen</groupId>
+			<artifactId>matsim-sbb-extensions</artifactId>
+			<version>0.10.0</version>
 		</dependency>
 
 		<dependency>
