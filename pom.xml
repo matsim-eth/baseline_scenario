@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ch.ethz.matsim</groupId>
 	<artifactId>baseline_scenario</artifactId>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 	<description>Compatible with MATSim 0.10.0</description>
 
 	<properties>
