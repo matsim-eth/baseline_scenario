@@ -12,10 +12,12 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.ModeRoutingParams;
+import org.matsim.core.events.EventsUtils;
 import org.matsim.core.network.NetworkUtils;
 import org.matsim.core.network.algorithms.TransportModeNetworkFilter;
 import org.matsim.core.network.io.NetworkWriter;
@@ -150,6 +152,7 @@ public class MakeZurichScenario {
 						bind(MainModeIdentifier.class).toInstance(mainModeIdentifier);
 						bind(Config.class).toInstance(routingConfig);
 						bind(Population.class).toInstance(scenario.getPopulation());
+						bind(EventsManager.class).toInstance(EventsUtils.createEventsManager());
 					}
 				}, new CarRoutingModule(roadNetwork),
 				new PublicTransitRoutingModule(scenario.getNetwork(), scenario.getTransitSchedule(),
@@ -170,6 +173,7 @@ public class MakeZurichScenario {
 						bind(MainModeIdentifier.class).toInstance(mainModeIdentifier);
 						bind(ScenarioExtent.class).toInstance(extent);
 						bind(Network.class).annotatedWith(Names.named("road")).toInstance(roadNetwork);
+						bind(EventsManager.class).toInstance(EventsUtils.createEventsManager());
 					}
 				}).getInstance(PlanCutter.class);
 
@@ -212,6 +216,7 @@ public class MakeZurichScenario {
 						bind(MainModeIdentifier.class).toInstance(mainModeIdentifier);
 						bind(Population.class).toInstance(scenario.getPopulation());
 						bind(Config.class).toInstance(routingConfig);
+						bind(EventsManager.class).toInstance(EventsUtils.createEventsManager());
 					}
 				}, new CarRoutingModule(updatedRoadNetwork),
 				new PublicTransitRoutingModule(scenario.getNetwork(), scenario.getTransitSchedule(),
