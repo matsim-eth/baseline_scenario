@@ -31,8 +31,10 @@ import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DefaultDepartureFind
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.DepartureFinder;
 import ch.ethz.matsim.baseline_scenario.zurich.router.trip.PublicTransitTripRouter;
 import ch.ethz.matsim.baseline_scenario.zurich.router.trip.TripRouter;
+import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.DefaultRaptorParametersForPerson;
 import ch.sbb.matsim.routing.pt.raptor.LeastCostRaptorRouteSelector;
+import ch.sbb.matsim.routing.pt.raptor.RaptorIntermodalAccessEgress;
 import ch.sbb.matsim.routing.pt.raptor.RaptorParametersForPerson;
 import ch.sbb.matsim.routing.pt.raptor.RaptorRouteSelector;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
@@ -69,6 +71,12 @@ public class PublicTransitRoutingModule extends AbstractModule {
 		}
 
 		bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+	}
+
+	@Provides
+	@Singleton
+	public RaptorIntermodalAccessEgress provideRaptorIntermodalAccessEgress() {
+		return new DefaultRaptorIntermodalAccessEgress();
 	}
 
 	@Provides
