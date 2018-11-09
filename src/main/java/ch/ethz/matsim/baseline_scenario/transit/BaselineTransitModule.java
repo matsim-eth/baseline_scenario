@@ -25,43 +25,56 @@ import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 public class BaselineTransitModule extends AbstractModule {
 	@Override
 	public void install() {
-		installQSimModule(new BaselineTransitQSimModule());
-		bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
-		addRoutingModuleBinding("pt").to(BaselineTransitRoutingModule.class);
+		if (getConfig().transit().isUseTransit()) {
+			// this indirection was the easiest way to make transit elements configured only if transit is enabled,
+			// given the use of @Provides method annotations.
+			// This check is necessary, because this module depends on SwissRailRaptor, which is bound only if transit
+			// is enabled.
+			// td, nov 18
+		    install(new ActiveModule());
+		}
 	}
 
-	@Provides
-	public EnrichedTransitRouter provideEnrichedTransitRouter(TransitRouter delegate, TransitSchedule transitSchedule,
-			TransitConnectionFinder connectionFinder, Network network, PlansCalcRouteConfigGroup routeConfig,
-			TransitRouterConfigGroup transitConfig) {
-		double beelineDistanceFactor = routeConfig.getBeelineDistanceFactors().get("walk");
-		double additionalTransferTime = transitConfig.getAdditionalTransferTime();
+	private static class ActiveModule extends AbstractModule {
+		@Override
+		public void install() {
+            installQSimModule(new BaselineTransitQSimModule());
+            bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+            addRoutingModuleBinding("pt").to(BaselineTransitRoutingModule.class);
+		}
+		@Provides
+		public EnrichedTransitRouter provideEnrichedTransitRouter(TransitRouter delegate, TransitSchedule transitSchedule,
+																  TransitConnectionFinder connectionFinder, Network network, PlansCalcRouteConfigGroup routeConfig,
+																  TransitRouterConfigGroup transitConfig) {
+			double beelineDistanceFactor = routeConfig.getBeelineDistanceFactors().get("walk");
+			double additionalTransferTime = transitConfig.getAdditionalTransferTime();
 
-		return new DefaultEnrichedTransitRouter(delegate, transitSchedule, connectionFinder, network,
-				beelineDistanceFactor, additionalTransferTime);
-	}
+			return new DefaultEnrichedTransitRouter(delegate, transitSchedule, connectionFinder, network,
+					beelineDistanceFactor, additionalTransferTime);
+		}
 
-	@Provides
-	public BaselineTransitRoutingModule provideBaselineTransitRoutingModule(EnrichedTransitRouter transitRouter,
-			TransitSchedule transitSchedule) {
-		return new BaselineTransitRoutingModule(transitRouter, transitSchedule);
-	}
+		@Provides
+		public BaselineTransitRoutingModule provideBaselineTransitRoutingModule(EnrichedTransitRouter transitRouter,
+																				TransitSchedule transitSchedule) {
+			return new BaselineTransitRoutingModule(transitRouter, transitSchedule);
+		}
 
-	@Provides
-	@Singleton
-	public TransitSchedule provideTransitSchedule(Scenario scenario) {
-		return scenario.getTransitSchedule();
-	}
+		@Provides
+		@Singleton
+		public TransitSchedule provideTransitSchedule(Scenario scenario) {
+			return scenario.getTransitSchedule();
+		}
 
-	@Provides
-	@Singleton
-	public TransitConnectionFinder provideTransitConnectionFinder(DepartureFinder departureFinder) {
-		return new DefaultTransitConnectionFinder(departureFinder);
-	}
+		@Provides
+		@Singleton
+		public TransitConnectionFinder provideTransitConnectionFinder(DepartureFinder departureFinder) {
+			return new DefaultTransitConnectionFinder(departureFinder);
+		}
 
-	@Provides
-	@Singleton
-	public DepartureFinder provideDepartureFinder() {
-		return new DefaultDepartureFinder();
+		@Provides
+		@Singleton
+		public DepartureFinder provideDepartureFinder() {
+			return new DefaultDepartureFinder();
+		}
 	}
 }
