@@ -92,6 +92,23 @@ public class Routing {
 				scenario.getNetwork(), parametersForPerson, routeSelector, accessEgress, config.plans(),
 				scenario.getPopulation(), Collections.emptyMap());
 
+		Thread statusThread = new Thread(() -> {
+			try {
+				long currentNumberOfProcessedPersons = 0;
+
+				do {
+					Thread.sleep(1000);
+					currentNumberOfProcessedPersons = numberOfProcessedPersons.get();
+
+					System.out.println(String.format("Routing... %d / %d (%.2f%%)", currentNumberOfProcessedPersons,
+							numberOfPersons, 100.0 * currentNumberOfProcessedPersons / numberOfPersons));
+				} while (currentNumberOfProcessedPersons < numberOfPersons);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		});
+		statusThread.start();
+
 		for (int i = 0; i < numberOfThreads; i++) {
 			threads.add(new Thread(new RoutingRunner(config, scenario, carNetwork, personIterator,
 					numberOfProcessedPersons, numberOfPersons, factory)));
@@ -104,6 +121,8 @@ public class Routing {
 		for (Thread thread : threads) {
 			thread.join();
 		}
+
+		statusThread.join();
 
 		new PopulationWriter(scenario.getPopulation()).write(outputPopulationPath);
 	}
@@ -149,10 +168,6 @@ public class Routing {
 
 					xy.run(person);
 					planRouter.run(person);
-
-					long processed = numberOfProcessedPersons.incrementAndGet();
-					System.out.println(String.format("Routing... %d / %d (%.2f%%)", processed, numberOfPersons,
-							100.0 * processed / numberOfPersons));
 				}
 
 			} catch (SecurityException | NoSuchMethodException | IllegalAccessException | IllegalArgumentException

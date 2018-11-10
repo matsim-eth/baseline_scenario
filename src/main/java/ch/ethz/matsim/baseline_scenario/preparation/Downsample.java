@@ -2,6 +2,7 @@ package ch.ethz.matsim.baseline_scenario.preparation;
 
 import java.util.Iterator;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -20,11 +21,29 @@ public class Downsample {
 		this.random = random;
 	}
 
-	public void run(Population population) {
+	public void run(Population population) throws InterruptedException {
 		Iterator<? extends Person> personIterator = population.getPersons().values().iterator();
 
 		long numberOfPersons = population.getPersons().size();
-		long numberOfProcessedPersons = 0;
+		AtomicLong numberOfProcessedPersons = new AtomicLong(0);
+
+		Thread thread = new Thread(() -> {
+			try {
+				long currentNumberOfProcessedPersons = 0;
+
+				do {
+					Thread.sleep(1000);
+					currentNumberOfProcessedPersons = numberOfProcessedPersons.get();
+
+					System.out.println(String.format("Downsampling ... %d/%d (%.2f%%)", currentNumberOfProcessedPersons,
+							numberOfPersons, 100.0 * numberOfProcessedPersons.get() / numberOfPersons));
+				} while (currentNumberOfProcessedPersons < numberOfPersons);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		});
+
+		thread.start();
 
 		while (personIterator.hasNext()) {
 			personIterator.next();
@@ -33,13 +52,13 @@ public class Downsample {
 				personIterator.remove();
 			}
 
-			numberOfProcessedPersons++;
-			System.out.println(String.format("Downsampling ... %d/%d (%.2f%%)", numberOfProcessedPersons,
-					numberOfPersons, 100.0 * numberOfProcessedPersons / numberOfPersons));
+			numberOfProcessedPersons.incrementAndGet();
 		}
+
+		thread.join();
 	}
 
-	static public void main(String[] args) {
+	static public void main(String[] args) throws InterruptedException {
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new PopulationReader(scenario).readFile(args[0]);
 
