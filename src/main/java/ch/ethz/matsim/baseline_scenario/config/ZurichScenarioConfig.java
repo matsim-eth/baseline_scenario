@@ -10,4 +10,8 @@ public class ZurichScenarioConfig {
 	public String outputPath;
 
 	public boolean useMinimumNetworkCache = true;
+	
+	public double centerX = Double.NaN;
+	public double centerY = Double.NaN;
+	public double scenarioRadius = Double.NaN;
 }

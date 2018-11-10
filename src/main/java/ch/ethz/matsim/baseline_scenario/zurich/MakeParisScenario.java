@@ -25,7 +25,6 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.households.HouseholdsWriterV10;
 import org.matsim.pt.PtConstants;
-import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 import org.matsim.vehicles.VehicleWriterV1;
 
@@ -102,18 +101,20 @@ public class MakeParisScenario {
 		scenario.getPopulation().getFactory().getRouteFactories().setRouteFactory(DefaultEnrichedTransitRoute.class,
 				new DefaultEnrichedTransitRouteFactory());
 		ScenarioUtils.loadScenario(scenario);
-		/*new TransitScheduleReader(scenario).readFile("1pm/" + config.transit().getTransitScheduleFile());
-
-		{
-			Coord cityCenter = new Coord(652127.0, 6861007.0);
-			ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), cityCenter, 10000.0);
-
-			StopSequenceCrossingPointFinder stopSequenceCrossingPointFinder = new DefaultStopSequenceCrossingPointFinder(
-					extent);
-			new TransitScheduleCutter(extent, stopSequenceCrossingPointFinder).run(scenario.getTransitSchedule());
-			
-			System.exit(1);
-		}*/
+		/*
+		 * new TransitScheduleReader(scenario).readFile("1pm/" +
+		 * config.transit().getTransitScheduleFile());
+		 * 
+		 * { Coord cityCenter = new Coord(652127.0, 6861007.0); ScenarioExtent extent =
+		 * new CircularScenarioExtent(scenario.getNetwork(), cityCenter, 10000.0);
+		 * 
+		 * StopSequenceCrossingPointFinder stopSequenceCrossingPointFinder = new
+		 * DefaultStopSequenceCrossingPointFinder( extent); new
+		 * TransitScheduleCutter(extent,
+		 * stopSequenceCrossingPointFinder).run(scenario.getTransitSchedule());
+		 * 
+		 * System.exit(1); }
+		 */
 
 		baselineFilesCollector.add(baselineConfig.prefix + "population.xml.gz");
 		baselineFilesCollector.add(baselineConfig.prefix + "households.xml.gz");
@@ -124,8 +125,12 @@ public class MakeParisScenario {
 		baselineFilesCollector.add(baselineConfig.prefix + "config.xml");
 		// baselineFilesCollector.add(baselineConfig.prefix + "make_config.json");
 
-		Coord cityCenter = new Coord(652127.0, 6861007.0);
-		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), cityCenter, 10000.0);
+		// Paris: 652127.0, 6861007.0, radius 10000.0
+		// Zurich: 2683253.0, 1246745.0, radius 30000.0
+
+		Coord cityCenter = new Coord(scenarioConfig.centerX, scenarioConfig.centerY);
+		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), cityCenter,
+				scenarioConfig.scenarioRadius);
 
 		StageActivityTypes stageActivityTypes = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
 		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();
