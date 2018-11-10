@@ -15,11 +15,9 @@ public class ConfigCutter {
 
 	public void run(Config config) {
 		config.plans().setInputFile(prefix + "population.xml.gz");
-		config.plans().setInputPersonAttributeFile(prefix + "population_attributes.xml.gz");
 		config.facilities().setInputFile(prefix + "facilities.xml.gz");
 		config.network().setInputFile(prefix + "network.xml.gz");
 		config.households().setInputFile(prefix + "households.xml.gz");
-		config.households().setInputHouseholdAttributesFile(prefix + "household_attributes.xml.gz");
 		config.transit().setTransitScheduleFile(prefix + "transit_schedule.xml.gz");
 		config.transit().setVehiclesFile(prefix + "transit_vehicles.xml.gz");
 
