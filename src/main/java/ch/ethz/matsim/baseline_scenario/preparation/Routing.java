@@ -168,6 +168,7 @@ public class Routing {
 
 					xy.run(person);
 					planRouter.run(person);
+					numberOfProcessedPersons.incrementAndGet();
 				}
 
 			} catch (SecurityException | NoSuchMethodException | IllegalAccessException | IllegalArgumentException
