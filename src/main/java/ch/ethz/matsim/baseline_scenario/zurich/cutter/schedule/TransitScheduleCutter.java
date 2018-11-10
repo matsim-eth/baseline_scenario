@@ -4,13 +4,17 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.core.population.routes.LinkNetworkRouteFactory;
 import org.matsim.core.population.routes.NetworkRoute;
+import org.matsim.core.utils.collections.Tuple;
 import org.matsim.pt.transitSchedule.api.Departure;
+import org.matsim.pt.transitSchedule.api.MinimalTransferTimes;
+import org.matsim.pt.transitSchedule.api.MinimalTransferTimes.MinimalTransferTimesIterator;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitRouteStop;
@@ -167,7 +171,23 @@ public class TransitScheduleCutter {
 
 		originalFacilities.forEach(schedule::removeStopFacility);
 		reducedFacilities.forEach(schedule::addStopFacility);
-
+		
+		MinimalTransferTimes minimalTransferTimes = schedule.getMinimalTransferTimes();
+		MinimalTransferTimesIterator iterator = minimalTransferTimes.iterator();
+		Set<Id<TransitStopFacility>> reducedIds = reducedFacilities.stream().map(f -> f.getId()).collect(Collectors.toSet());
+		
+		Set<Tuple<Id<TransitStopFacility>, Id<TransitStopFacility>>> removeRelations = new HashSet<>();
+		
+		while (iterator.hasNext()) {
+			iterator.next();
+			
+			if (!reducedIds.contains(iterator.getFromStopId()) || !reducedIds.contains(iterator.getToStopId())) {
+				removeRelations.add(new Tuple<>(iterator.getFromStopId(), iterator.getToStopId()));
+			}
+		}
+		
+		removeRelations.forEach(t -> minimalTransferTimes.remove(t.getFirst(), t.getSecond()));
+		
 		ScheduleInfo finalInfo = getInfo(schedule);
 
 		log.info("Finished cutting transit schedule.");

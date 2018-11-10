@@ -59,6 +59,28 @@ import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptor;
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
 
 public class Routing {
+	private final Config config;
+
+	private final Network fullNetwork;
+	private final Network roadNetwork;
+
+	private final TransitSchedule transitSchedule;
+
+	private int numberOfThreads;
+
+	public Routing(Config config, Network network, Network roadNetwork, TransitSchedule transitSchedule) {
+		this.config = config;
+		this.fullNetwork = network;
+		this.roadNetwork = roadNetwork;
+		this.transitSchedule = transitSchedule;
+
+		this.numberOfThreads = Runtime.getRuntime().availableProcessors();
+	}
+
+	public void setNumberOfThreads(int numberOfThreads) {
+		this.numberOfThreads = numberOfThreads;
+	}
+
 	static public void main(String[] args) throws SecurityException, NoSuchMethodException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, InterruptedException {
 		String configPath = args[0];
@@ -70,27 +92,33 @@ public class Routing {
 		Config config = ConfigUtils.loadConfig(configPath);
 		Scenario scenario = ScenarioUtils.createScenario(config);
 
+		Network roadNetwork = NetworkUtils.createNetwork();
+		new TransportModeNetworkFilter(scenario.getNetwork()).filter(roadNetwork, Collections.singleton("car"));
+
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkPath);
 		new PopulationReader(scenario).readFile(inputPopulationPath);
 		new TransitScheduleReader(scenario).readFile(inputSchedulePath);
 
-		Network carNetwork = NetworkUtils.createNetwork();
-		new TransportModeNetworkFilter(scenario.getNetwork()).filter(carNetwork, Collections.singleton("car"));
+		Routing routing = new Routing(config, scenario.getNetwork(), roadNetwork, scenario.getTransitSchedule());
+		routing.setNumberOfThreads(config.global().getNumberOfThreads());
+		routing.run(scenario.getPopulation());
 
-		Iterator<? extends Person> personIterator = scenario.getPopulation().getPersons().values().iterator();
+		new PopulationWriter(scenario.getPopulation()).write(outputPopulationPath);
+	}
+
+	public void run(Population population) throws InterruptedException {
+		Iterator<? extends Person> personIterator = population.getPersons().values().iterator();
 		AtomicLong numberOfProcessedPersons = new AtomicLong(0);
-		long numberOfPersons = scenario.getPopulation().getPersons().size();
+		long numberOfPersons = population.getPersons().size();
 
-		int numberOfThreads = config.global().getNumberOfThreads();
 		List<Thread> threads = new LinkedList<>();
 
 		RaptorParametersForPerson parametersForPerson = new DefaultRaptorParametersForPerson(config);
 		RaptorRouteSelector routeSelector = new LeastCostRaptorRouteSelector();
 		RaptorIntermodalAccessEgress accessEgress = new DefaultRaptorIntermodalAccessEgress();
 
-		SwissRailRaptorFactory factory = new SwissRailRaptorFactory(scenario.getTransitSchedule(), config,
-				scenario.getNetwork(), parametersForPerson, routeSelector, accessEgress, config.plans(),
-				scenario.getPopulation(), Collections.emptyMap());
+		SwissRailRaptorFactory factory = new SwissRailRaptorFactory(transitSchedule, config, fullNetwork,
+				parametersForPerson, routeSelector, accessEgress, config.plans(), population, Collections.emptyMap());
 
 		Thread statusThread = new Thread(() -> {
 			try {
@@ -110,8 +138,8 @@ public class Routing {
 		statusThread.start();
 
 		for (int i = 0; i < numberOfThreads; i++) {
-			threads.add(new Thread(new RoutingRunner(config, scenario, carNetwork, personIterator,
-					numberOfProcessedPersons, numberOfPersons, factory)));
+			threads.add(new Thread(new RoutingRunner(config, population, transitSchedule, fullNetwork, roadNetwork,
+					personIterator, numberOfProcessedPersons, factory)));
 		}
 
 		for (Thread thread : threads) {
@@ -123,38 +151,38 @@ public class Routing {
 		}
 
 		statusThread.join();
-
-		new PopulationWriter(scenario.getPopulation()).write(outputPopulationPath);
 	}
 
 	static public class RoutingRunner implements Runnable {
 		private final Config config;
 		private final Network carNetwork;
-		private final Scenario scenario;
+		private final Network fullNetwork;
+		private final TransitSchedule transitSchedule;
+		private final Population population;
 		private final Iterator<? extends Person> personIterator;
 		private final AtomicLong numberOfProcessedPersons;
-		private final long numberOfPersons;
 		private final SwissRailRaptorFactory factory;
 
-		public RoutingRunner(Config config, Scenario scenario, Network carNetwork,
-				Iterator<? extends Person> personIterator, AtomicLong numberOfProcessedPersons, long numberOfPersons,
+		public RoutingRunner(Config config, Population population, TransitSchedule transitSchedule, Network fullNetwork,
+				Network carNetwork, Iterator<? extends Person> personIterator, AtomicLong numberOfProcessedPersons,
 				SwissRailRaptorFactory factory) {
 			this.config = config;
-			this.scenario = scenario;
 			this.carNetwork = carNetwork;
 			this.personIterator = personIterator;
 			this.numberOfProcessedPersons = numberOfProcessedPersons;
-			this.numberOfPersons = numberOfPersons;
 			this.factory = factory;
+			this.population = population;
+			this.fullNetwork = fullNetwork;
+			this.transitSchedule = transitSchedule;
 		}
 
 		@Override
 		public void run() {
 			try {
-				PlanRouter planRouter = new PlanRouter(createRouter(config, carNetwork, scenario.getNetwork(),
-						scenario.getTransitSchedule(), scenario.getPopulation(), factory));
+				PlanRouter planRouter = new PlanRouter(
+						createRouter(config, carNetwork, fullNetwork, transitSchedule, population, factory));
 				XY2Links xy = new XY2Links(carNetwork, null);
-
+				
 				while (true) {
 					Person person = null;
 
@@ -168,6 +196,7 @@ public class Routing {
 
 					xy.run(person);
 					planRouter.run(person);
+
 					numberOfProcessedPersons.incrementAndGet();
 				}
 
@@ -213,6 +242,11 @@ public class Routing {
 				fullNetwork, walkParams.getBeelineDistanceFactor(), config.transitRouter().getAdditionalTransferTime());
 		RoutingModule ptRoutingModule = new BaselineTransitRoutingModule(transitRouter, schedule);
 		tripRouterBuilder.putRoutingModule("pt", new RoutingModuleProvider(ptRoutingModule));
+
+		ModeRoutingParams outsideParams = config.plansCalcRoute().getModeRoutingParams().get("outside");
+		TeleportationRoutingModule outsideRoutingModule = new TeleportationRoutingModule("outside", populationFactory,
+				outsideParams.getTeleportedModeSpeed(), outsideParams.getBeelineDistanceFactor());
+		tripRouterBuilder.putRoutingModule("outside", new RoutingModuleProvider(outsideRoutingModule));
 
 		Method method = TripRouter.Builder.class.getDeclaredMethod("builder");
 		method.setAccessible(true);
