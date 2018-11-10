@@ -121,6 +121,8 @@ public class Routing {
 				parametersForPerson, routeSelector, accessEgress, config.plans(), population, Collections.emptyMap());
 
 		Thread statusThread = new Thread(() -> {
+			long previousNumberOfProcessedPersons = 0;
+
 			try {
 				long currentNumberOfProcessedPersons = 0;
 
@@ -128,8 +130,11 @@ public class Routing {
 					Thread.sleep(1000);
 					currentNumberOfProcessedPersons = numberOfProcessedPersons.get();
 
-					System.out.println(String.format("Routing... %d / %d (%.2f%%)", currentNumberOfProcessedPersons,
-							numberOfPersons, 100.0 * currentNumberOfProcessedPersons / numberOfPersons));
+					if (currentNumberOfProcessedPersons > previousNumberOfProcessedPersons) {
+						System.out.println(String.format("Routing... %d / %d (%.2f%%)", currentNumberOfProcessedPersons,
+								numberOfPersons, 100.0 * currentNumberOfProcessedPersons / numberOfPersons));
+						previousNumberOfProcessedPersons = currentNumberOfProcessedPersons;
+					}
 				} while (currentNumberOfProcessedPersons < numberOfPersons);
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
@@ -182,7 +187,7 @@ public class Routing {
 				PlanRouter planRouter = new PlanRouter(
 						createRouter(config, carNetwork, fullNetwork, transitSchedule, population, factory));
 				XY2Links xy = new XY2Links(carNetwork, null);
-				
+
 				while (true) {
 					Person person = null;
 
