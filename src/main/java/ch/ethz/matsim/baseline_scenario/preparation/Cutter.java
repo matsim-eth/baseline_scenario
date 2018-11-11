@@ -111,7 +111,7 @@ public class Cutter {
 
 		// Adapt config
 		String prefix = cmd.getOptionStrict("output-prefix");
-		prefix = (prefix.equals("") ? "" : "_") + prefix;
+		prefix += (prefix.equals("") ? "" : "_");
 		new ConfigCutter(prefix).run(config);
 
 		// Cut the population at the border
@@ -191,6 +191,8 @@ public class Cutter {
 
 		// Additional stages
 		new OutsideAttributeSetter(scenario.getNetwork()).run(scenario.getPopulation());
+
+		new AddDummyFacilities(scenario.getPopulation()).run(scenario.getActivityFacilities());
 
 		// Write scenario
 		new ConfigWriter(config).write(new File(outputPath, prefix + "config.xml").getPath());
