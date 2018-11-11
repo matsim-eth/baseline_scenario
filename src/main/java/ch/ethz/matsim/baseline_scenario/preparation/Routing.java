@@ -92,12 +92,12 @@ public class Routing {
 		Config config = ConfigUtils.loadConfig(configPath);
 		Scenario scenario = ScenarioUtils.createScenario(config);
 
-		Network roadNetwork = NetworkUtils.createNetwork();
-		new TransportModeNetworkFilter(scenario.getNetwork()).filter(roadNetwork, Collections.singleton("car"));
-
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkPath);
 		new PopulationReader(scenario).readFile(inputPopulationPath);
 		new TransitScheduleReader(scenario).readFile(inputSchedulePath);
+		
+		Network roadNetwork = NetworkUtils.createNetwork();
+		new TransportModeNetworkFilter(scenario.getNetwork()).filter(roadNetwork, Collections.singleton("car"));
 
 		Routing routing = new Routing(config, scenario.getNetwork(), roadNetwork, scenario.getTransitSchedule());
 		routing.setNumberOfThreads(config.global().getNumberOfThreads());
