@@ -4,18 +4,15 @@ import java.util.Collections;
 import java.util.List;
 
 import org.matsim.api.core.v01.Coord;
-import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.utils.geometry.CoordUtils;
 
 public class CircularScenarioExtent implements ScenarioExtent {
 	final private Coord center;
 	final private double radius;
-	final private Network network;
 
-	public CircularScenarioExtent(Network network, Coord center, double radius) {
+	public CircularScenarioExtent(Coord center, double radius) {
 		this.center = center;
 		this.radius = radius;
-		this.network = network;
 	}
 
 	@Override

@@ -60,14 +60,18 @@ import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.MergeOutsideActiviti
 import ch.ethz.matsim.baseline_scenario.zurich.cutter.utils.RemoveEmptyPlans;
 import ch.ethz.matsim.baseline_scenario.zurich.extent.CircularScenarioExtent;
 import ch.ethz.matsim.baseline_scenario.zurich.extent.ScenarioExtent;
+import ch.ethz.matsim.baseline_scenario.zurich.extent.ShapeScenarioExtent;
 import ch.ethz.matsim.baseline_scenario.zurich.utils.AdjustLinkLengths;
 import ch.ethz.matsim.baseline_scenario.zurich.utils.OutsideAttributeSetter;
 
 public class Cutter {
 	public static void main(String[] args) throws Exception {
-		CommandLine cmd = new CommandLine.Builder(args)
-				.requireOptions("input-path", "output-path", "output-prefix", "center-x", "center-y", "radius")
-				.allowOptions("threads", "use-minimum-network-cache").build();
+		CommandLine cmd = new CommandLine.Builder(args).requireOptions("input-path", "output-path", "output-prefix")
+				.allowOptions("threads", "use-minimum-network-cache", "circle-path", "shape-path").build();
+
+		if (!(cmd.hasOption("circle-path") ^ cmd.hasOption("shape-path"))) {
+			throw new IllegalStateException("Either circle or shapefile extent must be given.");
+		}
 
 		ObjectMapper json = new ObjectMapper();
 		json.enable(SerializationFeature.INDENT_OUTPUT);
@@ -87,12 +91,15 @@ public class Cutter {
 		// Paris: 652127.0, 6861007.0, radius 10000.0
 		// Zurich: 2683253.0, 1246745.0, radius 30000.0
 
-		double centerX = Double.parseDouble(cmd.getOptionStrict("center-x"));
-		double centerY = Double.parseDouble(cmd.getOptionStrict("center-y"));
-		double radius = Double.parseDouble(cmd.getOptionStrict("radius"));
+		ScenarioExtent extent;
 
-		Coord extentCenter = new Coord(centerX, centerY);
-		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), extentCenter, radius);
+		if (cmd.hasOption("circle-path")) {
+			CircleDefinition definition = json.readValue(new File(cmd.getOptionStrict("circle-path")),
+					CircleDefinition.class);
+			extent = new CircularScenarioExtent(new Coord(definition.centerX, definition.centerY), definition.radius);
+		} else {
+			extent = new ShapeScenarioExtent.Builder(new File(cmd.getOptionStrict("shape-path"))).build();
+		}
 
 		StageActivityTypes stageActivityTypes = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
 		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();
@@ -104,6 +111,7 @@ public class Cutter {
 
 		// Adapt config
 		String prefix = cmd.getOptionStrict("output-prefix");
+		prefix = (prefix.equals("") ? "" : "_") + prefix;
 		new ConfigCutter(prefix).run(config);
 
 		// Cut the population at the border
@@ -158,7 +166,7 @@ public class Cutter {
 		MinimumNetworkFinder minimumNetworkFinder = new ParallelMinimumNetworkFinder(mainExecutor, numberOfThreads,
 				updatedRoadNetwork, referenceLink);
 
-		if (cmd.getOption("use-minimum-network-cache").map(Boolean::parseBoolean).orElse(true)) {
+		if (cmd.getOption("use-minimum-network-cache").map(Boolean::parseBoolean).orElse(false)) {
 			minimumNetworkFinder = new CachedMinimumNetworkFinder(new File(outputPath, "minimum_network.cache"),
 					minimumNetworkFinder);
 		}

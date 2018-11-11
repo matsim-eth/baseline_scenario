@@ -129,8 +129,7 @@ public class MakeParisScenario {
 		// Zurich: 2683253.0, 1246745.0, radius 30000.0
 
 		Coord cityCenter = new Coord(scenarioConfig.centerX, scenarioConfig.centerY);
-		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), cityCenter,
-				scenarioConfig.scenarioRadius);
+		ScenarioExtent extent = new CircularScenarioExtent(cityCenter, scenarioConfig.scenarioRadius);
 
 		StageActivityTypes stageActivityTypes = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);
 		MainModeIdentifier mainModeIdentifier = new MainModeIdentifierImpl();

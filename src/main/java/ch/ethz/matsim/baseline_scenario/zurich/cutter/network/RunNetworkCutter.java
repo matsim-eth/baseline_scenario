@@ -40,7 +40,7 @@ public class RunNetworkCutter {
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkInputPath);
 
 		Coord bellevue = new Coord(2683253.0, 1246745.0);
-		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), bellevue, 30000.0);
+		ScenarioExtent extent = new CircularScenarioExtent(bellevue, 30000.0);
 
 		Network roadNetwork = NetworkUtils.createNetwork();
 		new TransportModeNetworkFilter(scenario.getNetwork()).filter(roadNetwork, Collections.singleton("car"));

@@ -27,7 +27,7 @@ public class RunScheduleCutter {
 		new VehicleReaderV1(scenario.getTransitVehicles()).readFile(transitVehiclesInputPath);
 
 		Coord bellevue = new Coord(2683253.0, 1246745.0);
-		ScenarioExtent extent = new CircularScenarioExtent(scenario.getNetwork(), bellevue, 30000.0);
+		ScenarioExtent extent = new CircularScenarioExtent(bellevue, 30000.0);
 
 		StopSequenceCrossingPointFinder crossingPointFinder = new DefaultStopSequenceCrossingPointFinder(extent);
 
