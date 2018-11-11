@@ -248,10 +248,13 @@ public class Routing {
 		RoutingModule ptRoutingModule = new BaselineTransitRoutingModule(transitRouter, schedule);
 		tripRouterBuilder.putRoutingModule("pt", new RoutingModuleProvider(ptRoutingModule));
 
-		ModeRoutingParams outsideParams = config.plansCalcRoute().getModeRoutingParams().get("outside");
-		TeleportationRoutingModule outsideRoutingModule = new TeleportationRoutingModule("outside", populationFactory,
-				outsideParams.getTeleportedModeSpeed(), outsideParams.getBeelineDistanceFactor());
-		tripRouterBuilder.putRoutingModule("outside", new RoutingModuleProvider(outsideRoutingModule));
+		if (config.plansCalcRoute().getModeRoutingParams().containsKey("outside")) {
+			ModeRoutingParams outsideParams = config.plansCalcRoute().getModeRoutingParams().get("outside");
+			TeleportationRoutingModule outsideRoutingModule = new TeleportationRoutingModule("outside",
+					populationFactory, outsideParams.getTeleportedModeSpeed(),
+					outsideParams.getBeelineDistanceFactor());
+			tripRouterBuilder.putRoutingModule("outside", new RoutingModuleProvider(outsideRoutingModule));
+		}
 
 		Method method = TripRouter.Builder.class.getDeclaredMethod("builder");
 		method.setAccessible(true);
