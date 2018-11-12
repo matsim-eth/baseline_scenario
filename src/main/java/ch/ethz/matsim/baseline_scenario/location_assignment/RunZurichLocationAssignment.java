@@ -48,8 +48,11 @@ public class RunZurichLocationAssignment {
 		String statisticsOutputPath = args[5];
 		int numberOfThreads = Integer.parseInt(args[6]);
 		int discretizationIterations = Integer.parseInt(args[7]);
+		
+		// Zurich uses "service"
+		// Paris uses "errand"
 
-		Set<String> relevantActivityTypes = new HashSet<>(Arrays.asList("leisure", "shop", "service"));
+		Set<String> relevantActivityTypes = new HashSet<>(Arrays.asList("leisure", "shop", "service", "errand"));
 
 		Map<String, Double> discretizationThresholds = new HashMap<>();
 		discretizationThresholds.put("car", 200.0);
