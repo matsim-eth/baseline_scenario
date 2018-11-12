@@ -89,7 +89,7 @@
 			<artifactId>matsim</artifactId>
 			<version>0.10.1</version>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>ch.ethz.matsim</groupId>
 			<artifactId>location_assignment</artifactId>
@@ -132,6 +132,12 @@
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.grundid.opendatalab</groupId>
+			<artifactId>geojson-jackson</artifactId>
+			<version>1.8.1</version>
 		</dependency>
 	</dependencies>
 </project>
