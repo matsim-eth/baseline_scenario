@@ -1,4 +1,4 @@
-package ch.ethz.matsim.baseline_scenario.transit;
+package ch.ethz.matsim.baseline_scenario.transit.simulation;
 
 import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorModule;
 import org.junit.Rule;
