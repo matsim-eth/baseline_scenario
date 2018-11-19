@@ -23,8 +23,8 @@
 			<url>http://dl.bintray.com/matsim/matsim</url>
 		</repository>
 		<repository>
-			<id>matsim-eth-packagecloud</id>
-			<url>https://packagecloud.io/eth-ivt/matsim/maven2</url>
+			<id>matsim-eth</id>
+			<url>http://dl.bintray.com/matsim-eth/matsim</url>
 		</repository>
 		<repository>
 			<id>jitpack.io</id>
