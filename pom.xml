@@ -32,11 +32,14 @@
 		</repository>
 	</repositories>
 
+	<!-- distributionManagement> <repository> <id>matsim-eth</id> <url>https://api.bintray.com/maven/matsim-eth/matsim/baseline_scenario/;publish=1</url> 
+		</repository> </distributionManagement -->
+
 	<distributionManagement>
-		<repository>
-			<id>matsim-eth</id>
-			<url>https://api.bintray.com/maven/matsim-eth/matsim/baseline_scenario/;publish=1</url>
-		</repository>
+		<snapshotRepository>
+			<id>packagecloud-eth-ivt</id>
+			<url>packagecloud+https://packagecloud.io/eth-ivt/matsim</url>
+		</snapshotRepository>
 	</distributionManagement>
 
 	<build>
