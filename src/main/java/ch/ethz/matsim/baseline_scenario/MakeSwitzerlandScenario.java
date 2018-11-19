@@ -8,14 +8,10 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
@@ -41,14 +37,13 @@ import org.matsim.vehicles.VehicleWriterV1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import ch.ethz.ivt.matsim.playgrounds.sebhoerl.locations.RunParallelSampler;
-import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.Downsample;
-import ch.ethz.ivt.matsim.playgrounds.sebhoerl.utils.ShiftTimes;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.items.DailyCountItem;
 import ch.ethz.matsim.baseline_scenario.analysis.counts.utils.compatibility.DeprecatedDailyReferenceCountsReader;
 import ch.ethz.matsim.baseline_scenario.config.SwitzerlandConfig;
+import ch.ethz.matsim.baseline_scenario.location_assignment.BaselineLocationAssignment;
 import ch.ethz.matsim.baseline_scenario.utils.AdaptConfig;
 import ch.ethz.matsim.baseline_scenario.utils.AttributeCleaner;
+import ch.ethz.matsim.baseline_scenario.utils.Downsample;
 import ch.ethz.matsim.baseline_scenario.utils.FixFacilityActivityTypes;
 import ch.ethz.matsim.baseline_scenario.utils.FixLinkIds;
 import ch.ethz.matsim.baseline_scenario.utils.FixShopActivities;
@@ -57,6 +52,7 @@ import ch.ethz.matsim.baseline_scenario.utils.HouseholdAttributeCleaner;
 import ch.ethz.matsim.baseline_scenario.utils.HouseholdsCleaner;
 import ch.ethz.matsim.baseline_scenario.utils.MergeSecondaryFacilities;
 import ch.ethz.matsim.baseline_scenario.utils.RemoveInvalidPlans;
+import ch.ethz.matsim.baseline_scenario.utils.ShiftTimes;
 import ch.ethz.matsim.baseline_scenario.utils.TypicalDurationForActivityTypes;
 import ch.ethz.matsim.baseline_scenario.utils.UnselectedPlanRemoval;
 import ch.ethz.matsim.baseline_scenario.utils.consistency.MD5Collector;
@@ -166,25 +162,12 @@ public class MakeSwitzerlandScenario {
 
 		// LOCATION CHOICE
 
-		inputFilesCollector.add("microcensus.csv");
-		Set<Id<Person>> failedIds = RunParallelSampler.run(numberOfThreads,
-				new File(inputPath, "microcensus.csv").getPath(), scenario.getPopulation(),
-				scenario.getActivityFacilities(), baselineConfig.performIterativeLocationChoice ? 20 : 1);
-		failedIds.forEach(id -> scenario.getPopulation().getPersons().remove(id));
+		inputFilesCollector.add("quantiles.dat");
+		inputFilesCollector.add("distributions.dat");
 
-		for (Person person : scenario.getPopulation().getPersons().values()) {
-			for (Plan plan : person.getPlans()) {
-				for (PlanElement element : plan.getPlanElements()) {
-					if (element instanceof Leg) {
-						Leg leg = (Leg) element;
-
-						if (leg.getRoute() != null && leg.getRoute().getRouteType().equals("DebugInformation")) {
-							leg.setRoute(null);
-						}
-					}
-				}
-			}
-		}
+		new BaselineLocationAssignment().run(scenario.getPopulation(), scenario.getActivityFacilities(),
+				new File(inputPath, "quantiles.dat").getPath(), new File(inputPath, "distributions.dat").getPath(),
+				numberOfThreads);
 
 		// SCORING
 
@@ -198,13 +181,13 @@ public class MakeSwitzerlandScenario {
 		// Do best response routing with free-flow travel times
 		new BestResponseCarRouting(numberOfThreads, roadNetwork).run(scenario.getPopulation());
 
-		if (baselineConfig.performIterativeLocationChoice) {
+		/*if (baselineConfig.performIterativeLocationChoice) {
 			// Select plans to fit counts
 			new TrafficCountPlanSelector(roadNetwork, countItems, baselineConfig.outputScenarioScale, 0.01,
 					numberOfThreads, new File(outputPath, "counts_locchoice.txt").getPath(), 20)
 							.run(scenario.getPopulation());
 			new UnselectedPlanRemoval().run(scenario.getPopulation());
-		}
+		}*/
 
 		// Here we get some nice pre-initialized routes for free, because
 		// the TrafficCountPlanSelector already estimates them using BPR

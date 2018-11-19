@@ -11,6 +11,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ConfigWriter;
@@ -27,7 +28,6 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.households.HouseholdsWriterV10;
 import org.matsim.pt.PtConstants;
-import org.matsim.pt.router.TransitRouter;
 import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 import org.matsim.utils.objectattributes.ObjectAttributes;
 import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
@@ -79,7 +79,6 @@ import ch.ethz.matsim.baseline_scenario.zurich.router.parallel.ParallelPopulatio
 import ch.ethz.matsim.baseline_scenario.zurich.utils.AdjustLinkLengths;
 import ch.ethz.matsim.baseline_scenario.zurich.utils.AttributeNamesReader;
 import ch.ethz.matsim.baseline_scenario.zurich.utils.OutsideAttributeSetter;
-import ch.sbb.matsim.routing.pt.raptor.SwissRailRaptorFactory;
 
 public class MakeZurichScenario {
 	public static void main(String[] args) throws Exception {
@@ -149,8 +148,8 @@ public class MakeZurichScenario {
 					protected void configure() {
 						bind(StageActivityTypes.class).toInstance(stageActivityTypes);
 						bind(MainModeIdentifier.class).toInstance(mainModeIdentifier);
-						bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
 						bind(Config.class).toInstance(routingConfig);
+						bind(Population.class).toInstance(scenario.getPopulation());
 					}
 				}, new CarRoutingModule(roadNetwork),
 				new PublicTransitRoutingModule(scenario.getNetwork(), scenario.getTransitSchedule(),
@@ -211,7 +210,7 @@ public class MakeZurichScenario {
 					protected void configure() {
 						bind(StageActivityTypes.class).toInstance(stageActivityTypes);
 						bind(MainModeIdentifier.class).toInstance(mainModeIdentifier);
-						bind(TransitRouter.class).toProvider(SwissRailRaptorFactory.class);
+						bind(Population.class).toInstance(scenario.getPopulation());
 						bind(Config.class).toInstance(routingConfig);
 					}
 				}, new CarRoutingModule(updatedRoadNetwork),
