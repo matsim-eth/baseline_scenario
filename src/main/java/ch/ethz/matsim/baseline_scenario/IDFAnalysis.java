@@ -1,17 +1,9 @@
 package ch.ethz.matsim.baseline_scenario;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.util.Collection;
+import java.util.LinkedList;
 
-import org.geojson.Feature;
-import org.geojson.FeatureCollection;
-import org.geojson.LineString;
-import org.geojson.LngLatAlt;
-import org.geojson.Point;
-import org.geotools.geometry.DirectPosition2D;
 import org.geotools.referencing.CRS;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -22,75 +14,55 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.io.PopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.utils.gis.PointFeatureFactory;
+import org.matsim.core.utils.gis.PolylineFeatureFactory;
+import org.matsim.core.utils.gis.ShapeFileWriter;
 import org.matsim.households.Household;
 import org.matsim.households.HouseholdsReaderV10;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.operation.MathTransform;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vividsolutions.jts.geom.Coordinate;
 
 public class IDFAnalysis {
 	static public void main(String[] args) throws IOException, NoSuchAuthorityCodeException, FactoryException {
-		MathTransform transform = CRS.findMathTransform(CRS.decode("EPSG:2154"), CRS.decode("EPSG:4326"));
-
-		FeatureCollection featureCollection = new FeatureCollection();
-
-		Feature feature = new Feature();
-		feature.setGeometry(new LineString(new LngLatAlt(0.0, 0.0), new LngLatAlt(1.0, 1.0)));
-		feature.setProperty("abc", 55);
-
-		featureCollection.add(feature);
-
-		System.out.println(new ObjectMapper().writeValueAsString(featureCollection));
-		new ObjectMapper().writeValue(new File("output.geojson"), featureCollection);
-
-		System.exit(1);
-
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 		new PopulationReader(scenario).readFile(args[0]);
 		new HouseholdsReaderV10(scenario.getHouseholds()).readFile(args[1]);
 
-		/*BufferedWriter activityWriter = new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream("activities.csv")));
-		BufferedWriter personWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("persons.csv")));
-		BufferedWriter householdWriter = new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream("households.csv")));*/
-		
-		FeatureCollection activityCollection = new FeatureCollection();
-		FeatureCollection personCollection = new FeatureCollection();
-		FeatureCollection householdCollection = new FeatureCollection();
+		PolylineFeatureFactory odFactory = new PolylineFeatureFactory.Builder().setCrs(CRS.decode("EPSG:2154"))
+				.setName("od").addAttribute("type", String.class).create();
+		PointFeatureFactory homeFactory = new PointFeatureFactory.Builder().setCrs(CRS.decode("EPSG:2154"))
+				.setName("home").create();
+		PointFeatureFactory workFactory = new PointFeatureFactory.Builder().setCrs(CRS.decode("EPSG:2154"))
+				.setName("work").create();
+		PointFeatureFactory educationFactory = new PointFeatureFactory.Builder().setCrs(CRS.decode("EPSG:2154"))
+				.setName("education").create();
+		PointFeatureFactory householdFactory = new PointFeatureFactory.Builder().setCrs(CRS.decode("EPSG:2154"))
+				.setName("household").addAttribute("income", Double.class).create();
+		PointFeatureFactory activityFactory = new PointFeatureFactory.Builder().setCrs(CRS.decode("EPSG:2154"))
+				.setName("activity").addAttribute("purpose", String.class).create();
 
-		//activityWriter.write("purpose;x;y\n");
-		//personWriter.write("home_x;home_y;work_x;work_y;education_x;education_y\n");
-		//householdWriter.write("income;x;y\n");
+		Collection<SimpleFeature> odCollection = new LinkedList<>();
+		Collection<SimpleFeature> homeCollection = new LinkedList<>();
+		Collection<SimpleFeature> workCollection = new LinkedList<>();
+		Collection<SimpleFeature> educationCollection = new LinkedList<>();
+		Collection<SimpleFeature> householdCollection = new LinkedList<>();
+		Collection<SimpleFeature> activityCollection = new LinkedList<>();
 
 		for (Person person : scenario.getPopulation().getPersons().values()) {
-			LngLatAlt homeCoord = null;
-			LngLatAlt workCoord = null;
-			LngLatAlt educationCoord = null;
+			Coord homeCoord = null;
+			Coord workCoord = null;
+			Coord educationCoord = null;
 
 			for (PlanElement element : person.getSelectedPlan().getPlanElements()) {
 				if (element instanceof Activity) {
 					Activity activity = (Activity) element;
-					
-					DirectPosition2D sourcePosition = new DirectPosition2D(activity.getCoord().getX(), activity.getCoord().getY());
-					DirectPosition2D targetPosition = new DirectPosition2D();
-					transform.transform(sourcePosition, targetPosition);
-					LngLatAlt coordinate = new LngLatAlt(sourcePosition.getX(), sourcePosition.getY());
 
 					if (!activity.getType().contains("interaction")) {
-						/*activityWriter.write(String.join(";",
-								new String[] { activity.getType(), String.valueOf(activity.getCoord().getX()),
-										String.valueOf(activity.getCoord().getY()) })
-								+ "\n");
-						activityWriter.flush();*/
-						
-
-						
-						Feature activityFeature = new Feature();
-						activityFeature.setGeometry(new Point(coordinates));
-						
+						activityCollection.add(activityFactory.createPoint(activity.getCoord(),
+								new Object[] { activity.getType() }, null));
 					}
 
 					if (activity.getType().equals("work")) {
@@ -107,25 +79,25 @@ public class IDFAnalysis {
 				}
 			}
 
-			personWriter.write(String.valueOf(homeCoord.getX()) + ";");
-			personWriter.write(String.valueOf(homeCoord.getY()) + ";");
+			homeCollection.add(homeFactory.createPoint(homeCoord, new Object[] {}, null));
 
 			if (workCoord != null) {
-				personWriter.write(String.valueOf(workCoord.getX()) + ";");
-				personWriter.write(String.valueOf(workCoord.getX()) + ";");
-			} else {
-				personWriter.write("NULL;NULL;");
+				workCollection.add(workFactory.createPoint(workCoord, new Object[] {}, null));
 			}
 
 			if (educationCoord != null) {
-				personWriter.write(String.valueOf(educationCoord.getX()) + ";");
-				personWriter.write(String.valueOf(educationCoord.getX()));
-			} else {
-				personWriter.write("NULL;NULL");
+				educationCollection.add(educationFactory.createPoint(educationCoord, new Object[] {}, null));
 			}
 
-			personWriter.write("\n");
-			personWriter.flush();
+			if (workCoord != null || educationCoord != null) {
+				String type = workCoord != null ? "work" : "education";
+				Coord coord = workCoord != null ? workCoord : educationCoord;
+
+				SimpleFeature odPair = odFactory
+						.createPolyline(new Coordinate[] { new Coordinate(homeCoord.getX(), homeCoord.getY()),
+								new Coordinate(coord.getX(), coord.getY()) }, new Object[] { type }, null);
+				odCollection.add(odPair);
+			}
 		}
 
 		for (Household household : scenario.getHouseholds().getHouseholds().values()) {
@@ -145,13 +117,15 @@ public class IDFAnalysis {
 				}
 			}
 
-			householdWriter.write(String.valueOf(household.getIncome().getIncome()) + ";");
-			householdWriter.write(String.valueOf(homeCoord.getX()) + ";");
-			householdWriter.write(String.valueOf(homeCoord.getY()) + "\n");
+			householdCollection.add(
+					householdFactory.createPoint(homeCoord, new Object[] { household.getIncome().getIncome() }, null));
 		}
 
-		activityWriter.close();
-		personWriter.close();
-		householdWriter.close();
+		ShapeFileWriter.writeGeometries(homeCollection, "home_by_person.shp");
+		ShapeFileWriter.writeGeometries(workCollection, "work_by_person.shp");
+		ShapeFileWriter.writeGeometries(educationCollection, "education_by_person.shp");
+		ShapeFileWriter.writeGeometries(activityCollection, "activities.shp");
+		ShapeFileWriter.writeGeometries(householdCollection, "households_with_income.shp");
+		ShapeFileWriter.writeGeometries(odCollection, "commute_od_pairs.shp");
 	}
 }
