@@ -229,7 +229,8 @@ public class Routing {
 		NetworkRoutingModule carRoutingModule = new NetworkRoutingModule("car", populationFactory, carNetwork,
 				carRouter);
 		tripRouterBuilder.putRoutingModule("car", new RoutingModuleProvider(carRoutingModule));
-
+		tripRouterBuilder.putRoutingModule("car_passenger", new RoutingModuleProvider(carRoutingModule));	
+		
 		ModeRoutingParams walkParams = config.plansCalcRoute().getModeRoutingParams().get("walk");
 		TeleportationRoutingModule walkRoutingModule = new TeleportationRoutingModule("walk", populationFactory,
 				walkParams.getTeleportedModeSpeed(), walkParams.getBeelineDistanceFactor());
