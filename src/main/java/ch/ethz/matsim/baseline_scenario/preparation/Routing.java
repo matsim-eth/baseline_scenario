@@ -95,7 +95,7 @@ public class Routing {
 		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkPath);
 		new PopulationReader(scenario).readFile(inputPopulationPath);
 		new TransitScheduleReader(scenario).readFile(inputSchedulePath);
-		
+
 		Network roadNetwork = NetworkUtils.createNetwork();
 		new TransportModeNetworkFilter(scenario.getNetwork()).filter(roadNetwork, Collections.singleton("car"));
 
@@ -226,11 +226,15 @@ public class Routing {
 
 		LeastCostPathCalculator carRouter = new DijkstraFactory().createPathCalculator(carNetwork, travelDisutility,
 				travelTime);
+
 		NetworkRoutingModule carRoutingModule = new NetworkRoutingModule("car", populationFactory, carNetwork,
 				carRouter);
 		tripRouterBuilder.putRoutingModule("car", new RoutingModuleProvider(carRoutingModule));
-		tripRouterBuilder.putRoutingModule("car_passenger", new RoutingModuleProvider(carRoutingModule));	
-		
+
+		NetworkRoutingModule passengerRoutingModule = new NetworkRoutingModule("car_passenger", populationFactory,
+				carNetwork, carRouter);
+		tripRouterBuilder.putRoutingModule("car_passenger", new RoutingModuleProvider(passengerRoutingModule));
+
 		ModeRoutingParams walkParams = config.plansCalcRoute().getModeRoutingParams().get("walk");
 		TeleportationRoutingModule walkRoutingModule = new TeleportationRoutingModule("walk", populationFactory,
 				walkParams.getTeleportedModeSpeed(), walkParams.getBeelineDistanceFactor());
