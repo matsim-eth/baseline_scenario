@@ -56,6 +56,7 @@ public class RunZurichLocationAssignment {
 
 		Map<String, Double> discretizationThresholds = new HashMap<>();
 		discretizationThresholds.put("car", 200.0);
+		discretizationThresholds.put("car_passenger", 200.0);
 		discretizationThresholds.put("pt", 200.0);
 		discretizationThresholds.put("bike", 100.0);
 		discretizationThresholds.put("walk", 100.0);
