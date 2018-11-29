@@ -14,21 +14,30 @@ import java.util.stream.Collectors;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
-import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.api.core.v01.population.Activity;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Plan;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.PopulationWriter;
+import org.matsim.api.core.v01.population.Route;
+import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkWriter;
+import org.matsim.core.population.routes.AbstractRoute;
+import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.facilities.ActivityFacility;
+import org.matsim.facilities.ActivityFacilityImpl;
+import org.matsim.facilities.FacilitiesWriter;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
-import org.matsim.pt.transitSchedule.api.TransitSchedule;
-import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class SimplifyNetwork {
-	public void run(Network network, TransitSchedule schedule) {
+	public void run(Scenario scenario) {
 		Collection<Node> candidateNodes = new HashSet<>();
 		int round = 1;
 
@@ -37,7 +46,7 @@ public class SimplifyNetwork {
 		while (true) {
 			candidateNodes.clear();
 
-			for (Node node : network.getNodes().values()) {
+			for (Node node : scenario.getNetwork().getNodes().values()) {
 				if (node.getInLinks().size() == 1 && node.getOutLinks().size() == 1) {
 					Link startLink = node.getInLinks().values().iterator().next();
 					Link endLink = node.getOutLinks().values().iterator().next();
@@ -48,8 +57,8 @@ public class SimplifyNetwork {
 				}
 			}
 
-			for (TransitStopFacility facility : schedule.getFacilities().values()) {
-				Link facilityLink = network.getLinks().get(facility.getLinkId());
+			for (TransitStopFacility facility : scenario.getTransitSchedule().getFacilities().values()) {
+				Link facilityLink = scenario.getNetwork().getLinks().get(facility.getLinkId());
 				candidateNodes.remove(facilityLink.getFromNode());
 			}
 
@@ -77,11 +86,11 @@ public class SimplifyNetwork {
 				startLink.setAllowedModes(modes);
 
 				// This will remove the framing links, too.
-				network.removeNode(middleNode.getId());
+				scenario.getNetwork().removeNode(middleNode.getId());
 
 				Node endNode = endLink.getToNode();
 				startLink.setToNode(endNode);
-				network.addLink(startLink);
+				scenario.getNetwork().addLink(startLink);
 
 				Node startNode = startLink.getFromNode();
 
@@ -106,8 +115,8 @@ public class SimplifyNetwork {
 			}
 		}
 
-		for (TransitStopFacility facility : schedule.getFacilities().values()) {
-			if (!network.getLinks().containsKey(facility.getLinkId())) {
+		for (TransitStopFacility facility : scenario.getTransitSchedule().getFacilities().values()) {
+			if (!scenario.getNetwork().getLinks().containsKey(facility.getLinkId())) {
 				throw new IllegalStateException();
 			}
 		}
@@ -120,7 +129,7 @@ public class SimplifyNetwork {
 			}
 		}
 
-		for (TransitLine transitLine : schedule.getTransitLines().values()) {
+		for (TransitLine transitLine : scenario.getTransitSchedule().getTransitLines().values()) {
 			for (TransitRoute transitRoute : transitLine.getRoutes().values()) {
 				List<Id<Link>> linkIds = new LinkedList<>();
 				linkIds.add(transitRoute.getRoute().getStartLinkId());
@@ -139,22 +148,74 @@ public class SimplifyNetwork {
 				transitRoute.getRoute().setLinkIds(startLinkId, linkIds, endLinkId);
 			}
 		}
+
+		for (Person person : scenario.getPopulation().getPersons().values()) {
+			for (Plan plan : person.getPlans()) {
+				for (PlanElement element : plan.getPlanElements()) {
+					if (element instanceof Activity) {
+						Activity activity = (Activity) element;
+						activity.setLinkId(
+								invertedReplacements.getOrDefault(activity.getLinkId(), activity.getLinkId()));
+					}
+
+					if (element instanceof Leg) {
+						Leg leg = (Leg) element;
+						Route route = leg.getRoute();
+
+						if (route instanceof NetworkRoute) {
+							NetworkRoute networkRoute = (NetworkRoute) route;
+
+							List<Id<Link>> linkIds = new LinkedList<>();
+							linkIds.add(networkRoute.getStartLinkId());
+							linkIds.addAll(networkRoute.getLinkIds());
+							linkIds.add(networkRoute.getEndLinkId());
+
+							linkIds = linkIds.stream()
+									.map(id -> invertedReplacements.containsKey(id) ? invertedReplacements.get(id) : id)
+									.collect(Collectors.toList());
+
+							linkIds = new ArrayList<>(new LinkedHashSet<>(linkIds));
+
+							Id<Link> startLinkId = linkIds.remove(0);
+							Id<Link> endLinkId = linkIds.size() == 0 ? startLinkId : linkIds.remove(linkIds.size() - 1);
+
+							networkRoute.setLinkIds(startLinkId, linkIds, endLinkId);
+						} else if (route instanceof AbstractRoute) {
+							AbstractRoute abstractRoute = (AbstractRoute) route;
+							abstractRoute.setStartLinkId(invertedReplacements
+									.getOrDefault(abstractRoute.getStartLinkId(), abstractRoute.getStartLinkId()));
+							abstractRoute.setEndLinkId(invertedReplacements.getOrDefault(abstractRoute.getEndLinkId(),
+									abstractRoute.getEndLinkId()));
+						} else {
+							throw new IllegalStateException();
+						}
+					}
+				}
+			}
+		}
+
+		for (ActivityFacility facility : scenario.getActivityFacilities().getFacilities().values()) {
+			ActivityFacilityImpl implFacility = (ActivityFacilityImpl) facility;
+			implFacility
+					.setLinkId(invertedReplacements.getOrDefault(implFacility.getLinkId(), implFacility.getLinkId()));
+		}
 	}
 
 	static public void main(String[] args) {
-		String networkInputPath = args[0];
-		String scheduleInputPath = args[1];
-		String networkOutputPath = args[2];
-		String scheduleOutputPath = args[3];
+		String configPath = args[0];
+		String networkOutputPath = args[1];
+		String scheduleOutputPath = args[2];
+		String populationOutputPath = args[3];
+		String facilitiesOutputPath = args[4];
 
-		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
+		Config config = ConfigUtils.loadConfig(configPath);
+		Scenario scenario = ScenarioUtils.loadScenario(config);
 
-		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkInputPath);
-		new TransitScheduleReader(scenario).readFile(scheduleInputPath);
-
-		new SimplifyNetwork().run(scenario.getNetwork(), scenario.getTransitSchedule());
+		new SimplifyNetwork().run(scenario);
 
 		new NetworkWriter(scenario.getNetwork()).write(networkOutputPath);
 		new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(scheduleOutputPath);
+		new PopulationWriter(scenario.getPopulation()).write(populationOutputPath);
+		new FacilitiesWriter(scenario.getActivityFacilities()).write(facilitiesOutputPath);
 	}
 }
