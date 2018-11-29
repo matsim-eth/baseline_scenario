@@ -1,9 +1,17 @@
 package ch.ethz.matsim.baseline_scenario.preparation;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -12,14 +20,19 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkWriter;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.pt.transitSchedule.api.TransitLine;
+import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitSchedule;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class SimplifyNetwork {
 	public void run(Network network, TransitSchedule schedule) {
 		Collection<Node> candidateNodes = new HashSet<>();
 		int round = 1;
+
+		Map<Id<Link>, Collection<Id<Link>>> replacements = new HashMap<>();
 
 		while (true) {
 			candidateNodes.clear();
@@ -77,6 +90,53 @@ public class SimplifyNetwork {
 				candidateNodes.remove(endNode);
 
 				startLink.getAttributes().putAttribute("isCollapsed", true);
+
+				// Register that startLink replaces endLink
+				if (!replacements.containsKey(startLink.getId())) {
+					replacements.put(startLink.getId(), new HashSet<>());
+				}
+				replacements.get(startLink.getId()).add(endLink.getId());
+
+				// If endLink already replaces other links, they are now also replaced by
+				// startLink
+				if (replacements.containsKey(endLink.getId())) {
+					replacements.get(startLink.getId()).addAll(replacements.get(endLink.getId()));
+					replacements.remove(endLink.getId());
+				}
+			}
+		}
+
+		for (TransitStopFacility facility : schedule.getFacilities().values()) {
+			if (!network.getLinks().containsKey(facility.getLinkId())) {
+				throw new IllegalStateException();
+			}
+		}
+
+		Map<Id<Link>, Id<Link>> invertedReplacements = new HashMap<>();
+
+		for (Map.Entry<Id<Link>, Collection<Id<Link>>> entry : replacements.entrySet()) {
+			for (Id<Link> replacedLink : entry.getValue()) {
+				invertedReplacements.put(replacedLink, entry.getKey());
+			}
+		}
+
+		for (TransitLine transitLine : schedule.getTransitLines().values()) {
+			for (TransitRoute transitRoute : transitLine.getRoutes().values()) {
+				List<Id<Link>> linkIds = new LinkedList<>();
+				linkIds.add(transitRoute.getRoute().getStartLinkId());
+				linkIds.addAll(transitRoute.getRoute().getLinkIds());
+				linkIds.add(transitRoute.getRoute().getEndLinkId());
+
+				linkIds = linkIds.stream()
+						.map(id -> invertedReplacements.containsKey(id) ? invertedReplacements.get(id) : id)
+						.collect(Collectors.toList());
+
+				linkIds = new ArrayList<>(new LinkedHashSet<>(linkIds));
+
+				Id<Link> startLinkId = linkIds.remove(0);
+				Id<Link> endLinkId = linkIds.size() == 0 ? startLinkId : linkIds.remove(linkIds.size() - 1);
+
+				transitRoute.getRoute().setLinkIds(startLinkId, linkIds, endLinkId);
 			}
 		}
 	}
@@ -85,6 +145,7 @@ public class SimplifyNetwork {
 		String networkInputPath = args[0];
 		String scheduleInputPath = args[1];
 		String networkOutputPath = args[2];
+		String scheduleOutputPath = args[3];
 
 		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
@@ -92,6 +153,8 @@ public class SimplifyNetwork {
 		new TransitScheduleReader(scenario).readFile(scheduleInputPath);
 
 		new SimplifyNetwork().run(scenario.getNetwork(), scenario.getTransitSchedule());
+
 		new NetworkWriter(scenario.getNetwork()).write(networkOutputPath);
+		new TransitScheduleWriter(scenario.getTransitSchedule()).writeFile(scheduleOutputPath);
 	}
 }
