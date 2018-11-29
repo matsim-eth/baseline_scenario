@@ -4,15 +4,20 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
-import org.matsim.core.network.NetworkUtils;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.network.io.MatsimNetworkReader;
 import org.matsim.core.network.io.NetworkWriter;
+import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.pt.transitSchedule.api.TransitSchedule;
+import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
 public class SimplifyNetwork {
-	public void run(Network network) {
+	public void run(Network network, TransitSchedule schedule) {
 		Collection<Node> candidateNodes = new HashSet<>();
 		int round = 1;
 
@@ -28,6 +33,11 @@ public class SimplifyNetwork {
 						candidateNodes.add(node);
 					}
 				}
+			}
+
+			for (TransitStopFacility facility : schedule.getFacilities().values()) {
+				Link facilityLink = network.getLinks().get(facility.getLinkId());
+				candidateNodes.remove(facilityLink.getFromNode());
 			}
 
 			if (candidateNodes.size() == 0) {
@@ -73,12 +83,15 @@ public class SimplifyNetwork {
 
 	static public void main(String[] args) {
 		String networkInputPath = args[0];
-		String networkOutputPath = args[1];
+		String scheduleInputPath = args[1];
+		String networkOutputPath = args[2];
 
-		Network network = NetworkUtils.createNetwork();
-		new MatsimNetworkReader(network).readFile(networkInputPath);
+		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
 
-		new SimplifyNetwork().run(network);
-		new NetworkWriter(network).write(networkOutputPath);
+		new MatsimNetworkReader(scenario.getNetwork()).readFile(networkInputPath);
+		new TransitScheduleReader(scenario).readFile(scheduleInputPath);
+
+		new SimplifyNetwork().run(scenario.getNetwork(), scenario.getTransitSchedule());
+		new NetworkWriter(scenario.getNetwork()).write(networkOutputPath);
 	}
 }
