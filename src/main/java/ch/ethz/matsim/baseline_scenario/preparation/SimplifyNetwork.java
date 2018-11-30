@@ -36,6 +36,9 @@ import org.matsim.pt.transitSchedule.api.TransitRoute;
 import org.matsim.pt.transitSchedule.api.TransitScheduleWriter;
 import org.matsim.pt.transitSchedule.api.TransitStopFacility;
 
+import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRoute;
+import ch.ethz.matsim.baseline_scenario.transit.routing.DefaultEnrichedTransitRouteFactory;
+
 public class SimplifyNetwork {
 	public void run(Scenario scenario) {
 		Collection<Node> candidateNodes = new HashSet<>();
@@ -209,7 +212,11 @@ public class SimplifyNetwork {
 		String facilitiesOutputPath = args[4];
 
 		Config config = ConfigUtils.loadConfig(configPath);
-		Scenario scenario = ScenarioUtils.loadScenario(config);
+
+		Scenario scenario = ScenarioUtils.createScenario(config);
+		scenario.getPopulation().getFactory().getRouteFactories().setRouteFactory(DefaultEnrichedTransitRoute.class,
+				new DefaultEnrichedTransitRouteFactory());
+		ScenarioUtils.loadScenario(scenario);
 
 		new SimplifyNetwork().run(scenario);
 
