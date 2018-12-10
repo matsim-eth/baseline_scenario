@@ -12,11 +12,13 @@ public class TapInEvent extends GenericEvent implements HasPersonId {
 
 	private final Id<Person> personId;
 	private final int lda;
+	private final boolean hasSubscription;
 
-	public TapInEvent(double time, Id<Person> personId, int lda) {
+	public TapInEvent(double time, Id<Person> personId, int lda, boolean hasSubscription) {
 		super(NAME, time);
 		this.personId = personId;
 		this.lda = lda;
+		this.hasSubscription = hasSubscription;
 	}
 
 	@Override
@@ -28,11 +30,16 @@ public class TapInEvent extends GenericEvent implements HasPersonId {
 		return lda;
 	}
 
+	public boolean hasSubscription() {
+		return hasSubscription;
+	}
+
 	@Override
 	public Map<String, String> getAttributes() {
 		Map<String, String> attributes = super.getAttributes();
 		attributes.put("person", personId.toString());
 		attributes.put("lda", String.valueOf(lda));
+		attributes.put("subscription", String.valueOf(hasSubscription));
 		return attributes;
 	}
 }

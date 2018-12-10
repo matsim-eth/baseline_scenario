@@ -113,14 +113,17 @@ public class TapInAnalysis {
 		public Listener(BufferedWriter writer) throws IOException {
 			this.writer = writer;
 
-			writer.write("time;person;lda\n");
+			writer.write("time;person;lda;subscription\n");
 			writer.flush();
 		}
 
 		public void handleEvent(TapInEvent event) {
 			try {
-				writer.write(String.join(";", new String[] { String.valueOf(event.getTime()),
-						event.getPersonId().toString(), String.valueOf(event.getLDA()) }) + "\n");
+				writer.write(
+						String.join(";",
+								new String[] { String.valueOf(event.getTime()), event.getPersonId().toString(),
+										String.valueOf(event.getLDA()), String.valueOf(event.hasSubscription()) })
+								+ "\n");
 				writer.flush();
 			} catch (IOException e) {
 				throw new RuntimeException(e);

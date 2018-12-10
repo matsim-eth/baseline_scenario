@@ -34,15 +34,17 @@ public class TapInListener implements GenericEventHandler, PersonDepartureEventH
 		this.lastEgressLDAs.clear();
 	}
 
-	private void processTapIn(double time, Id<Person> personId, int lda) {
-		eventsManager.processEvent(new TapInEvent(time, personId, lda));
+	private void processTapIn(double time, Id<Person> personId, int lda, boolean hasSuscription) {
+		eventsManager.processEvent(new TapInEvent(time, personId, lda, hasSuscription));
 	}
 
 	public void handleEvent(PublicTransitEvent event) {
 		Boolean hasSubscription = (Boolean) population.getPersons().get(event.getPersonId()).getAttributes()
 				.getAttribute("ptSubscription");
+		
+		hasSubscription = hasSubscription == null || hasSubscription;
 
-		if (hasSubscription != null && hasSubscription) {
+		//if (hasSubscription != null && hasSubscription) {
 			Id<TransitStopFacility> currentAccessFacilityId = event.getAccessStopId();
 			Integer currentAccessLDA = (Integer) schedule.getFacilities().get(currentAccessFacilityId).getAttributes()
 					.getAttribute("LDA");
@@ -54,7 +56,7 @@ public class TapInListener implements GenericEventHandler, PersonDepartureEventH
 				if (lastEgressLDA == null || !lastEgressLDA.equals(currentAccessLDA)) {
 					// Either there is no previous LDA (= first leg), or there is an inter change
 					// between LDA, both need a tap-in
-					processTapIn(event.getTime(), event.getPersonId(), currentAccessLDA);
+					processTapIn(event.getTime(), event.getPersonId(), currentAccessLDA, hasSubscription);
 				}
 
 				Integer currentEgressLDA = (Integer) schedule.getFacilities().get(event.getEgressStopId())
@@ -71,7 +73,7 @@ public class TapInListener implements GenericEventHandler, PersonDepartureEventH
 				// The current trip starts at a stop without LDA
 				lastEgressLDAs.remove(event.getPersonId());
 			}
-		}
+		//}
 	}
 
 	@Override
