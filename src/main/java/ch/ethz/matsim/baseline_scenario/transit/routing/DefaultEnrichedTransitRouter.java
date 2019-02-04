@@ -1,5 +1,7 @@
 package ch.ethz.matsim.baseline_scenario.transit.routing;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.matsim.api.core.v01.Coord;
@@ -25,16 +27,26 @@ public class DefaultEnrichedTransitRouter implements EnrichedTransitRouter {
 	final private Network network;
 	final private double beelineDistanceFactor;
 	final private double additionalTransferTime;
+	final private Collection<String> ptModes;
 
+	@Deprecated
 	public DefaultEnrichedTransitRouter(TransitRouter delegate, TransitSchedule transitSchedule,
 			TransitConnectionFinder connectionFinder, Network network, double beelineDistanceFactor,
 			double additionalTransferTime) {
+		this(delegate, transitSchedule, connectionFinder, network, beelineDistanceFactor, additionalTransferTime,
+				Collections.singleton("pt"));
+	}
+
+	public DefaultEnrichedTransitRouter(TransitRouter delegate, TransitSchedule transitSchedule,
+			TransitConnectionFinder connectionFinder, Network network, double beelineDistanceFactor,
+			double additionalTransferTime, Collection<String> ptModes) {
 		this.delegate = delegate;
 		this.transitSchedule = transitSchedule;
 		this.connectionFinder = connectionFinder;
 		this.network = network;
 		this.beelineDistanceFactor = beelineDistanceFactor;
 		this.additionalTransferTime = additionalTransferTime;
+		this.ptModes = ptModes;
 	}
 
 	@Override
@@ -46,7 +58,7 @@ public class DefaultEnrichedTransitRouter implements EnrichedTransitRouter {
 		for (int i = 0; i < legs.size(); i++) {
 			Leg currentLeg = legs.get(i);
 
-			if (currentLeg.getMode().equals("pt")) {
+			if (ptModes.contains(currentLeg.getMode())) {
 				try {
 					double departureAfterAdditionalTransfer = currentTime + additionalTransferTime;
 					double totalTravelTimeAfterAdditionalTransfer = currentLeg.getTravelTime() - additionalTransferTime;
