@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.log4j.Logger;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -33,6 +34,8 @@ import ch.ethz.matsim.baseline_scenario.config.CommandLine;
 import ch.ethz.matsim.baseline_scenario.config.CommandLine.ConfigurationException;
 
 public class ImputeInnerParisAttribute {
+	private final static Logger logger = Logger.getLogger(ImputeInnerParisAttribute.class);
+
 	private static Map<String, IRIS> readIRIS(File path) throws MalformedURLException, IOException {
 		DataStore dataStore = DataStoreFinder.getDataStore(Collections.singletonMap("url", path.toURI().toURL()));
 		SimpleFeatureSource featureSource = dataStore.getFeatureSource(dataStore.getTypeNames()[0]);
@@ -76,6 +79,9 @@ public class ImputeInnerParisAttribute {
 		PopulationReader readerPop = new PopulationReader(scenario);
 		readerPop.readFile(cmd.getOptionStrict("input-path"));
 
+		long totalNumberOfPersons = scenario.getPopulation().getPersons().size();
+		long processedNumberOfPersons = 0;
+
 		for (Person person : scenario.getPopulation().getPersons().values()) {
 			Plan plan = person.getSelectedPlan();
 
@@ -94,6 +100,10 @@ public class ImputeInnerParisAttribute {
 					}
 				}
 			}
+
+			processedNumberOfPersons++;
+			logger.info(String.format("%d/%d (%.2f%%)", processedNumberOfPersons, totalNumberOfPersons,
+					100.0 * processedNumberOfPersons / totalNumberOfPersons));
 		}
 
 		PopulationWriter popWriter = new PopulationWriter(scenario.getPopulation());
