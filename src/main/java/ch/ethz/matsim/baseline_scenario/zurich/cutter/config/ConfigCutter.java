@@ -37,10 +37,10 @@ public class ConfigCutter {
 		config.planCalcScore().addActivityParams(outsideActivityParams);
 
 		// See MATSIM-766 (https://matsim.atlassian.net/browse/MATSIM-766)
-		StrategySettings dummyStrategy = new StrategySettings();
+		/*StrategySettings dummyStrategy = new StrategySettings();
 		dummyStrategy.setStrategyName("SubtourModeChoice");
 		dummyStrategy.setDisableAfter(0);
 		dummyStrategy.setWeight(0.0);
-		config.strategy().addStrategySettings(dummyStrategy);
+		config.strategy().addStrategySettings(dummyStrategy);*/
 	}
 }
