@@ -98,7 +98,7 @@ public class Cutter {
 					CircleDefinition.class);
 			extent = new CircularScenarioExtent(new Coord(definition.centerX, definition.centerY), definition.radius);
 		} else {
-			extent = new ShapeScenarioExtent.Builder(new File(cmd.getOptionStrict("shape-path"))).build();
+			extent = new ShapeScenarioExtent.Builder(new File(cmd.getOptionStrict("shape-path")), "", "").build();
 		}
 
 		StageActivityTypes stageActivityTypes = new StageActivityTypesImpl(PtConstants.TRANSIT_ACTIVITY_TYPE);

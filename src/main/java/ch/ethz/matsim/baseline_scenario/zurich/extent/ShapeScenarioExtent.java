@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.geotools.data.DataStore;
@@ -68,9 +69,13 @@ public class ShapeScenarioExtent implements ScenarioExtent {
 
 	static public class Builder {
 		private final File path;
+		private final String attribute;
+		private final String value;
 
-		public Builder(File path) {
+		public Builder(File path, String attribute, String value) {
 			this.path = path;
+			this.attribute = attribute;
+			this.value = value;
 		}
 
 		public ShapeScenarioExtent build() throws MalformedURLException, IOException {
@@ -79,32 +84,41 @@ public class ShapeScenarioExtent implements ScenarioExtent {
 			SimpleFeatureCollection featureCollection = featureSource.getFeatures();
 			SimpleFeatureIterator featureIterator = featureCollection.features();
 
-			if (featureCollection.size() != 1) {
-				throw new IllegalStateException("Expecting exactly one feature in extent shape file.");
-			}
+			List<Polygon> polygons = new LinkedList<>();
 
-			SimpleFeature feature = featureIterator.next();
-			Geometry geometry = (Geometry) feature.getDefaultGeometry();
-			Polygon polygon = null;
+			while (featureIterator.hasNext()) {
+				SimpleFeature feature = featureIterator.next();
+				Geometry geometry = (Geometry) feature.getDefaultGeometry();
 
-			if (geometry instanceof MultiPolygon) {
-				MultiPolygon multiPolygon = (MultiPolygon) geometry;
+				if (value.equals(feature.getAttribute(attribute))) {
+					if (geometry instanceof MultiPolygon) {
+						MultiPolygon multiPolygon = (MultiPolygon) geometry;
 
-				if (multiPolygon.getNumGeometries() != 1) {
-					throw new IllegalStateException("Extent shape is non-connected.");
+						if (multiPolygon.getNumGeometries() != 1) {
+							throw new IllegalStateException("Extent shape is non-connected.");
+						}
+
+						polygons.add((Polygon) multiPolygon.getGeometryN(0));
+					} else if (geometry instanceof Polygon) {
+						polygons.add((Polygon) geometry);
+					} else {
+						throw new IllegalStateException("Expecting polygon geometry!");
+					}
 				}
-
-				polygon = (Polygon) multiPolygon.getGeometryN(0);
-			} else if (geometry instanceof Polygon) {
-				polygon = (Polygon) geometry;
-			} else {
-				throw new IllegalStateException("Expecting polygon geometry!");
 			}
 
 			featureIterator.close();
 			dataStore.dispose();
 
-			return new ShapeScenarioExtent(polygon);
+			if (polygons.size() > 1) {
+				throw new IllegalStateException("Found more than one polygon that match to the filter.");
+			}
+
+			if (polygons.size() == 0) {
+				throw new IllegalStateException("Did not find scenario polygon.");
+			}
+
+			return new ShapeScenarioExtent(polygons.get(0));
 		}
 	}
 }

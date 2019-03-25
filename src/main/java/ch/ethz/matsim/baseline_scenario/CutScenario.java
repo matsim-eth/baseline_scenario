@@ -86,13 +86,16 @@ public class CutScenario {
 	static public void main(String[] args)
 			throws ConfigurationException, MalformedURLException, IOException, InterruptedException {
 		CommandLine cmd = new CommandLine.Builder(args) //
-				.requireOptions("input-config-path", "shapefile-path", "output-path", "prefix") //
+				.requireOptions("input-config-path", "shapefile-path", "shapefile-attribute", "shapefile-value",
+						"output-path", "prefix") //
 				.allowOptions("threads", "local-buffer-size") //
 				.build();
 
 		String prefix = cmd.getOptionStrict("prefix");
 		String inputConfigPath = cmd.getOptionStrict("input-config-path");
 		File shapefilePath = new File(cmd.getOptionStrict("shapefile-path"));
+		String shapefileAttribute = cmd.getOptionStrict("shapefile-attribute");
+		String shapefileValue = cmd.getOptionStrict("shapefile-value");
 		int numberOfThreads = cmd.getOption("threads").map(Integer::parseInt)
 				.orElse(Runtime.getRuntime().availableProcessors());
 		int localBufferSize = cmd.getOption("local-buffer-size").map(Integer::parseInt).orElse(100);
@@ -108,7 +111,8 @@ public class CutScenario {
 				new DefaultEnrichedTransitRouteFactory());
 		ScenarioUtils.loadScenario(scenario);
 
-		ScenarioExtent scenarioExtent = new ShapeScenarioExtent.Builder(shapefilePath).build();
+		ScenarioExtent scenarioExtent = new ShapeScenarioExtent.Builder(shapefilePath, shapefileAttribute,
+				shapefileValue).build();
 
 		if (!checkRouting(scenario.getPopulation())) {
 			throw new IllegalStateException("Input population should be routed completely.");
