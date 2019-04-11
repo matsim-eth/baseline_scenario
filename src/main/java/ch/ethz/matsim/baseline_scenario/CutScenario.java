@@ -108,7 +108,7 @@ public class CutScenario {
 		Config config = ConfigUtils.loadConfig(inputConfigPath);
 
 		if (cmd.hasOption("population-path")) {
-			config.plans().setInputCRS(cmd.getOptionStrict("population-path"));
+			config.plans().setInputFile(cmd.getOptionStrict("population-path"));
 		}
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
