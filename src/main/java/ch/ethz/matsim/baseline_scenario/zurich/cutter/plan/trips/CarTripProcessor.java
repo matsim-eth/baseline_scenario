@@ -17,10 +17,16 @@ import ch.ethz.matsim.baseline_scenario.zurich.extent.ScenarioExtent;
 public class CarTripProcessor implements TripProcessor {
 	final private NetworkCrossingPointFinder crossingPointFinder;
 	final private ScenarioExtent extent;
+	private final String mode;
 
 	public CarTripProcessor(NetworkCrossingPointFinder crossingPointFinder, ScenarioExtent extent) {
+		this(crossingPointFinder, extent, "car");
+	}
+
+	public CarTripProcessor(NetworkCrossingPointFinder crossingPointFinder, ScenarioExtent extent, String mode) {
 		this.crossingPointFinder = crossingPointFinder;
 		this.extent = extent;
+		this.mode = mode;
 	}
 
 	@Override
@@ -44,17 +50,17 @@ public class CarTripProcessor implements TripProcessor {
 		List<NetworkCrossingPoint> crossingPoints = crossingPointFinder.findCrossingPoints(route, departureTime);
 
 		if (crossingPoints.size() == 0) {
-			return Arrays.asList(PopulationUtils.createLeg(allOutside ? "outside" : "car"));
+			return Arrays.asList(PopulationUtils.createLeg(allOutside ? "outside" : mode));
 		} else {
 			List<PlanElement> result = new LinkedList<>();
 
-			result.add(PopulationUtils.createLeg(crossingPoints.get(0).isOutgoing ? "car" : "outside"));
+			result.add(PopulationUtils.createLeg(crossingPoints.get(0).isOutgoing ? mode : "outside"));
 
 			for (NetworkCrossingPoint point : crossingPoints) {
 				Activity activity = PopulationUtils.createActivityFromLinkId("outside", point.link.getId());
 				activity.setEndTime(point.leaveTime);
 				result.add(activity);
-				result.add(PopulationUtils.createLeg(point.isOutgoing ? "outside" : "car"));
+				result.add(PopulationUtils.createLeg(point.isOutgoing ? "outside" : mode));
 			}
 
 			return result;

@@ -144,6 +144,9 @@ public class CutScenario {
 				scenario.getNetwork(), networkTravelTime);
 		tripProcessors.put(TransportMode.car, new CarTripProcessor(networkCrossingPointFinder, scenarioExtent));
 
+		tripProcessors.put("car_passenger",
+				new CarTripProcessor(networkCrossingPointFinder, scenarioExtent, "car_passenger"));
+
 		TransitRouteCrossingPointFinder transitRouteCrossingPointFinder = new DefaultTransitRouteCrossingPointFinder(
 				scenarioExtent, scenario.getTransitSchedule());
 		TransitTripCrossingPointFinder transitTripCrossingPointFinder = new DefaultTransitTripCrossingPointFinder(
