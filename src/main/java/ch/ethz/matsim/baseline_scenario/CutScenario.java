@@ -295,7 +295,10 @@ public class CutScenario {
 		new ConfigCutter(prefix).run(config);
 
 		// Routing
-		Routing routing = new Routing(config, scenario.getNetwork(), updatedRoadNetwork, scenario.getTransitSchedule());
+		Network finalRoadNetwork = NetworkUtils.createNetwork();
+		new TransportModeNetworkFilter(scenario.getNetwork()).filter(finalRoadNetwork, Collections.singleton("car"));
+
+		Routing routing = new Routing(config, scenario.getNetwork(), finalRoadNetwork, scenario.getTransitSchedule());
 		routing.run(scenario.getPopulation());
 
 		// Additional stages
