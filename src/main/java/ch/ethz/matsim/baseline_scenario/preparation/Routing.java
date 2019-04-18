@@ -234,6 +234,18 @@ public class Routing {
 		NetworkRoutingModule passengerRoutingModule = new NetworkRoutingModule("car_passenger", populationFactory,
 				carNetwork, carRouter);
 		tripRouterBuilder.putRoutingModule("car_passenger", new RoutingModuleProvider(passengerRoutingModule));
+		
+		NetworkRoutingModule prav3RoutingModule = new NetworkRoutingModule("prav3", populationFactory,
+				carNetwork, carRouter);
+		tripRouterBuilder.putRoutingModule("prav3", new RoutingModuleProvider(prav3RoutingModule));
+		
+		NetworkRoutingModule prav4RoutingModule = new NetworkRoutingModule("prav4", populationFactory,
+				carNetwork, carRouter);
+		tripRouterBuilder.putRoutingModule("prav4", new RoutingModuleProvider(prav4RoutingModule));
+		
+		NetworkRoutingModule prav5RoutingModule = new NetworkRoutingModule("prav5", populationFactory,
+				carNetwork, carRouter);
+		tripRouterBuilder.putRoutingModule("prav5", new RoutingModuleProvider(prav5RoutingModule));
 
 		ModeRoutingParams walkParams = config.plansCalcRoute().getModeRoutingParams().get("walk");
 		TeleportationRoutingModule walkRoutingModule = new TeleportationRoutingModule("walk", populationFactory,
