@@ -4,13 +4,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ch.ethz.matsim</groupId>
 	<artifactId>baseline_scenario</artifactId>
-	<version>11.0.0</version>
-	<description>Compatible with MATSim 11.0</description>
+	<version>12.0.0</version>
+	<description>Compatible with MATSim 12.0 SNAPSHOT</description>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<matsim.version>11.0</matsim.version>
+		<matsim.version>12.0-2019w20-SNAPSHOT</matsim.version>
 	</properties>
 
 	<repositories>
@@ -23,6 +23,10 @@
 		<repository>
 			<id>matsim</id>
 			<url>http://dl.bintray.com/matsim/matsim</url>
+		</repository>
+		<repository>
+			<id>matsim-snapshot</id>
+			<url>http://oss.jfrog.org/libs-snapshot</url>
 		</repository>
 		<repository>
 			<id>matsim-eth</id>
