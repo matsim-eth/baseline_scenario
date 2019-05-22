@@ -4,12 +4,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ch.ethz.matsim</groupId>
 	<artifactId>baseline_scenario</artifactId>
-	<version>0.3.2</version>
-	<description>Compatible with MATSim 0.11.0-SNAPSHOT</description>
+	<version>11.0.0</version>
+	<description>Compatible with MATSim 11.0</description>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<matsim.version>11.0</matsim.version>
 	</properties>
 
 	<repositories>
@@ -28,8 +29,8 @@
 			<url>http://dl.bintray.com/matsim-eth/matsim</url>
 		</repository>
 		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
+			<id>sbb</id>
+			<url>https://schweizerischebundesbahnen.bintray.com/simba.mvn</url>
 		</repository>
 	</repositories>
 
@@ -81,33 +82,33 @@
 		<dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
-			<version>0.11.0-2018w44</version>
+			<version>${matsim.version}</version>
 		</dependency>
 
         <dependency>
 			<groupId>org.matsim</groupId>
 			<artifactId>matsim</artifactId>
             <type>test-jar</type>
-			<version>0.11.0-2018w44</version>
+			<version>${matsim.version}</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>dvrp</artifactId>
-			<version>0.11.0-2018w44</version>
+			<version>${matsim.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>ch.ethz.matsim</groupId>
 			<artifactId>location_assignment</artifactId>
-			<version>0.3.0</version>
+			<version>11.0.3</version>
 		</dependency>
 
 		<dependency>
-			<groupId>com.github.simunto</groupId>
+			<groupId>ch.sbb</groupId>
 			<artifactId>matsim-sbb-extensions</artifactId>
-			<version>0.11.0-2018w44</version>
+			<version>11.0</version>
 		</dependency>
 
 		<dependency>
