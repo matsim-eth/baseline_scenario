@@ -131,7 +131,7 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 		}
 		
 		try {
-			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("links_input.txt"))));
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("links_output.txt"))));
 			
 			for (Id<Link> linkId : relevantIds) {
 				writer.write(linkId.toString() + "\n");
