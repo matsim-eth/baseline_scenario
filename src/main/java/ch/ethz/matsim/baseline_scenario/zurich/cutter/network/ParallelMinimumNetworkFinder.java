@@ -48,7 +48,7 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 	@Override
 	public Set<Id<Link>> run(Set<Id<Link>> linkIds) {
 		try {
-			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("links.txt"))));
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("links_input.txt"))));
 			
 			for (Id<Link> linkId : linkIds) {
 				writer.write(linkId.toString() + "\n");
@@ -56,9 +56,7 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 			}
 			
 			writer.close();
-		} catch (IOException e1) {
-			
-		}
+		} catch (IOException e) {}
 		
 		AtomicInteger numberOfProcessedLinks = new AtomicInteger(0);
 		int numberOfLinks = linkIds.size();
@@ -92,7 +90,7 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 						throw new IllegalStateException("Cannot find link " + testLinkId);
 					}
 
-					if (!forwardTabuSet.contains(testLinkId)) {
+					if (true) { //!forwardTabuSet.contains(testLinkId)) {
 						Path result = calculator.calcLeastCostPath(testLink.getToNode(), referenceLink.getFromNode(),
 								0.0, null, null);
 
@@ -104,7 +102,7 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 						result.links.forEach(l -> coveredSet.add(l.getId()));
 					}
 
-					if (!backwardTabuSet.contains(testLinkId)) {
+					if (true) { //!backwardTabuSet.contains(testLinkId)) {
 						Path result = calculator.calcLeastCostPath(referenceLink.getToNode(), testLink.getFromNode(),
 								0.0, null, null);
 
@@ -131,6 +129,17 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 		} catch (InterruptedException | ExecutionException e) {
 			throw new RuntimeException(e);
 		}
+		
+		try {
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("links_input.txt"))));
+			
+			for (Id<Link> linkId : relevantIds) {
+				writer.write(linkId.toString() + "\n");
+				writer.flush();
+			}
+			
+			writer.close();
+		} catch (IOException e) {}
 
 		return relevantIds;
 	}
