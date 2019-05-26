@@ -78,6 +78,10 @@ public class NetworkCutter {
 							retainedPopulationLinkIds.add(networkRoute.getStartLinkId());
 							retainedPopulationLinkIds.add(networkRoute.getEndLinkId());
 							retainedPopulationLinkIds.addAll(networkRoute.getLinkIds());
+							
+							routeSearchLinkIds.add(networkRoute.getStartLinkId());
+							routeSearchLinkIds.add(networkRoute.getEndLinkId());
+							routeSearchLinkIds.addAll(networkRoute.getLinkIds());
 						}
 					}
 				}
