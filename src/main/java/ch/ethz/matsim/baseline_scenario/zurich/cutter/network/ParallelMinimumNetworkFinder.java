@@ -60,12 +60,14 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 				TravelDisutility travelDisutility = new OnlyTimeDependentTravelDisutility(travelTime);
 				LeastCostPathCalculator calculator = new DijkstraFactory().createPathCalculator(network,
 						travelDisutility, travelTime);
-
+				
+				Set<Id<Link>> coveredSet = new HashSet<>();
 				Set<Id<Link>> forwardTabuSet = new HashSet<>();
 				Set<Id<Link>> backwardTabuSet = new HashSet<>();
 
 				for (Id<Link> testLinkId : localPendingList) {
 					Link testLink = network.getLinks().get(testLinkId);
+					coveredSet.add(testLinkId);
 
 					if (testLink == null) {
 						throw new IllegalStateException("Cannot find link " + testLinkId);
@@ -79,6 +81,8 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 							result.links.subList(1, result.links.size() - 1)
 									.forEach(l -> forwardTabuSet.add(l.getId()));
 						}
+						
+						result.links.forEach(l -> coveredSet.add(l.getId()));
 					}
 
 					if (!backwardTabuSet.contains(testLinkId)) {
@@ -89,6 +93,8 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 							result.links.subList(1, result.links.size() - 1)
 									.forEach(l -> backwardTabuSet.add(l.getId()));
 						}
+						
+						result.links.forEach(l -> coveredSet.add(l.getId()));
 					}
 
 					int currentNumberOfProcessedLinks = numberOfProcessedLinks.incrementAndGet();
@@ -97,10 +103,7 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 							numberOfLinks, percentage));
 				}
 
-				Set<Id<Link>> combinedSet = new HashSet<>();
-				combinedSet.addAll(forwardTabuSet);
-				combinedSet.addAll(backwardTabuSet);
-				return combinedSet;
+				return coveredSet;
 			}, executor).thenAccept(partialSet -> relevantIds.addAll(partialSet)));
 		}
 
