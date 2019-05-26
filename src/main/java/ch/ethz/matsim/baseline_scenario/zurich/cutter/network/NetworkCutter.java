@@ -136,16 +136,8 @@ public class NetworkCutter {
 		allRemovedLinkIds.removeAll(allRetainedLinkIds);
 		allRemovedNodeIds.removeAll(allRetainedNodeIds);
 
-		//allRemovedLinkIds.forEach(id -> network.removeLink(id));
-		//allRemovedNodeIds.forEach(id -> network.removeNode(id));
-		
-		for (Id<Link> linkId : allRemovedLinkIds) {
-			network.getLinks().get(linkId).getAttributes().putAttribute("remove", "true");
-		}
-		
-		for (Id<Node> nodeId : allRemovedNodeIds) {
-			network.getNodes().get(nodeId).getAttributes().putAttribute("remove", "true");
-		}
+		allRemovedLinkIds.forEach(id -> network.removeLink(id));
+		allRemovedNodeIds.forEach(id -> network.removeNode(id));
 
 		int finalNumberOfNodes = network.getNodes().size();
 		int finalNumberOfLinks = network.getLinks().size();

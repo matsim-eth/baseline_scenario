@@ -70,65 +70,19 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 					if (testLink == null) {
 						throw new IllegalStateException("Cannot find link " + testLinkId);
 					}
-					
-					if (testLink.getId().toString().equals("771224")) {
-						System.out.println("START 771224");
-					}
 
 					if (!forwardTabuSet.contains(testLinkId)) {
 						Path result = calculator.calcLeastCostPath(testLink.getToNode(), referenceLink.getFromNode(),
 								0.0, null, null);
-						
-						boolean isIn = false;
-						
-						for (Link link : result.links) {
-							if (link.getId().toString().equals("771224")) {
-								System.out.println("ADDED TO FORWARD TABU BY " + testLink.getId().toString());
-								isIn = true;
-							}
-						}
-						
-						if (testLink.getId().toString().equals("771224") || isIn) {
-							System.out.println("FORWARD");
-							for (Link link : result.links) {
-								System.out.print(link.getId() + " ");
-							}
-							System.out.println("");
-						}
 
-						result.links.forEach(l -> forwardTabuSet.add(l.getId()));
-					} else {
-						System.out.println("ALREADY IN FORWARD TABU");
+						result.links.subList(1, result.links.size() - 1).forEach(l -> forwardTabuSet.add(l.getId()));
 					}
 
 					if (!backwardTabuSet.contains(testLinkId)) {
 						Path result = calculator.calcLeastCostPath(referenceLink.getToNode(), testLink.getFromNode(),
 								0.0, null, null);
-						
-						boolean isIn = false;
-						
-						for (Link link : result.links) {
-							if (link.getId().toString().equals("771224")) {
-								System.out.println("ADDED TO BACKWARD TABU BY " + testLink.getId().toString());
-								isIn = true;
-							}
-						}
-						
-						if (testLink.getId().toString().equals("771224") || isIn) {
-							System.out.println("BACKWARD");
-							for (Link link : result.links) {
-								System.out.print(link.getId() + " ");
-							}
-							System.out.println("");
-						}
 
-						result.links.forEach(l -> backwardTabuSet.add(l.getId()));
-					} else {
-						System.out.println("ALREADY IN BACKWARD TABU");
-					}
-					
-					if (testLink.getId().toString().equals("771224")) {
-						System.out.println("END 771224");
+						result.links.subList(1, result.links.size() - 1).forEach(l -> backwardTabuSet.add(l.getId()));
 					}
 
 					int currentNumberOfProcessedLinks = numberOfProcessedLinks.incrementAndGet();
