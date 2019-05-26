@@ -1,5 +1,11 @@
 package ch.ethz.matsim.baseline_scenario.zurich.cutter.network;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -41,6 +47,19 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 
 	@Override
 	public Set<Id<Link>> run(Set<Id<Link>> linkIds) {
+		try {
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("links.txt"))));
+			
+			for (Id<Link> linkId : linkIds) {
+				writer.write(linkId.toString() + "\n");
+				writer.flush();
+			}
+			
+			writer.close();
+		} catch (IOException e1) {
+			
+		}
+		
 		AtomicInteger numberOfProcessedLinks = new AtomicInteger(0);
 		int numberOfLinks = linkIds.size();
 
