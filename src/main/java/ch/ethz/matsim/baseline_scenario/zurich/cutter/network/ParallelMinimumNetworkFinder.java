@@ -75,14 +75,20 @@ public class ParallelMinimumNetworkFinder implements MinimumNetworkFinder {
 						Path result = calculator.calcLeastCostPath(testLink.getToNode(), referenceLink.getFromNode(),
 								0.0, null, null);
 
-						result.links.subList(1, result.links.size() - 1).forEach(l -> forwardTabuSet.add(l.getId()));
+						if (result.links.size() > 1) {
+							result.links.subList(1, result.links.size() - 1)
+									.forEach(l -> forwardTabuSet.add(l.getId()));
+						}
 					}
 
 					if (!backwardTabuSet.contains(testLinkId)) {
 						Path result = calculator.calcLeastCostPath(referenceLink.getToNode(), testLink.getFromNode(),
 								0.0, null, null);
 
-						result.links.subList(1, result.links.size() - 1).forEach(l -> backwardTabuSet.add(l.getId()));
+						if (result.links.size() > 1) {
+							result.links.subList(1, result.links.size() - 1)
+									.forEach(l -> backwardTabuSet.add(l.getId()));
+						}
 					}
 
 					int currentNumberOfProcessedLinks = numberOfProcessedLinks.incrementAndGet();
