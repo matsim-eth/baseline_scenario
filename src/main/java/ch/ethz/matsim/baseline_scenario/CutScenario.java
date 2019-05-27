@@ -88,7 +88,7 @@ public class CutScenario {
 		CommandLine cmd = new CommandLine.Builder(args) //
 				.requireOptions("input-config-path", "shapefile-path", "shapefile-attribute", "shapefile-value",
 						"output-path", "prefix") //
-				.allowOptions("threads", "local-buffer-size", "population-path") //
+				.allowOptions("threads", "local-buffer-size", "population-path", "network-path") //
 				.build();
 
 		String prefix = cmd.getOptionStrict("prefix");
@@ -109,6 +109,10 @@ public class CutScenario {
 
 		if (cmd.hasOption("population-path")) {
 			config.plans().setInputFile(cmd.getOptionStrict("population-path"));
+		}
+		
+		if (cmd.hasOption("network-path")) {
+			config.network().setInputFile(cmd.getOptionStrict("network-path"));
 		}
 
 		Scenario scenario = ScenarioUtils.createScenario(config);
