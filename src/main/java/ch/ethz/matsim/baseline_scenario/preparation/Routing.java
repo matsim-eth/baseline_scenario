@@ -239,6 +239,10 @@ public class Routing {
 				carNetwork, carRouter);
 		tripRouterBuilder.putRoutingModule("truck", new RoutingModuleProvider(truckRoutingModule));
 		
+		NetworkRoutingModule truckAvRoutingModule = new NetworkRoutingModule("truckAv", populationFactory,
+				carNetwork, carRouter);
+		tripRouterBuilder.putRoutingModule("truckAv", new RoutingModuleProvider(truckAvRoutingModule));
+		
 		NetworkRoutingModule prav3RoutingModule = new NetworkRoutingModule("prav3", populationFactory,
 				carNetwork, carRouter);
 		tripRouterBuilder.putRoutingModule("prav3", new RoutingModuleProvider(prav3RoutingModule));

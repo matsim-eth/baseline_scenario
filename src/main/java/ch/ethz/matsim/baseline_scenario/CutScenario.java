@@ -153,6 +153,8 @@ public class CutScenario {
 		tripProcessors.put("prav3", new CarTripProcessor(networkCrossingPointFinder, scenarioExtent, "prav3"));
 		tripProcessors.put("prav4", new CarTripProcessor(networkCrossingPointFinder, scenarioExtent, "prav4"));
 		tripProcessors.put("prav5", new CarTripProcessor(networkCrossingPointFinder, scenarioExtent, "prav5"));
+		tripProcessors.put("truck", new CarTripProcessor(networkCrossingPointFinder, scenarioExtent, "truck"));
+		tripProcessors.put("truckAv", new CarTripProcessor(networkCrossingPointFinder, scenarioExtent, "truckAv"));
 
 		TransitRouteCrossingPointFinder transitRouteCrossingPointFinder = new DefaultTransitRouteCrossingPointFinder(
 				scenarioExtent, scenario.getTransitSchedule());
