@@ -41,23 +41,19 @@ public class NetworkCutter {
 		log.info("Cutting the network ...");
 
 		// Collect all links that within the area
-		Set<Id<Link>> retainedInsideLinkIds = new HashSet<>();
-		Set<Id<Link>> routeSearchLinkIds = new HashSet<>();
+		Set<Id<Link>> retaineLinkIds = new HashSet<>();
 
 		for (Link link : network.getLinks().values()) {
 			if (extent.isInside(link.getToNode().getCoord()) || extent.isInside(link.getFromNode().getCoord())) {
-				retainedInsideLinkIds.add(link.getId());
+				retaineLinkIds.add(link.getId());
 			}
 
 			if (link.getId().toString().contains("outside")) {
-				retainedInsideLinkIds.add(link.getId());
-				routeSearchLinkIds.add(link.getId());
+				retaineLinkIds.add(link.getId());
 			}
 		}
 
 		// Collect all links that are needed by the population
-		Set<Id<Link>> retainedPopulationLinkIds = new HashSet<>();
-
 		for (Person person : population.getPersons().values()) {
 			for (Plan plan : person.getPlans()) {
 				for (PlanElement element : plan.getPlanElements()) {
@@ -65,8 +61,7 @@ public class NetworkCutter {
 						Activity activity = (Activity) element;
 
 						if (!activity.getType().equals(PtConstants.TRANSIT_ACTIVITY_TYPE)) {
-							retainedPopulationLinkIds.add(activity.getLinkId());
-							routeSearchLinkIds.add(activity.getLinkId());
+							retaineLinkIds.add(activity.getLinkId());
 						}
 					} else {
 						Leg leg = (Leg) element;
@@ -75,9 +70,9 @@ public class NetworkCutter {
 						if (route instanceof NetworkRoute) {
 							NetworkRoute networkRoute = (NetworkRoute) route;
 
-							retainedPopulationLinkIds.add(networkRoute.getStartLinkId());
-							retainedPopulationLinkIds.add(networkRoute.getEndLinkId());
-							retainedPopulationLinkIds.addAll(networkRoute.getLinkIds());
+							retaineLinkIds.add(networkRoute.getStartLinkId());
+							retaineLinkIds.add(networkRoute.getEndLinkId());
+							retaineLinkIds.addAll(networkRoute.getLinkIds());
 						}
 					}
 				}
@@ -85,20 +80,18 @@ public class NetworkCutter {
 		}
 
 		// Collect all links that are needed by the public transit lines
-		Set<Id<Link>> retainedPublicTransitLinkIds = new HashSet<>();
-
 		for (TransitLine transitLine : transitSchedule.getTransitLines().values()) {
 			for (TransitRoute transitRoute : transitLine.getRoutes().values()) {
 				NetworkRoute networkRoute = transitRoute.getRoute();
 
-				retainedPublicTransitLinkIds.add(networkRoute.getStartLinkId());
-				retainedPublicTransitLinkIds.add(networkRoute.getEndLinkId());
-				retainedPublicTransitLinkIds.addAll(networkRoute.getLinkIds());
+				retaineLinkIds.add(networkRoute.getStartLinkId());
+				retaineLinkIds.add(networkRoute.getEndLinkId());
+				retaineLinkIds.addAll(networkRoute.getLinkIds());
 			}
 		}
 
 		for (TransitStopFacility facility : transitSchedule.getFacilities().values()) {
-			retainedPublicTransitLinkIds.add(facility.getLinkId());
+			retaineLinkIds.add(facility.getLinkId());
 		}
 
 		// Further processing is needed for the population links, because it may be the
@@ -109,11 +102,17 @@ public class NetworkCutter {
 		// a route from all retained links to this point and that all retained links can
 		// be reached by this reference point.
 
+		Set<Id<Link>> retainedCarLinkIds = new HashSet<>();
+
+		for (Id<Link> linkId : retaineLinkIds) {
+			if (network.getLinks().get(linkId).getAllowedModes().contains("car")) {
+				retainedCarLinkIds.add(linkId);
+			}
+		}
+
 		Set<Id<Link>> allRetainedLinkIds = new HashSet<>();
-		allRetainedLinkIds.addAll(minimumNetworkFinder.run(routeSearchLinkIds));
-		allRetainedLinkIds.addAll(retainedInsideLinkIds);
-		allRetainedLinkIds.addAll(retainedPublicTransitLinkIds);
-		allRetainedLinkIds.addAll(retainedPopulationLinkIds);
+		allRetainedLinkIds.addAll(retaineLinkIds);
+		allRetainedLinkIds.addAll(minimumNetworkFinder.run(retainedCarLinkIds));
 
 		// Note that this means, that public transit lines CANNOT change their routes in
 		// the simulation if this is desired (at least not outside of the scenario
