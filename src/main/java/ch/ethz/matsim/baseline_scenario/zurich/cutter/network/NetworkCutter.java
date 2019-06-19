@@ -16,6 +16,9 @@ import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.api.core.v01.population.Route;
 import org.matsim.core.population.routes.NetworkRoute;
+import org.matsim.facilities.ActivityFacilities;
+import org.matsim.facilities.ActivityFacility;
+import org.matsim.facilities.Facility;
 import org.matsim.pt.PtConstants;
 import org.matsim.pt.transitSchedule.api.TransitLine;
 import org.matsim.pt.transitSchedule.api.TransitRoute;
@@ -35,7 +38,7 @@ public class NetworkCutter {
 		this.minimumNetworkFinder = minimumNetworkFinder;
 	}
 
-	public void run(Population population, TransitSchedule transitSchedule, Network network) {
+	public void run(Population population, ActivityFacilities facilities, TransitSchedule transitSchedule, Network network) {
 		int originalNumberOfLinks = network.getLinks().size();
 		int originalNumberOfNodes = network.getNodes().size();
 		log.info("Cutting the network ...");
@@ -62,6 +65,16 @@ public class NetworkCutter {
 
 						if (!activity.getType().equals(PtConstants.TRANSIT_ACTIVITY_TYPE)) {
 							retaineLinkIds.add(activity.getLinkId());
+							
+							Facility<?> facility = facilities.getFacilities().get(activity.getFacilityId());
+							
+							if (facility != null) {
+								Id<Link> facilityLinkId = facility.getLinkId();
+								
+								if (facilityLinkId != null) {
+									retaineLinkIds.add(facilityLinkId);
+								}
+							}
 						}
 					} else {
 						Leg leg = (Leg) element;

@@ -69,7 +69,7 @@ public class RunNetworkCutter {
 		new PopulationReader(scenario).readFile(populationInputPath);
 		new TransitScheduleReader(scenario).readFile(transitScheduleInputPath);
 
-		networkCutter.run(scenario.getPopulation(), scenario.getTransitSchedule(), scenario.getNetwork());
+		networkCutter.run(scenario.getPopulation(), scenario.getActivityFacilities(), scenario.getTransitSchedule(), scenario.getNetwork());
 		executor.shutdown();
 
 		new NetworkWriter(scenario.getNetwork()).write(networkOutputPath);

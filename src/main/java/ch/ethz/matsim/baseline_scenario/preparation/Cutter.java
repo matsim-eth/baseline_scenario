@@ -171,7 +171,7 @@ public class Cutter {
 					minimumNetworkFinder);
 		}
 
-		new NetworkCutter(extent, minimumNetworkFinder).run(scenario.getPopulation(), scenario.getTransitSchedule(),
+		new NetworkCutter(extent, minimumNetworkFinder).run(scenario.getPopulation(), scenario.getActivityFacilities(), scenario.getTransitSchedule(),
 				scenario.getNetwork());
 
 		new AdjustLinkLengths(10.0).run(scenario.getNetwork());
