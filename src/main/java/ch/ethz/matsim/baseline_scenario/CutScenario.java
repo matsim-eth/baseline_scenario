@@ -282,7 +282,7 @@ public class CutScenario {
 		MinimumNetworkFinder minimumNetworkFinder = new ParallelMinimumNetworkFinder(mainExecutor, numberOfThreads,
 				updatedRoadNetwork, referenceLink);
 
-		new NetworkCutter(scenarioExtent, minimumNetworkFinder).run(scenario.getPopulation(),
+		new NetworkCutter(scenarioExtent, minimumNetworkFinder).run(scenario.getPopulation(), scenario.getActivityFacilities(),
 				scenario.getTransitSchedule(), scenario.getNetwork());
 
 		new AdjustLinkLengths(10.0).run(scenario.getNetwork());
