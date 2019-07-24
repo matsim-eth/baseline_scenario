@@ -91,7 +91,11 @@ public class PopulationTripReader {
 			double distance = 0.0;
 
 			for (Leg leg : trip.getLegsOnly()) {
-				distance += leg.getRoute().getDistance();
+				if (leg.getRoute() == null) {
+					return Double.NaN;
+				} else {
+					distance += leg.getRoute().getDistance();
+				}
 			}
 
 			return distance;
